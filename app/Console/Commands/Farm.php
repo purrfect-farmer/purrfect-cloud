@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\Account;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class Farm extends Command
@@ -28,6 +29,7 @@ class Farm extends Command
      */
     public function handle()
     {
+        // Start Farming
         Account::all()->each(function (Account $account) {
             try {
                 $api = Http::withHeaders($account->headers)
@@ -49,5 +51,8 @@ class Farm extends Command
                 $account->delete();
             }
         });
+
+        // Log Farming Completion
+        Log::info('Completed Farming - ' . now());
     }
 }
