@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Helpers;
 use App\Models\Account;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
@@ -24,14 +25,6 @@ class FarmFunatic extends Command
      */
     protected $description = 'Farm Funatic Automatically';
 
-
-    /**
-     * Http User Agent
-     *
-     * @var string
-     */
-    protected $userAgent = 'Mozilla/5.0 (Linux; Android 14; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.6778.135 Mobile Safari/537.36 Telegram-Android/11.5.5 (Samsung SM-G991U1; Android 14; SDK 34; HIGH)';
-
     /**
      * Execute the console command.
      */
@@ -45,7 +38,9 @@ class FarmFunatic extends Command
 
                     /** API */
                     $api = Http::withHeaders($account->headers)
-                        ->withUserAgent($this->userAgent);
+                        ->withUserAgent(
+                            Helpers::getUserAgent($account->user_id)
+                        );
 
                     /** Get Boosters */
                     $boosters = $api->get('https://clicker.api.funtico.com/boosters')->json('data');
@@ -105,7 +100,9 @@ class FarmFunatic extends Command
 
                     /** Tap */
                     Http::withHeaders($account->headers)
-                        ->withUserAgent($this->userAgent)
+                        ->withUserAgent(
+                            Helpers::getUserAgent($account->user_id)
+                        )
                         ->post(
                             'https://clicker.api.funtico.com/tap',
                             [
