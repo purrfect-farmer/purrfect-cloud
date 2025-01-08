@@ -38,7 +38,7 @@ class FarmGoldEagle extends Command
                     /** API */
                     $api = Http::withHeaders($account->headers)
                         ->withUserAgent(
-                            Helpers::getUserAgent($account->user_id)
+                            $account->headers['User-Agent'] ?: Helpers::getUserAgent($account->user_id)
                         );
 
                     /** Get Progress */

@@ -39,7 +39,7 @@ class FarmFunatic extends Command
                     /** API */
                     $api = Http::withHeaders($account->headers)
                         ->withUserAgent(
-                            Helpers::getUserAgent($account->user_id)
+                            $account->headers['User-Agent'] ?: Helpers::getUserAgent($account->user_id)
                         );
 
                     /** Get Boosters */
@@ -101,7 +101,7 @@ class FarmFunatic extends Command
                     /** Tap */
                     Http::withHeaders($account->headers)
                         ->withUserAgent(
-                            Helpers::getUserAgent($account->user_id)
+                            $account->headers['User-Agent'] ?: Helpers::getUserAgent($account->user_id)
                         )
                         ->post(
                             'https://clicker.api.funtico.com/tap',
