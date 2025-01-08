@@ -13,4 +13,4 @@ Artisan::command('inspire', function () {
 Schedule::command('farm:gold-eagle')->everyTenMinutes();
 
 /** Farm Funatic every 30 Minutes */
-Schedule::command('farm:funatic')->everyThirtyMinutes();
+Schedule::command('farm:funatic')->everyTenMinutes();
