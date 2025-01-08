@@ -9,5 +9,8 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote')->hourly();
 
 
-/** Farm every 10 Minutes */
-Schedule::command('app:farm')->everyTenMinutes();
+/** Farm Gold Eagle every 10 Minutes */
+Schedule::command('farm:gold-eagle')->everyTenMinutes();
+
+/** Farm Funatic every 30 Minutes */
+Schedule::command('farm:funatic')->everyThirtyMinutes();

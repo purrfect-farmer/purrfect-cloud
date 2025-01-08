@@ -5,17 +5,23 @@ namespace App\Http\Controllers;
 use App\Models\Account;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class CloudFarmerController extends Controller
 {
     public function sync(Request $request)
     {
         $data = $request->validate([
-            'farmer' => ['required', 'string', Rule::in(['gold-eagle'])],
+            'farmer' => [
+                'required',
+                'string',
+                Rule::in([
+                    'funatic',
+                    'gold-eagle'
+                ])
+            ],
             'user_id' => ['required', 'integer'],
-            'telegram_web_app' => ['required'],
-            'headers' => ['required']
+            'telegram_web_app' => ['required', 'array'],
+            'headers' => ['required', 'array']
         ]);
 
 
