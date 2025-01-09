@@ -17,7 +17,8 @@ class CloudFarmerController extends Controller
                 'string',
                 Rule::in([
                     'funatic',
-                    'gold-eagle'
+                    'gold-eagle',
+                    'zoo',
                 ])
             ],
             'user_id' => ['required', 'integer'],
