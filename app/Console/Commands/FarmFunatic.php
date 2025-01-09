@@ -33,6 +33,9 @@ class FarmFunatic extends Command
     {
 
         Cache::lock($this->signature)->get(function () {
+            // Log Farming Start
+            Log::info('[START] Funatic Farming');
+
             // Retrieve Accounts
             $accounts = Account::where('farmer', 'funatic')
                 ->get()->map(function (Account $account) {
@@ -128,7 +131,7 @@ class FarmFunatic extends Command
             }
 
             /** Log Farming Completion */
-            Log::info('Completed Funatic Farming - ' . now());
+            Log::info('[END] Funatic Farming');
         });
     }
 }

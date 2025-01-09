@@ -33,6 +33,9 @@ class FarmZoo extends Command
     public function handle()
     {
         Cache::lock($this->signature)->get(function () {
+            // Log Farming Start
+            Log::info('[START] Zoo Farming');
+
             // Start Farming
             Account::where('farmer', 'zoo')
                 ->get()
@@ -286,7 +289,7 @@ class FarmZoo extends Command
                 });
 
             // Log Farming Completion
-            Log::info('Completed Zoo Farming - ' . now());
+            Log::info('[END] Zoo Farming');
         });
     }
 

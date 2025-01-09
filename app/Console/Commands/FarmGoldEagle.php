@@ -32,6 +32,9 @@ class FarmGoldEagle extends Command
     public function handle()
     {
         Cache::lock($this->signature)->get(function () {
+            // Log Farming Start
+            Log::info('[START] Gold Eagle Farming');
+
             // Start Farming
             Account::where('farmer', 'gold-eagle')
                 ->get()
@@ -61,7 +64,7 @@ class FarmGoldEagle extends Command
                 });
 
             // Log Farming Completion
-            Log::info('Completed Gold Eagle Farming - ' . now());
+            Log::info('[END] Gold Eagle Farming');
         });
     }
 }
