@@ -123,10 +123,6 @@ class FarmFunatic extends Command
                     }
                 })->filter();
 
-
-                /** Log Taps */
-                Log::info('Funatic Taps - ' . now());
-
                 /** Sleep */
                 Sleep::for(200)->milliseconds();
             }
