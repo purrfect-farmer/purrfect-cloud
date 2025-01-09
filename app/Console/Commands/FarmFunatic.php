@@ -128,7 +128,7 @@ class FarmFunatic extends Command
                 Log::info('Funatic Taps - ' . now());
 
                 /** Sleep */
-                Sleep::for(500)->milliseconds();
+                Sleep::for(200)->milliseconds();
             }
 
             /** Log Farming Completion */
