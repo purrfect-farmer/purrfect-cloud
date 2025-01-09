@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Account;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class CloudFarmerController extends Controller
@@ -36,5 +37,19 @@ class CloudFarmerController extends Controller
         } catch (\Throwable $e) {
             abort(400, $e->getMessage());
         }
+    }
+
+    public function stats()
+    {
+        return Account::select(
+            'farmer',
+            DB::raw('COUNT(*) as accounts')
+        )->groupBy('farmer')
+            ->get()
+            ->mapWithKeys(
+                fn($item) => [
+                    $item['farmer'] => $item['accounts']
+                ]
+            );
     }
 }
