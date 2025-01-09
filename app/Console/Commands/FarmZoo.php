@@ -38,8 +38,18 @@ class FarmZoo extends Command
                 ->get()
                 ->each(function (Account $account) {
                     try {
+
+                        /** Platform */
+                        $platform = 'android';
+
+                        /** Init Data */
+                        $initData = $account->telegram_web_app['initData'];
+
+                        /** Init Data Unsafe */
+                        $initDataUnsafe = $account->telegram_web_app['initDataUnsafe'];
+
                         /** Api-Key */
-                        $key = $account->telegram_web_app['initDataUnsafe']['hash'];
+                        $key = $initDataUnsafe['hash'];
 
                         /** API */
                         $api = Http::withHeaders($account->headers)
@@ -47,6 +57,22 @@ class FarmZoo extends Command
                                 $account->headers['User-Agent'] ?:
                                     Helpers::getUserAgent($account->user_id)
                             );
+
+                        /** Auth */
+                        $this->makeZooRequest(
+                            null,
+                            $api,
+                            [
+                                'platform' => $platform,
+                                'initData' => $initData,
+                                'startParam' => $initDataUnsafe['start_param'],
+                                'photoUrl' => $initDataUnsafe['user']['photo_url'] ?? '',
+                                'chatId' => $initDataUnsafe['chat']['id'] ?? '',
+                                'chatType' => $initDataUnsafe['chat_type'],
+                                'chatInstance' => $initDataUnsafe['chat_instance']
+                            ],
+                            'https://api.zoo.team/telegram/auth'
+                        );
 
 
                         /** All Data */
@@ -64,7 +90,7 @@ class FarmZoo extends Command
                                 $key,
                                 $api,
                                 [
-                                    'lang' => "en"
+                                    'lang' => 'en'
                                 ],
                                 'https://api.zoo.team/user/data/after'
                             );
@@ -96,7 +122,7 @@ class FarmZoo extends Command
                         /** Riddle */
                         $riddle = collect($allData['dbData']['dbQuests'])->first(
                             fn($quest) =>
-                            Str::startsWith($quest['key'], "riddle_")
+                            Str::startsWith($quest['key'], 'riddle_')
                         );
 
                         /** Riddle Completion */
@@ -111,7 +137,7 @@ class FarmZoo extends Command
                         /** Rebus */
                         $rebus = collect($allData['dbData']['dbQuests'])->first(
                             fn($quest) =>
-                            Str::startsWith($quest['key'], "rebus_")
+                            Str::startsWith($quest['key'], 'rebus_')
                         );
 
                         /** Rebus Completion */
@@ -225,7 +251,7 @@ class FarmZoo extends Command
                             $result =  $this->makeZooRequest(
                                 $key,
                                 $api,
-                                "instant",
+                                'instant',
                                 'https://api.zoo.team/autofeed/buy'
                             );
 
@@ -274,7 +300,7 @@ class FarmZoo extends Command
 
         $instantItem = collect($allData['dbData']['dbAutoFeed'])
             ->first(
-                fn($item) => $item['key'] === "instant"
+                fn($item) => $item['key'] === 'instant'
             );
         $instantItemPriceInTph = $instantItem['priceInTph'];
 
@@ -284,7 +310,7 @@ class FarmZoo extends Command
         $isNeedFeed = $feed['isNeedFeed'];
         $nextFeedTime = $feed['nextFeedTime'];
 
-        $hasExpired = $nextFeedTime && now()->isAfter($nextFeedTime . "Z");
+        $hasExpired = $nextFeedTime && now()->isAfter($nextFeedTime . 'Z');
 
         $shouldPurchaseFeed = $isNeedFeed || $hasExpired;
         $canPurchaseFeed = $balance >= $feedPrice;
@@ -300,7 +326,7 @@ class FarmZoo extends Command
 
         $currentBoostPercent = $hero['boostPercent'];
         $boostExpiredDate = $hero['boostExpiredDate'];
-        $hasExpired = $boostExpiredDate && now()->isAfter($boostExpiredDate . "Z");
+        $hasExpired = $boostExpiredDate && now()->isAfter($boostExpiredDate . 'Z');
 
 
         $availableBoosts = collect($allData['dbData']['dbBoost'])
@@ -320,7 +346,7 @@ class FarmZoo extends Command
 
 
     protected function makeZooRequest(
-        string $key,
+        string $key = null,
         PendingRequest $api,
         mixed $data,
         string $url,
@@ -346,14 +372,14 @@ class FarmZoo extends Command
     {
         $apiTime = time();
         $apiHash = md5(
-            urlencode($apiTime . '_' . $data ?: "")
+            urlencode($apiTime . '_' . $data ?: '')
         );
 
         return [
-            "Api-Key" => $key ?: "empty",
-            "Api-Time" => $apiTime,
-            "Api-Hash" => $apiHash,
-            "Is-Beta-Server" => null,
+            'Api-Key' => $key ?: 'empty',
+            'Api-Time' => $apiTime,
+            'Api-Hash' => $apiHash,
+            'Is-Beta-Server' => null,
         ];
     }
 }
