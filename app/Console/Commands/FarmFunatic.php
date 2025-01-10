@@ -115,9 +115,7 @@ class FarmFunatic extends Command
                         $this->getApi($account)
                             ->post(
                                 'https://clicker.api.funtico.com/tap',
-                                [
-                                    'taps' => $taps
-                                ]
+                                ['taps' => $taps]
                             );
 
                         /** Return Energy and Account */
@@ -144,7 +142,7 @@ class FarmFunatic extends Command
         });
     }
 
-    protected function getApi($account)
+    protected function getApi(Account $account)
     {
         return Http::withHeaders($account->headers)
             ->withUserAgent(

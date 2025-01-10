@@ -40,18 +40,12 @@ class FarmGoldEagle extends Command
                 ->get()
                 ->each(function (Account $account) {
                     try {
-                        /** API */
-                        $api = Http::withHeaders($account->headers)
-                            ->withUserAgent(
-                                $account->headers['User-Agent'] ?: Helpers::getUserAgent($account->user_id)
-                            );
-
                         /** Get Progress */
-                        $progress = $api->get('https://gold-eagle-api.fly.dev/user/me/progress')->json();
+                        $progress = $this->getApi($account)->get('https://gold-eagle-api.fly.dev/user/me/progress')->json();
 
                         /** Tap */
                         if ($progress['energy'] >= 10) {
-                            $api->post('https://gold-eagle-api.fly.dev/tap', [
+                            $this->getApi($account)->post('https://gold-eagle-api.fly.dev/tap', [
                                 'available_taps' => 1,
                                 'count' => $progress['energy'],
                                 'timestamp' => time(),
@@ -71,5 +65,13 @@ class FarmGoldEagle extends Command
             // Log Farming Completion
             Log::info('[END] Gold Eagle Farming');
         });
+    }
+
+    protected function getApi(Account $account)
+    {
+        return Http::withHeaders($account->headers)
+            ->withUserAgent(
+                $account->headers['User-Agent'] ?: Helpers::getUserAgent($account->user_id)
+            );
     }
 }

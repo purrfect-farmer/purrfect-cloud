@@ -54,17 +54,10 @@ class FarmZoo extends Command
                         /** Api-Key */
                         $key = $initDataUnsafe['hash'];
 
-                        /** API */
-                        $api = Http::withHeaders($account->headers)
-                            ->withUserAgent(
-                                $account->headers['User-Agent'] ?:
-                                    Helpers::getUserAgent($account->user_id)
-                            );
-
                         /** Auth */
                         $this->makeZooRequest(
                             null,
-                            $api,
+                            $account,
                             [
                                 'platform' => $platform,
                                 'initData' => $initData,
@@ -81,7 +74,7 @@ class FarmZoo extends Command
                         /** All Data */
                         $allData = $this->makeZooRequest(
                             $key,
-                            $api,
+                            $account,
                             [],
                             'https://api.zoo.team/user/data/all',
                             JSON_FORCE_OBJECT
@@ -91,7 +84,7 @@ class FarmZoo extends Command
                         $afterData =
                             $this->makeZooRequest(
                                 $key,
-                                $api,
+                                $account,
                                 [
                                     'lang' => 'en'
                                 ],
@@ -108,7 +101,7 @@ class FarmZoo extends Command
                             /** Get Result */
                             $result = $this->makeZooRequest(
                                 $key,
-                                $api,
+                                $account,
                                 $day,
                                 'https://api.zoo.team/quests/daily/claim'
                             );
@@ -158,7 +151,7 @@ class FarmZoo extends Command
                             /** Check */
                             $this->makeZooRequest(
                                 $key,
-                                $api,
+                                $account,
                                 [
                                     $riddle['key'],
                                     $riddle['checkData']
@@ -170,7 +163,7 @@ class FarmZoo extends Command
                             /** Get Result */
                             $result =  $this->makeZooRequest(
                                 $key,
-                                $api,
+                                $account,
                                 [
                                     $riddle['key'],
                                     $riddle['checkData']
@@ -189,7 +182,7 @@ class FarmZoo extends Command
                             /** Check */
                             $this->makeZooRequest(
                                 $key,
-                                $api,
+                                $account,
                                 [
                                     $rebus['key'],
                                     $rebus['checkData']
@@ -201,7 +194,7 @@ class FarmZoo extends Command
                             /** Get Result */
                             $result =  $this->makeZooRequest(
                                 $key,
-                                $api,
+                                $account,
                                 [
                                     $rebus['key'],
                                     $rebus['checkData']
@@ -233,7 +226,7 @@ class FarmZoo extends Command
                             /** Get Result */
                             $result =  $this->makeZooRequest(
                                 $key,
-                                $api,
+                                $account,
                                 [
                                     $task['key'],
                                     null
@@ -253,7 +246,7 @@ class FarmZoo extends Command
                         if ($shouldBuyFeed) {
                             $result =  $this->makeZooRequest(
                                 $key,
-                                $api,
+                                $account,
                                 'instant',
                                 'https://api.zoo.team/autofeed/buy'
                             );
@@ -272,7 +265,7 @@ class FarmZoo extends Command
                         if ($boost) {
                             $result =  $this->makeZooRequest(
                                 $key,
-                                $api,
+                                $account,
                                 $boost['key'],
                                 'https://api.zoo.team/boost/buy'
                             );
@@ -355,7 +348,7 @@ class FarmZoo extends Command
 
     protected function makeZooRequest(
         string $key = null,
-        PendingRequest $api,
+        Account $account,
         mixed $data,
         string $url,
         int $flags = 0
@@ -364,7 +357,7 @@ class FarmZoo extends Command
         $requestBody = json_encode(['data' => $data], $flags);
 
         /** Get Result */
-        return $api->withHeaders(
+        return $this->getApi($account)->withHeaders(
             $this->getZooHeaders(
                 $requestBody,
                 $key
@@ -373,6 +366,16 @@ class FarmZoo extends Command
             ->withBody($requestBody)
             ->post($url)
             ->json('data');
+    }
+
+
+    protected function getApi(Account $account)
+    {
+        return Http::withHeaders($account->headers)
+            ->withUserAgent(
+                $account->headers['User-Agent'] ?:
+                    Helpers::getUserAgent($account->user_id)
+            );
     }
 
 
