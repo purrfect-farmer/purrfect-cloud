@@ -40,15 +40,18 @@ class FarmFunatic extends Command
             $accounts = Account::where('farmer', 'funatic')
                 ->get()->map(function (Account $account) {
                     try {
+                        /** Daily Bonus */
+                        $dailyBonus = $this->getApi($account)->get('https://api2.funtico.com/api/lucky-funatic/daily-bonus/config')->json('data');
 
-                        /** API */
-                        $api = Http::withHeaders($account->headers)
-                            ->withUserAgent(
-                                $account->headers['User-Agent'] ?: Helpers::getUserAgent($account->user_id)
+                        /** Claim Daily-Bonus */
+                        if ($dailyBonus['cooldown'] === 0) {
+                            $this->getApi($account)->withBody('')->post(
+                                'https://api2.funtico.com/api/lucky-funatic/daily-bonus/claim'
                             );
+                        }
 
                         /** Get Boosters */
-                        $boosters = $api->get('https://clicker.api.funtico.com/boosters')->json('data');
+                        $boosters = $this->getApi($account)->get('https://clicker.api.funtico.com/boosters')->json('data');
                         $availableBoosters = collect($boosters)->filter(
                             fn($item) => (
                                 $item['price'] === 0 &&
@@ -60,9 +63,9 @@ class FarmFunatic extends Command
 
                         /** Purchase Booster */
                         if ($availableBoosters->isNotEmpty()) {
-                            $availableBoosters->each(function ($booster) use ($api) {
+                            $availableBoosters->each(function ($booster) use ($account) {
                                 /** Activate Booster */
-                                $api->post(
+                                $this->getApi($account)->post(
                                     'https://clicker.api.funtico.com/boosters/activate',
                                     [
                                         'boosterType' => $booster['type']
@@ -73,7 +76,7 @@ class FarmFunatic extends Command
 
 
                         /** Get Game */
-                        $game = $api->get('https://clicker.api.funtico.com/game')->json('data');
+                        $game = $this->getApi($account)->get('https://clicker.api.funtico.com/game')->json('data');
                         $energy = $game['energy']['currentEnergyBalance'];
 
 
@@ -109,10 +112,7 @@ class FarmFunatic extends Command
 
 
                         /** Tap */
-                        Http::withHeaders($account->headers)
-                            ->withUserAgent(
-                                $account->headers['User-Agent'] ?: Helpers::getUserAgent($account->user_id)
-                            )
+                        $this->getApi($account)
                             ->post(
                                 'https://clicker.api.funtico.com/tap',
                                 [
@@ -142,5 +142,13 @@ class FarmFunatic extends Command
             /** Log Farming Completion */
             Log::info('[END] Funatic Farming');
         });
+    }
+
+    protected function getApi($account)
+    {
+        return Http::withHeaders($account->headers)
+            ->withUserAgent(
+                $account->headers['User-Agent'] ?: Helpers::getUserAgent($account->user_id)
+            );
     }
 }
