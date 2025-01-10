@@ -86,6 +86,11 @@ class FarmFunatic extends Command
                         }
                     } catch (\Throwable $e) {
                         $account->delete();
+
+                        /** Log Error */
+                        Log::error('Funatic Error', [
+                            'message' => $e->getMessage()
+                        ]);
                     }
                 })->filter();
 
@@ -123,6 +128,10 @@ class FarmFunatic extends Command
                             );
                         }
                     } catch (\Throwable $e) {
+                        /** Log Error */
+                        Log::error('Funatic Error', [
+                            'message' => $e->getMessage()
+                        ]);
                     }
                 })->filter();
 

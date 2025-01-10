@@ -285,6 +285,11 @@ class FarmZoo extends Command
                         }
                     } catch (\Throwable $e) {
                         $account->delete();
+
+                        /** Log Error */
+                        Log::error('Zoo Error', [
+                            'message' => $e->getMessage()
+                        ]);
                     }
                 });
 

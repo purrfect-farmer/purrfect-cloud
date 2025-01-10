@@ -60,6 +60,11 @@ class FarmGoldEagle extends Command
                         }
                     } catch (\Throwable $e) {
                         $account->delete();
+
+                        /** Log Error */
+                        Log::error('Gold Eagle Error', [
+                            'message' => $e->getMessage()
+                        ]);
                     }
                 });
 
