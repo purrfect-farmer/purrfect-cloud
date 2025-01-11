@@ -132,9 +132,6 @@ class FarmFunatic extends Command
                         ]);
                     }
                 })->filter();
-
-                /** Sleep */
-                Sleep::for(200)->milliseconds();
             }
 
             /** Log Farming Completion */
