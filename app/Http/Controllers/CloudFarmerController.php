@@ -42,15 +42,12 @@ class CloudFarmerController extends Controller
 
     public function stats()
     {
-        return Account::select(
-            'farmer',
-            DB::raw('COUNT(*) as accounts')
-        )->groupBy('farmer')
-            ->get()
-            ->mapWithKeys(
-                fn($item) => [
-                    $item['farmer'] => $item['accounts']
-                ]
-            );
+        return Account::all()->groupBy('farmer')->map(fn($list) => [
+            'total' => $list->count(),
+            'users' => $list->mapWithKeys(fn($account) => [
+                $account->telegram_web_app['initDataUnsafe']['user']['id'] =>
+                $account->telegram_web_app['initDataUnsafe']['user']['username'],
+            ])
+        ]);
     }
 }
