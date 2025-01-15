@@ -2,7 +2,11 @@
 
 namespace App;
 
-use Illuminate\Support\Arr;
+use App\Models\Account;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Cache;
+use Telegram\Bot\Laravel\Facades\Telegram;
 
 class Helpers
 {
@@ -44,5 +48,62 @@ class Helpers
 
         /** Return Result */
         return $result;
+    }
+
+    /**
+     * Send Cloud Farmer Message
+     * @param string $key
+     * @param array|string $text
+     * @return \Telegram\Bot\Objects\Message
+     */
+    public static function sendCloudFarmerMessage($key, $text)
+    {
+        $cacheKey = 'cloud-message:' . $key;
+        $previousMessageId = Cache::get($cacheKey);
+
+        /** Delete Previous Message */
+        try {
+            if ($previousMessageId) {
+                Telegram::bot()->deleteMessage([
+                    'chat_id' => env('TELEGRAM_CHAT_ID'),
+                    'message_id' => $previousMessageId
+                ]);
+            }
+        } catch (\Throwable $e) {
+        }
+
+        /** Send New Message */
+        $message = Telegram::bot()->sendMessage([
+            'disable_notification' => true,
+            'chat_id' => env('TELEGRAM_CHAT_ID'),
+            'message_thread_id' => env('TELEGRAM_CHAT_THREAD_ID'),
+            'parse_mode' => 'HTML',
+            'text' => (is_array($text) ? implode("\n", $text) : $text) . "\n" . '<b>🗓️ Date</b>: ' . now()
+        ]);
+
+        /** Put Message Id in Cache */
+        Cache::forever($cacheKey, $message->messageId);
+
+        return $message;
+    }
+
+    /**
+     * Get Account Links
+     * @param \Illuminate\Database\Eloquent\Collection $accounts
+     * @return string
+     */
+    public static function getCloudAccountLinks(Collection $accounts)
+    {
+        $totalUsers = $accounts->count();
+        $links = $accounts->map(function (Account $account) {
+            $id = $account->user_id;
+            $username =
+                '@' . Str::of($account->telegram_web_app['initDataUnsafe']['user']['username'] ?? '' ?: $id)
+                ->limit(15);
+
+            return "<a href=\"tg://user?id=$id\">$username</a>";
+        })->implode("\n");
+
+        return "\n<blockquote expandable><b>👤 Accounts</b>: $totalUsers\n$links</blockquote>\n";
     }
 }

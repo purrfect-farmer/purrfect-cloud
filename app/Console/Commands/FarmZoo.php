@@ -5,7 +5,6 @@ namespace App\Console\Commands;
 use App\Helpers;
 use App\Models\Account;
 use Illuminate\Console\Command;
-use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -33,10 +32,13 @@ class FarmZoo extends Command
     public function handle()
     {
         Cache::lock($this->signature)->get(function () {
-            // Log Farming Start
-            Log::info('[START] Zoo Farming');
+            /** Send Message */
+            Helpers::sendCloudFarmerMessage('zoo.stared', [
+                "<b>🐍 Zoo Farmer</b>",
+                "<i>🔁 Status: Started</i>",
+            ]);
 
-            // Start Farming
+            /** Start Farming */
             Account::where('farmer', 'zoo')
                 ->get()
                 ->each(function (Account $account) {
@@ -286,8 +288,17 @@ class FarmZoo extends Command
                     }
                 });
 
-            // Log Farming Completion
-            Log::info('[END] Zoo Farming');
+            /** Get Links */
+            $links = Helpers::getCloudAccountLinks(
+                Account::where('farmer', 'zoo')->get()
+            );
+
+            /** Send Message */
+            Helpers::sendCloudFarmerMessage('zoo.completed', [
+                "<b>🐍 Zoo Farmer</b>",
+                "<i>✅ Status: Completed</i>",
+                $links
+            ]);
         });
     }
 
