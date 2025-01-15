@@ -104,6 +104,6 @@ class Helpers
             return "<a href=\"tg://user?id=$id\">$username</a>";
         })->implode("\n");
 
-        return "\n<blockquote expandable><b>👤 Accounts</b>: $totalUsers\n$links</blockquote>\n";
+        return "\n<blockquote><b>👤 Accounts</b>: $totalUsers\n$links</blockquote>\n";
     }
 }
