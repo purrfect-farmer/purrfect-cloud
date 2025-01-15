@@ -82,7 +82,8 @@ class FarmGoldEagle extends Command
 
     protected function getApi(Account $account)
     {
-        return Http::withHeaders($account->headers)
+        return Http::timeout(10)
+            ->withHeaders($account->headers)
             ->withUserAgent(
                 $account->headers['User-Agent'] ?: Helpers::getUserAgent($account->user_id)
             );
