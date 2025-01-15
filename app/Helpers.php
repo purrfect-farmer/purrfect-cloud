@@ -78,7 +78,7 @@ class Helpers
             'chat_id' => env('TELEGRAM_CHAT_ID'),
             'message_thread_id' => env('TELEGRAM_CHAT_THREAD_ID'),
             'parse_mode' => 'HTML',
-            'text' => (is_array($text) ? implode("\n", $text) : $text) . "\n" . '<b>🗓️ Date</b>: ' . now()
+            'text' => is_array($text) ? implode("\n", $text) : $text
         ]);
 
         /** Put Message Id in Cache */

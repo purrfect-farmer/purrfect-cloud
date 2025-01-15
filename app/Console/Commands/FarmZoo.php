@@ -32,11 +32,8 @@ class FarmZoo extends Command
     public function handle()
     {
         Cache::lock($this->signature)->get(function () {
-            /** Send Message */
-            Helpers::sendCloudFarmerMessage('zoo.started', [
-                "<b>🐍 Zoo Farmer</b>",
-                "<i>🔁 Status: Started</i>",
-            ]);
+            /** Start Date */
+            $startDate = now();
 
             /** Start Farming */
             Account::where('farmer', 'zoo')
@@ -288,6 +285,9 @@ class FarmZoo extends Command
                     }
                 });
 
+            /** End Date */
+            $endDate = now();
+
             /** Get Links */
             $links = Helpers::getCloudAccountLinks(
                 Account::where('farmer', 'zoo')->get()
@@ -297,7 +297,9 @@ class FarmZoo extends Command
             Helpers::sendCloudFarmerMessage('zoo.completed', [
                 "<b>🐍 Zoo Farmer</b>",
                 "<i>✅ Status: Completed</i>",
-                $links
+                $links,
+                "<b>🗓️ Start Date</b>: $startDate",
+                "<b>🗓️ End Date</b>: $endDate"
             ]);
         });
     }

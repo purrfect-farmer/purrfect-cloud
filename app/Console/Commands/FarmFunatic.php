@@ -33,11 +33,8 @@ class FarmFunatic extends Command
     {
 
         Cache::lock($this->signature)->get(function () {
-            /** Send Message */
-            Helpers::sendCloudFarmerMessage('funatic.started', [
-                "<b>🤡 Funatic Farmer</b>",
-                "<i>🔁 Status: Started</i>",
-            ]);
+            /** Start Date */
+            $startDate = now();
 
             /** Retrieve Accounts */
             $accounts = Account::where('farmer', 'funatic')
@@ -137,6 +134,10 @@ class FarmFunatic extends Command
                 })->filter();
             }
 
+
+            /** End Date */
+            $endDate = now();
+
             /** Get Links */
             $links = Helpers::getCloudAccountLinks(
                 Account::where('farmer', 'funatic')->get()
@@ -146,7 +147,9 @@ class FarmFunatic extends Command
             Helpers::sendCloudFarmerMessage('funatic.completed', [
                 "<b>🤡 Funatic Farmer</b>",
                 "<i>✅ Status: Completed</i>",
-                $links
+                $links,
+                "<b>🗓️ Start Date</b>: $startDate",
+                "<b>🗓️ End Date</b>: $endDate"
             ]);
         });
     }
