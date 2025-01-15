@@ -73,7 +73,7 @@ class FarmGoldEagle extends Command
 
             /** Send Message */
             Helpers::sendCloudFarmerMessage('gold-eagle.completed', [
-                "<b>🪙 Gold Eagle Farmer</b>",
+                "<b>🥇 Gold Eagle Farmer</b>",
                 "<i>✅ Status: Completed</i>",
                 $links,
                 "<b>🗓️ Start Date</b>: $startDate",
