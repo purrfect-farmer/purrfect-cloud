@@ -32,8 +32,11 @@ class FarmGoldEagle extends Command
     public function handle()
     {
         Cache::lock($this->signature)->get(function () {
-            // Log Farming Start
-            Log::info('[START] Gold Eagle Farming');
+            /** Send Message */
+            Helpers::sendCloudFarmerMessage('gold-eagle.started', [
+                "<b>🪙 Gold Eagle Farmer</b>",
+                "<i>🔁 Status: Started</i>",
+            ]);
 
             // Start Farming
             Account::where('farmer', 'gold-eagle')
@@ -62,8 +65,18 @@ class FarmGoldEagle extends Command
                     }
                 });
 
-            // Log Farming Completion
-            Log::info('[END] Gold Eagle Farming');
+
+            /** Get Links */
+            $links = Helpers::getCloudAccountLinks(
+                Account::where('farmer', 'gold-eagle')->get()
+            );
+
+            /** Send Message */
+            Helpers::sendCloudFarmerMessage('gold-eagle.completed', [
+                "<b>🪙 Gold Eagle Farmer</b>",
+                "<i>✅ Status: Completed</i>",
+                $links
+            ]);
         });
     }
 

@@ -33,7 +33,7 @@ class FarmZoo extends Command
     {
         Cache::lock($this->signature)->get(function () {
             /** Send Message */
-            Helpers::sendCloudFarmerMessage('zoo.stared', [
+            Helpers::sendCloudFarmerMessage('zoo.started', [
                 "<b>🐍 Zoo Farmer</b>",
                 "<i>🔁 Status: Started</i>",
             ]);
