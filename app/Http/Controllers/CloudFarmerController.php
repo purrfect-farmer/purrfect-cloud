@@ -42,16 +42,20 @@ class CloudFarmerController extends Controller
                     'headers' => $data['headers'],
                 ]);
             } else {
-                /** Get Member */
-                $member = Telegram::bot()->getChatMember([
-                    'chat_id' => env('TELEGRAM_CHAT_ID'),
-                    'user_id' =>  $data['user_id']
-                ]);
+                /** Allowed */
+                $allowed = env('ACCESS_REQUIRE_MEMBERSHIP') === false ||
+                    collect(['creator', 'administrator', 'member'])
+                    ->contains(
+                        Telegram::bot()
+                            ->getChatMember([
+                                'chat_id' => env('TELEGRAM_CHAT_ID'),
+                                'user_id' =>  $data['user_id']
+                            ])->status
+                    );
 
-                /** Ensure user is in chat */
-                if (
-                    collect(['creator', 'administrator', 'member'])->contains($member->status)
-                ) {
+
+                /** Ensure user is allowed */
+                if ($allowed) {
                     return Account::create([
                         'farmer' => $data['farmer'],
                         'user_id' => $data['user_id'],
@@ -59,7 +63,7 @@ class CloudFarmerController extends Controller
                         'headers' => $data['headers'],
                     ]);
                 } else {
-                    abort(400, 'Not a Member of Chat!');
+                    abort(400, 'Not allowed!');
                 }
             }
         } catch (\Throwable $e) {

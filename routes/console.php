@@ -10,10 +10,16 @@ Artisan::command('inspire', function () {
 
 
 /** Farm Zoo every 30 Minutes */
-Schedule::command('farm:zoo')->everyThirtyMinutes();
+if (env('ENABLE_ZOO_FARMER')) {
+    Schedule::command('farm:zoo')->everyThirtyMinutes();
+}
 
 /** Farm Gold Eagle every 10 Minutes */
-Schedule::command('farm:gold-eagle')->everyTenMinutes();
+if (env('ENABLE_GOLD_EAGLE_FARMER')) {
+    Schedule::command('farm:gold-eagle')->everyTenMinutes();
+}
 
 /** Farm Funatic every 10 Minutes */
-Schedule::command('farm:funatic')->everyTenMinutes();
+if (env('ENABLE_FUNATIC_FARMER')) {
+    Schedule::command('farm:funatic')->everyTenMinutes();
+}
