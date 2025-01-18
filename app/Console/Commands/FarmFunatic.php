@@ -159,7 +159,7 @@ class FarmFunatic extends Command
         return Http::timeout(10)
             ->withHeaders($account->headers)
             ->withUserAgent(
-                $account->headers['User-Agent'] ?: Helpers::getUserAgent($account->user_id)
+                $account->headers['User-Agent'] ?? Helpers::getUserAgent($account->user_id)
             );
     }
 }

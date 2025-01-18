@@ -387,7 +387,7 @@ class FarmZoo extends Command
         return Http::timeout(10)
             ->withHeaders($account->headers)
             ->withUserAgent(
-                $account->headers['User-Agent'] ?:
+                $account->headers['User-Agent'] ??
                     Helpers::getUserAgent($account->user_id)
             );
     }
@@ -397,11 +397,11 @@ class FarmZoo extends Command
     {
         $apiTime = time();
         $apiHash = md5(
-            urlencode($apiTime . '_' . $data ?: '')
+            urlencode($apiTime . '_' . $data ?? '')
         );
 
         return [
-            'Api-Key' => $key ?: 'empty',
+            'Api-Key' => $key ?? 'empty',
             'Api-Time' => $apiTime,
             'Api-Hash' => $apiHash,
             'Is-Beta-Server' => null,

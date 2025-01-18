@@ -45,9 +45,16 @@ class FarmGoldEagle extends Command
 
                         /** Tap */
                         if ($progress['energy'] >= 10) {
+                            $energy = $progress['energy'];
+                            $percent = 80 + rand(0, 18);
+                            $taps = floor(
+                                ($energy * $percent) / 100
+                            );
+                            $available = floor($energy - $taps);
+
                             $this->getApi($account)->post('https://gold-eagle-api.fly.dev/tap', [
-                                'available_taps' => 1,
-                                'count' => $progress['energy'],
+                                'available_taps' => $available,
+                                'count' => $taps,
                                 'timestamp' => time(),
                                 'salt' => Str::uuid()->toString()
                             ])->json();
@@ -87,7 +94,7 @@ class FarmGoldEagle extends Command
         return Http::timeout(10)
             ->withHeaders($account->headers)
             ->withUserAgent(
-                $account->headers['User-Agent'] ?: Helpers::getUserAgent($account->user_id)
+                $account->headers['User-Agent'] ?? Helpers::getUserAgent($account->user_id)
             );
     }
 }
