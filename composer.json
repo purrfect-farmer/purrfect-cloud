@@ -7,13 +7,14 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
-        "christian-riesen/base32": "^1.6",
         "irazasyed/telegram-bot-sdk": "^3.14",
         "laravel/framework": "^11.31",
         "laravel/tinker": "^2.9",
         "league/uri": "^7.5",
         "paquettg/php-html-parser": "^2.2",
-        "spatie/fork": "^1.2"
+        "paragonie/constant_time_encoding": "^3.0",
+        "spatie/fork": "^1.2",
+        "spomky-labs/otphp": "^11.3"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

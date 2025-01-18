@@ -4,11 +4,15 @@ namespace App\Console\Commands;
 
 use App\Helpers;
 use App\Models\Account;
+use ParagonIE\ConstantTime\Base32;
+use ParagonIE\ConstantTime\Hex;
+use ParagonIE\ConstantTime\Base64;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use OTPHP\TOTP;
 
 class FarmGoldEagle extends Command
 {
@@ -31,14 +35,22 @@ class FarmGoldEagle extends Command
      */
     public function handle()
     {
+
+
+
         Cache::lock($this->signature)->get(function () {
             /** Start Date */
             $startDate = now();
 
+            /** Get OTP */
+            $otp = $this->getOtp();
+
+            if (!$otp) return;
+
             /** Start Farming */
             Account::where('farmer', 'gold-eagle')
                 ->get()
-                ->each(function (Account $account) {
+                ->each(function (Account $account) use ($otp) {
                     try {
                         /** Get Progress */
                         $progress = $this->getApi($account)->get('https://gold-eagle-api.fly.dev/user/me/progress')->json();
@@ -52,7 +64,11 @@ class FarmGoldEagle extends Command
                             );
                             $available = floor($energy - $taps);
 
-                            $this->getApi($account)->post('https://gold-eagle-api.fly.dev/tap', [
+                            $token = $otp->now();
+                            $nonce = Base64::encode($token);
+
+                            $result = $this->getApi($account)->post('https://gold-eagle-api.fly.dev/tap', [
+                                'nonce' => $nonce,
                                 'available_taps' => $available,
                                 'count' => $taps,
                                 'timestamp' => time(),
@@ -101,5 +117,45 @@ class FarmGoldEagle extends Command
             ->withUserAgent(
                 $account->headers['User-Agent'] ?? Helpers::getUserAgent($account->user_id)
             );
+    }
+
+    /**
+     * Convert Base32 Secret to Hex
+     * @param string $secret
+     * @return string
+     */
+    protected function secretToHex($secret)
+    {
+        $bytes = Base32::decodeUpper($secret);
+        $hex = Hex::encode($bytes);
+        return $hex;
+    }
+
+    /**
+     * Get TOTP Generator
+     * @return TOTP|null
+     */
+    protected function getOtp()
+    {
+        try {
+            $script = Helpers::getDropMainScript('https://telegram.geagle.online');
+            $match = preg_match('#TAP_SECRET="([^"]+)#', $script, $result);
+            if (!$match) return;
+
+            $secret = $result[1];
+
+            $otp = TOTP::createFromSecret($secret);
+
+            $otp->setDigest('sha1');
+            $otp->setPeriod(2);
+            $otp->setDigits(6);
+
+            return $otp;
+        } catch (\Throwable $e) {
+            /** Log Error */
+            Log::error('Gold Eagle Error', [
+                'message' => $e->getMessage()
+            ]);
+        }
     }
 }
