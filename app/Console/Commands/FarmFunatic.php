@@ -158,6 +158,11 @@ class FarmFunatic extends Command
     {
         return Http::timeout(10)
             ->withHeaders($account->headers)
+            ->withHeaders([
+                'Origin' => 'https://clicker.funtico.com',
+                'Referer' => 'https://clicker.funtico.com/',
+                'X-Requested-With' => 'org.telegram.messenger'
+            ])
             ->withUserAgent(
                 $account->headers['User-Agent'] ?? Helpers::getUserAgent($account->user_id)
             );

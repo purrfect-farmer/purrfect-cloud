@@ -93,6 +93,11 @@ class FarmGoldEagle extends Command
     {
         return Http::timeout(10)
             ->withHeaders($account->headers)
+            ->withHeaders([
+                'Origin' => 'https://telegram.geagle.online',
+                'Referer' => 'https://telegram.geagle.online/',
+                'X-Requested-With' => 'org.telegram.messenger'
+            ])
             ->withUserAgent(
                 $account->headers['User-Agent'] ?? Helpers::getUserAgent($account->user_id)
             );
