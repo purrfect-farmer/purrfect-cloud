@@ -6,7 +6,11 @@ use App\Models\Account;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
+use League\Uri\Uri;
+use PHPHtmlParser\Options;
 use Telegram\Bot\Laravel\Facades\Telegram;
+use PHPHtmlParser\Dom;
 
 class Helpers
 {
@@ -105,5 +109,36 @@ class Helpers
         })->implode("\n");
 
         return "\n<blockquote><b>👤 Accounts</b>: $totalUsers\n$links</blockquote>\n";
+    }
+
+    /** Fetch Content */
+    public static function fetchContent($url)
+    {
+        return Http::get($url)->body();
+    }
+
+    public static function getDropMainScript($url, $name = "index")
+    {
+        $dom = new Dom;
+        $dom->loadFromUrl(
+            $url,
+            ['removeScripts' => false]
+        );
+
+        $scripts = $dom->find('script');
+        $indexScript = collect($scripts)
+            ->first(
+                fn($item) => (
+                    $item->getAttribute('type') === 'module' &&
+                    Str::of($item->getAttribute('src'))->contains($name)
+                )
+            );
+
+        if (!$indexScript) return;
+
+        $scriptUrl = Uri::fromBaseUri($indexScript->getAttribute("src"), $url);
+        $scriptResponse = static::fetchContent($scriptUrl);
+
+        return $scriptResponse;
     }
 }
