@@ -77,8 +77,57 @@ class FarmFunatic extends Command
 
                         /** Get Game */
                         $game = $this->getApi($account)->get('https://clicker.api.funtico.com/game')->json('data');
-                        $energy = $game['energy']['currentEnergyBalance'];
 
+                        /** Balance */
+                        $balance = $game['funz']['currentFunzBalance'];
+
+                        /** Cards */
+                        $cards = $this->getApi($account)->get('https://api2.funtico.com/api/lucky-funatic/cards')->json('data');
+
+                        /** Upgradeable Cards */
+                        $upgradableCards = collect($cards)->filter(
+                            fn($item) => (
+                                $item['buyOrUpgradeCost'] <= $balance &&
+                                $item['isMaxLevelReached'] === false &&
+                                $item['isComingSoon'] === false &&
+                                collect(
+                                    $item['buyOrUpgradeRequirements']
+                                )
+                                ->every(
+                                    fn($dep) => $dep['isMissing'] === false
+                                )
+                            )
+                        );
+
+                        /** Level Zero Cards */
+                        $levelZeroCards = $upgradableCards->filter(
+                            fn($card) => $card['level'] === null
+                        );
+
+                        /** Collection */
+                        $collection = $levelZeroCards->isNotEmpty()
+                            ? $levelZeroCards
+                            : $upgradableCards;
+
+                        /** Random Card */
+                        $card = $collection->random();
+
+                        if ($card) {
+                            $isUpgrade = $card['level'] !== null;
+
+                            /** Buy or Upgrade Card */
+                            $this->getApi($account)->post(
+                                $isUpgrade ?
+                                    'https://api2.funtico.com/api/lucky-funatic/upgrade-card' :
+                                    'https://api2.funtico.com/api/lucky-funatic/buy-card',
+                                [
+                                    'cardId' => $card['id']
+                                ]
+                            );
+                        }
+
+                        /** Energy */
+                        $energy = $game['energy']['currentEnergyBalance'];
 
                         /** Return Energy and Account */
                         if ($energy > 0) {
