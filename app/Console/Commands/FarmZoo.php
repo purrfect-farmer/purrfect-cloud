@@ -60,7 +60,7 @@ class FarmZoo extends Command
                             [
                                 'platform' => $platform,
                                 'initData' => $initData,
-                                'startParam' => $initDataUnsafe['start_param'],
+                                'startParam' => $initDataUnsafe['start_param'] ?? '',
                                 'photoUrl' => $initDataUnsafe['user']['photo_url'] ?? '',
                                 'chatId' => $initDataUnsafe['chat']['id'] ?? '',
                                 'chatType' => $initDataUnsafe['chat_type'],
