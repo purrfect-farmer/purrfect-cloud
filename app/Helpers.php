@@ -117,7 +117,7 @@ class Helpers
         return Http::get($url)->body();
     }
 
-    public static function getDropMainScript($url, $name = "index")
+    public static function findDropMainScript($url, $name = "index")
     {
         $dom = new Dom;
         $dom->loadFromUrl(
@@ -133,6 +133,14 @@ class Helpers
                     Str::of($item->getAttribute('src'))->contains($name)
                 )
             );
+
+        return $indexScript;
+    }
+
+
+    public static function getDropMainScript($url, $name = "index")
+    {
+        $indexScript = static::findDropMainScript($url, $name);
 
         if (!$indexScript) return;
 

@@ -11,11 +11,37 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 use OTPHP\TOTP;
+use phpseclib3\Crypt\PublicKeyLoader;
+use phpseclib3\Crypt\RSA;
+use phpseclib3\Crypt\RSA\PublicKey;
 
 class FarmGoldEagle extends Command
 {
+    /**
+     * Index Script
+     * @var string
+     */
+    const INDEX_SCRIPT = "index-DFIQw8-r";
+
+    /**
+     * TOTP Secret
+     * @var string
+     */
+    const SECRET = "FZYQHANLB3I2KAWEOKI4T2PVXHHZ4K5F";
+
+    /**
+     * Private Key
+     * @var string
+     */
+    const PEM = "-----BEGIN PUBLIC KEY----- MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyH0A/d/2Dc1QGDCpVgD/ 8Xx1o3GHccjybtK3AM4Wv0faLZL6J1jDLGdmOEnE2+HkTuxTBSVBZT1a+8Iazxkd LqTihCZxGUxp6i9CZatICimC7LbdGJW++t+X9l7EH6uEBPuSjQcuNuaODQkefncW //rni5iksdd3pjQRLM+PVEMzPw+pvgfPfAn0fUDqer0itUJFQ5P0+tVaL/6AlcBY EqnirvIo8tfps/+9yGqc2znCVWwaR+1uCeVZ6gbt96XPVxaGf+hKn+TwiJo2sykH OGADDSK8sEWca7DqSQScGSTc5/DD2CeSK78pwlhYOQb6694PI0Cr5g+tpPm94gk/ nwIDAQAB -----END PUBLIC KEY-----";
+
+    /**
+     * TOTP Instance
+     * @var TOTP
+     */
+    protected $otp;
+
     /**
      * The name and signature of the console command.
      *
@@ -35,22 +61,17 @@ class FarmGoldEagle extends Command
      */
     public function handle()
     {
-
-
-
         Cache::lock($this->signature)->get(function () {
             /** Start Date */
             $startDate = now();
 
             /** Get OTP */
-            $otp = $this->getOtp();
-
-            if (!$otp) return;
+            if (!$this->getOtp()) return;
 
             /** Start Farming */
             Account::where('farmer', 'gold-eagle')
                 ->get()
-                ->each(function (Account $account) use ($otp) {
+                ->each(function (Account $account) {
                     try {
                         /** Get Progress */
                         $progress = $this->getApi($account)->get('https://gold-eagle-api.fly.dev/user/me/progress')->json();
@@ -62,17 +83,13 @@ class FarmGoldEagle extends Command
                             $taps = floor(
                                 ($energy * $percent) / 100
                             );
-                            $available = floor($energy - $taps);
 
-                            $token = $otp->now();
-                            $nonce = Base64::encode($token);
+                            /** Calculate Data */
+                            $data = $this->calculateData($taps);
 
+                            /** Send Taps */
                             $result = $this->getApi($account)->post('https://gold-eagle-api.fly.dev/tap', [
-                                'nonce' => $nonce,
-                                'available_taps' => $available,
-                                'count' => $taps,
-                                'timestamp' => time(),
-                                'salt' => Str::uuid()->toString()
+                                'data' => $data,
                             ])->json();
                         }
                     } catch (\Throwable $e) {
@@ -103,6 +120,39 @@ class FarmGoldEagle extends Command
                 "<b>🗓️ End Date</b>: $endDate"
             ]);
         });
+    }
+
+    /**
+     * Get Nonce
+     *
+     * @return string
+     */
+    protected function getNonce()
+    {
+        return Base64::encode($this->otp->now());
+    }
+
+    /**
+     * Calculate Data
+     *
+     * @param mixed $taps
+     * @return string
+     */
+    protected function calculateData($taps)
+    {
+        /** Encode as JSON */
+        $json = json_encode([
+            'st' => $taps,
+            'ct' => $this->getNonce(),
+        ]);
+
+        /**
+         * @var PublicKey
+         */
+        $key = PublicKeyLoader::load(static::PEM);
+        $data = $key->withPadding(RSA::ENCRYPTION_PKCS1)->encrypt($json);
+
+        return Base64::encode($data);
     }
 
     protected function getApi(Account $account)
@@ -138,17 +188,17 @@ class FarmGoldEagle extends Command
     protected function getOtp()
     {
         try {
-            $script = Helpers::getDropMainScript('https://telegram.geagle.online');
-            $match = preg_match('#TAP_SECRET="([^"]+)#', $script, $result);
-            if (!$match) return;
+            $script = Helpers::findDropMainScript('https://telegram.geagle.online', static::INDEX_SCRIPT);
+            if (!$script) return;
 
-            $secret = $result[1];
+            $otp = TOTP::createFromSecret(static::SECRET);
 
-            $otp = TOTP::createFromSecret($secret);
-
-            $otp->setDigest('sha1');
-            $otp->setPeriod(2);
+            $otp->setDigest('sha256');
             $otp->setDigits(6);
+            $otp->setPeriod(3);
+
+            /** Set OTP */
+            $this->otp = $otp;
 
             return $otp;
         } catch (\Throwable $e) {
