@@ -110,7 +110,7 @@ class FarmFunatic extends Command
                             : $upgradableCards;
 
                         /** Random Card */
-                        $card = $collection->random();
+                        $card = $collection->isNotEmpty() ? $collection->random() : null;
 
                         if ($card) {
                             $isUpgrade = $card['level'] !== null;
