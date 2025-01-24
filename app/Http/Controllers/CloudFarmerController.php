@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Account;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Telegram\Bot\Laravel\Facades\Telegram;
 
@@ -19,6 +18,7 @@ class CloudFarmerController extends Controller
                 Rule::in([
                     'funatic',
                     'gold-eagle',
+                    'cex',
                     'zoo',
                 ])
             ],
