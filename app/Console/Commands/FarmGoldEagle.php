@@ -22,7 +22,7 @@ class FarmGoldEagle extends Command
      * Index Script
      * @var string
      */
-    const INDEX_SCRIPT = "index-QSTlyDZe";
+    const INDEX_SCRIPT = "index-CstGB8vG";
 
     /**
      * TOTP Secret
