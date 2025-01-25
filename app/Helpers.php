@@ -60,7 +60,7 @@ class Helpers
      * @param array|string $text
      * @return \Telegram\Bot\Objects\Message
      */
-    public static function sendCloudFarmerMessage($key, $text)
+    public static function sendCloudFarmerMessage($key, $text, $thread = null)
     {
         $cacheKey = 'cloud-message:' . $key;
         $previousMessageId = Cache::get($cacheKey);
@@ -80,7 +80,7 @@ class Helpers
         $message = Telegram::bot()->sendMessage([
             'disable_notification' => true,
             'chat_id' => env('TELEGRAM_CHAT_ID'),
-            'message_thread_id' => env('TELEGRAM_CHAT_THREAD_ID'),
+            'message_thread_id' => $thread ?: env('TELEGRAM_CHAT_THREAD_ID'),
             'parse_mode' => 'HTML',
             'text' => is_array($text) ? implode("\n", $text) : $text
         ]);

@@ -189,7 +189,30 @@ class FarmGoldEagle extends Command
     {
         try {
             $script = Helpers::findDropMainScript('https://telegram.geagle.online', static::INDEX_SCRIPT);
-            if (!$script) return;
+            $hasNotifiedDev = Cache::has('error-notice:gold-eagle');
+            if (!$script) {
+                if (!$hasNotifiedDev) {
+                    /** Cache */
+                    Cache::forever('error-notice:gold-eagle', true);
+
+                    /** Send  */
+                    Helpers::sendCloudFarmerMessage(
+                        'error-notice:gold-eagle',
+                        [
+                            "<b>🥇 Gold Eagle Farmer</b>",
+                            "<i>❌ Status: Broken</i>",
+                            "<b>🗓️ Detected At</b>: " . now(),
+                        ],
+                        env('TELEGRAM_CHAT_ERROR_THREAD_ID')
+                    );
+                }
+                return;
+            }
+
+            /** Remove from cache if resolved */
+            if ($hasNotifiedDev) {
+                Cache::delete('error-notice:gold-eagle');
+            }
 
             $otp = TOTP::createFromSecret(static::SECRET);
 
