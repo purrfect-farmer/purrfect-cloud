@@ -18,7 +18,6 @@ class CloudFarmerController extends Controller
                 Rule::in([
                     'funatic',
                     'gold-eagle',
-                    'cex',
                     'zoo',
                 ])
             ],

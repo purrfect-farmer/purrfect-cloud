@@ -29,7 +29,6 @@ class Farm extends Command
     {
         Concurrency::driver('fork')->run([
             fn() => $this->call('farm:gold-eagle'),
-            fn() => $this->call('farm:cex'),
             fn() => $this->call('farm:funatic'),
             fn() => $this->call('farm:zoo'),
         ]);
