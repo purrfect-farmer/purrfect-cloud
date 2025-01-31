@@ -9,11 +9,6 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote')->hourly();
 
 
-/** Farm Zoo every 30 Minutes */
-if (env('ENABLE_ZOO_FARMER')) {
-    Schedule::command('farm:zoo')->everyThirtyMinutes();
-}
-
 /** Farm Gold Eagle every 10 Minutes */
 if (env('ENABLE_GOLD_EAGLE_FARMER')) {
     Schedule::command('farm:gold-eagle')->everyTenMinutes();
