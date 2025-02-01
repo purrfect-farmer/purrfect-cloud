@@ -203,7 +203,10 @@ class FarmGoldEagle extends Command
                             "<i>❌ Status: Broken</i>",
                             "<b>🗓️ Detected At</b>: " . now(),
                         ],
-                        env('TELEGRAM_CHAT_ERROR_THREAD_ID')
+                        [
+                            'message_thread_id' => env('TELEGRAM_CHAT_ERROR_THREAD_ID'),
+                            'disable_notification' => false,
+                        ]
                     );
                 }
                 return;

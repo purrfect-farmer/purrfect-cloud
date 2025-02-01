@@ -8,7 +8,6 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use League\Uri\Uri;
-use PHPHtmlParser\Options;
 use Telegram\Bot\Laravel\Facades\Telegram;
 use PHPHtmlParser\Dom;
 
@@ -58,35 +57,39 @@ class Helpers
      * Send Cloud Farmer Message
      * @param string $key
      * @param array|string $text
+     * @param array $options
      * @return \Telegram\Bot\Objects\Message
      */
-    public static function sendCloudFarmerMessage($key, $text, $thread = null)
+    public static function sendCloudFarmerMessage($key, $text, $options = [])
     {
-        $cacheKey = 'cloud-message:' . $key;
-        $previousMessageId = Cache::get($cacheKey);
+        $cache_key = 'cloud-message:' . $key;
+        $previous_message_id = Cache::get($cache_key);
+        $params = [
+            'chat_id' => env('TELEGRAM_CHAT_ID'),
+            'message_thread_id' => env('TELEGRAM_CHAT_THREAD_ID'),
+            'disable_notification' => true,
+            'parse_mode' => 'HTML',
+            'text' => is_array($text) ? implode("\n", $text) : $text,
+            ...$options
+        ];
+
 
         /** Delete Previous Message */
         try {
-            if ($previousMessageId) {
+            if ($previous_message_id) {
                 Telegram::bot()->deleteMessage([
-                    'chat_id' => env('TELEGRAM_CHAT_ID'),
-                    'message_id' => $previousMessageId
+                    'chat_id' => $params['chat_id'],
+                    'message_id' => $previous_message_id
                 ]);
             }
         } catch (\Throwable $e) {
         }
 
         /** Send New Message */
-        $message = Telegram::bot()->sendMessage([
-            'disable_notification' => true,
-            'chat_id' => env('TELEGRAM_CHAT_ID'),
-            'message_thread_id' => $thread ?: env('TELEGRAM_CHAT_THREAD_ID'),
-            'parse_mode' => 'HTML',
-            'text' => is_array($text) ? implode("\n", $text) : $text
-        ]);
+        $message = Telegram::bot()->sendMessage($params);
 
         /** Put Message Id in Cache */
-        Cache::forever($cacheKey, $message->messageId);
+        Cache::forever($cache_key, $message->messageId);
 
         return $message;
     }
@@ -102,7 +105,9 @@ class Helpers
         $links = $accounts->map(function (Account $account) {
             $id = $account->user_id;
             $username =
-                '@' . Str::of($account->telegram_web_app['initDataUnsafe']['user']['username'] ?? '' ?: $id)
+                '@' . Str::of(
+                    $account->telegram_web_app['initDataUnsafe']['user']['username'] ?? '' ?: $id
+                )
                 ->limit(15);
 
             return "<a href=\"tg://user?id=$id\">$username</a>";
@@ -117,6 +122,12 @@ class Helpers
         return Http::get($url)->body();
     }
 
+    /**
+     * Find Website main script
+     * @param string $url
+     * @param string $name
+     * @return mixed|TFirstDefault
+     */
     public static function findDropMainScript($url, $name = "index")
     {
         $dom = new Dom;
