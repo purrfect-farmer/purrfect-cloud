@@ -53,7 +53,7 @@ class SendServerAddress extends Command
 
         /** Pin the Message */
         Helpers::pinCloudMessage(
-            $message->id,
+            $message->messageId,
             [
                 'disable_notification' => false,
             ]
