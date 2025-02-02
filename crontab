@@ -1,0 +1,8 @@
+# Start Server
+@reboot cd /home/ubuntu/purrfect-cloud && screen -dmS server php artisan serve --host 0.0.0.0
+
+# Send Server IP Address
+@reboot cd /home/ubuntu/purrfect-cloud && php artisan app:send-server-address >> /dev/null 2>&1
+
+# Run Scheduled Commands
+* * * * * cd /home/ubuntu/purrfect-cloud && php artisan schedule:run >> /dev/null 2>&1
