@@ -79,9 +79,13 @@ class FarmGoldEagle extends Command
                         /** Tap */
                         if ($progress['energy'] >= 10) {
                             $energy = $progress['energy'];
-                            $percent = 80 + rand(0, 18);
-                            $taps = floor(
+                            $weight = $progress['tap_weight'];
+                            $percent = 90 + rand(0, 8);
+                            $claim = floor(
                                 ($energy * $percent) / 100
+                            );
+                            $taps = floor(
+                                $claim / $weight
                             );
 
                             /** Calculate Data */
