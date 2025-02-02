@@ -38,7 +38,7 @@ class SendServerAddress extends Command
 
 
         /** Send Message */
-        Helpers::sendCloudFarmerMessage(
+        $message = Helpers::sendCloudFarmerMessage(
             'app:server-address',
             [
                 "<b>☁️ Latest Cloud Server</b>",
@@ -47,6 +47,14 @@ class SendServerAddress extends Command
             ],
             [
                 'message_thread_id' => env('TELEGRAM_CHAT_ANNOUNCEMENT_THREAD_ID'),
+                'disable_notification' => false,
+            ]
+        );
+
+        /** Pin the Message */
+        Helpers::pinCloudMessage(
+            $message->id,
+            [
                 'disable_notification' => false,
             ]
         );

@@ -95,6 +95,23 @@ class Helpers
     }
 
     /**
+     * Pin message
+     * @param int $id
+     * @param array $options
+     * @return bool
+     */
+    public static function pinCloudMessage(int $id, $options = [])
+    {
+        $params = [
+            'chat_id' => env('TELEGRAM_CHAT_ID'),
+            'message_id' => $id,
+            ...$options
+        ];
+
+        return Telegram::bot()->pinChatMessage($params);
+    }
+
+    /**
      * Get Account Links
      * @param \Illuminate\Database\Eloquent\Collection $accounts
      * @return string
