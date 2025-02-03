@@ -99,7 +99,7 @@ class Account extends Model
             '🟥 Status: Disconnected';
 
         /** Message */
-        $message = $account ?
+        $message = $status ?
             'Automatic cloud farming has commenced.' :
             'Please kindly re-open the farmer in order to sync to cloud.';
 
