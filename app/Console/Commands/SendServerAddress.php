@@ -36,6 +36,20 @@ class SendServerAddress extends Command
         /** Get Date */
         $date = now()->toDateString();
 
+        /** Get Previous Message */
+        $previousMessageId = Helpers::getPreviousCloudMessageId('app:server-address');
+
+        if ($previousMessageId) {
+            /** Unpin the Message */
+            try {
+
+                Helpers::unpinCloudMessage(
+                    $previousMessageId
+                );
+            } catch (\Throwable $e) {
+            }
+        }
+
 
         /** Send Message */
         $message = Helpers::sendCloudFarmerMessage(

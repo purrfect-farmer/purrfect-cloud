@@ -54,6 +54,15 @@ class Helpers
     }
 
     /**
+     * Get Previous Message Id
+     * @param mixed $key
+     */
+    public static function getPreviousCloudMessageId($key)
+    {
+        return Cache::get('cloud-message:' . $key);
+    }
+
+    /**
      * Send Cloud Farmer Message
      * @param string $key
      * @param array|string $text
@@ -109,6 +118,23 @@ class Helpers
         ];
 
         return Telegram::bot()->pinChatMessage($params);
+    }
+
+    /**
+     * Unpin message
+     * @param int $id
+     * @param array $options
+     * @return bool
+     */
+    public static function unpinCloudMessage(int $id, $options = [])
+    {
+        $params = [
+            'chat_id' => env('TELEGRAM_CHAT_ID'),
+            'message_id' => $id,
+            ...$options
+        ];
+
+        return Telegram::bot()->unpinChatMessage($params);
     }
 
     /**
