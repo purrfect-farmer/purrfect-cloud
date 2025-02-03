@@ -36,23 +36,8 @@ class SendServerAddress extends Command
         /** Get Date */
         $date = now()->toDateString();
 
-        /** Get Previous Message */
-        $previousMessageId = Helpers::getPreviousCloudMessageId('app:server-address');
-
-        if ($previousMessageId) {
-            /** Unpin the Message */
-            try {
-
-                Helpers::unpinCloudMessage(
-                    $previousMessageId
-                );
-            } catch (\Throwable $e) {
-            }
-        }
-
-
         /** Send Message */
-        $message = Helpers::sendCloudFarmerMessage(
+        Helpers::sendCloudFarmerMessage(
             'app:server-address',
             [
                 "<b>☁️ Latest Cloud Server</b>",
@@ -61,14 +46,6 @@ class SendServerAddress extends Command
             ],
             [
                 'message_thread_id' => env('TELEGRAM_CHAT_ANNOUNCEMENT_THREAD_ID'),
-                'disable_notification' => false,
-            ]
-        );
-
-        /** Pin the Message */
-        Helpers::pinCloudMessage(
-            $message->messageId,
-            [
                 'disable_notification' => false,
             ]
         );
