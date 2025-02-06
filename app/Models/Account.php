@@ -99,9 +99,9 @@ class Account extends Model
             '🟥 Status: Disconnected';
 
         /** Message */
-        $message = $status ?
+        $message = $connected ?
             'Automatic cloud farming has commenced.' :
-            'Please kindly re-open the farmer in order to sync to cloud.';
+            'Please kindly re-open the farmer and sync to cloud.';
 
         /** Send Message */
         Helpers::sendCloudFarmerMessage(
