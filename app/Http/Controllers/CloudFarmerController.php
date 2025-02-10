@@ -69,14 +69,26 @@ class CloudFarmerController extends Controller
         }
     }
 
-    public function stats()
+    public function accounts()
     {
         return Account::all()->groupBy('farmer')->map(fn($list) => [
             'total' => $list->count(),
-            'users' => $list->mapWithKeys(fn($account) => [
-                $account->telegram_web_app['initDataUnsafe']['user']['id'] =>
-                $account->telegram_web_app['initDataUnsafe']['user']['username'],
+            'users' => $list->map(fn($account) => [
+                'id' => $account->id,
+                'user_id' => $account->user_id,
+                'username' => $account->telegram_web_app['initDataUnsafe']['user']['username'],
+                'photo_url' => $account->telegram_web_app['initDataUnsafe']['user']['photo_url'],
+                'updated_at' => $account->updated_at
             ])
         ]);
+    }
+
+    public function disconnect(Account $account)
+    {
+        Account::withoutEvents(function () use ($account) {
+            $account->delete();
+        });
+
+        return response()->noContent();
     }
 }
