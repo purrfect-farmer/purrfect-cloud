@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Account;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Telegram\Bot\Laravel\Facades\Telegram;
 
@@ -85,9 +86,28 @@ class CloudFarmerController extends Controller
 
     public function disconnect(Account $account)
     {
-        Account::withoutEvents(function () use ($account) {
-            $account->delete();
-        });
+        /** Delete the Account */
+        $account->delete();
+
+        try {
+            /** Remove User */
+            Telegram::bot()->banChatMember([
+                'chat_id' => env('TELEGRAM_CHAT_ID'),
+                'user_id' => $account->user_id
+            ]);
+
+            /** Unban User */
+            Telegram::bot()->unbanChatMember([
+                'chat_id' => env('TELEGRAM_CHAT_ID'),
+                'user_id' => $account->user_id,
+                'only_if_banned' => true,
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Disconnect Account', [
+                'accout' => $account,
+                'error' => $e->getMessage(),
+            ]);
+        }
 
         return response()->noContent();
     }
