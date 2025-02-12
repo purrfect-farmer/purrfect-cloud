@@ -89,24 +89,33 @@ class CloudFarmerController extends Controller
         /** Delete the Account */
         $account->delete();
 
-        try {
-            /** Remove User */
-            Telegram::bot()->banChatMember([
-                'chat_id' => env('TELEGRAM_CHAT_ID'),
-                'user_id' => $account->user_id
-            ]);
+        /** Remove the User When There's no Farmer Left */
+        $shouldKick = Account::where(
+            'user_id',
+            $account->user_id
+        )->doesntExist();
 
-            /** Unban User */
-            Telegram::bot()->unbanChatMember([
-                'chat_id' => env('TELEGRAM_CHAT_ID'),
-                'user_id' => $account->user_id,
-                'only_if_banned' => true,
-            ]);
-        } catch (\Throwable $e) {
-            Log::error('Disconnect Account', [
-                'accout' => $account,
-                'error' => $e->getMessage(),
-            ]);
+        if ($shouldKick) {
+            try {
+                /** Remove User */
+                Telegram::bot()->banChatMember([
+                    'chat_id' => env('TELEGRAM_CHAT_ID'),
+                    'user_id' => $account->user_id
+                ]);
+
+                /** Unban User */
+                Telegram::bot()->unbanChatMember([
+                    'chat_id' => env('TELEGRAM_CHAT_ID'),
+                    'user_id' => $account->user_id,
+                    'only_if_banned' => true,
+                ]);
+            } catch (\Throwable $e) {
+                /** Log Error */
+                Log::error('Disconnect Account', [
+                    'account' => $account,
+                    'error' => $e->getMessage(),
+                ]);
+            }
         }
 
         return response()->noContent();
