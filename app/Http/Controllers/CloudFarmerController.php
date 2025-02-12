@@ -118,6 +118,8 @@ class CloudFarmerController extends Controller
             }
         }
 
-        return response()->noContent();
+        return [
+            'kicked' => $shouldKick
+        ];
     }
 }
