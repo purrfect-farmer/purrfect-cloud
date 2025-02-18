@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Helpers;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class SendServerAddress extends Command
 {
@@ -32,6 +33,27 @@ class SendServerAddress extends Command
 
         /** Address */
         $address = 'http://' . $ip . ':8000';
+
+        /** Publish to Seeker */
+        if (config('seeker.enabled')) {
+            try {
+                Http::baseUrl(
+                    config('seeker.server')
+                )
+                    ->withHeaders([
+                        'Accept' => 'application/json',
+                    ])
+                    ->post("/api/servers", [
+                        'key' => config('seeker.key'),
+                        'name' => config('app.name'),
+                        'address' => $address
+                    ]);
+            } catch (\Throwable $e) {
+                Log::error('Seeker Error', [
+                    'error' => $e->getMessage()
+                ]);
+            }
+        }
 
         /** Get Date */
         $date = now()->toDateString();
