@@ -19,12 +19,6 @@ use phpseclib3\Crypt\RSA\PublicKey;
 class FarmGoldEagle extends Command
 {
     /**
-     * Index Script
-     * @var string
-     */
-    const INDEX_SCRIPT = 'index-BT70ebje';
-
-    /**
      * TOTP Secret
      * @var string
      */
@@ -192,7 +186,9 @@ class FarmGoldEagle extends Command
     protected function getOtp()
     {
         try {
-            $script = Helpers::findDropMainScript('https://telegram.geagle.online', static::INDEX_SCRIPT);
+            $config = Http::get("https://raw.githubusercontent.com/purrfect-farmer/purrfect-data/main/config.json")->json();
+            $index = $config['gold-eagle']['index'];
+            $script = Helpers::findDropMainScript('https://telegram.geagle.online', $index);
             $hasNotifiedDev = Cache::has('error-notice:gold-eagle');
             if (!$script) {
                 if (!$hasNotifiedDev) {
