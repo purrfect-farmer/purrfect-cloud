@@ -74,6 +74,8 @@ class Account extends Model
         $title = [
             'funatic' => '🤡 Funatic Farmer',
             'gold-eagle' => '🥇 Gold Eagle Farmer',
+            'slotcoin' => '🎰 Slotcoin Farmer',
+            'dreamcoin' => '🔋 DreamCoin Farmer',
         ][$account->farmer];
 
 

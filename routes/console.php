@@ -18,3 +18,14 @@ if (env('ENABLE_GOLD_EAGLE_FARMER')) {
 if (env('ENABLE_FUNATIC_FARMER')) {
     Schedule::command('farm:funatic')->everyTenMinutes();
 }
+
+
+/** Farm Slotcoin every 10 Minutes */
+if (env('ENABLE_SLOTCOIN_FARMER')) {
+    Schedule::command('farm:slotcoin')->everyTenMinutes();
+}
+
+/** Farm DreamCoin every 10 Minutes */
+if (env('ENABLE_DREAMCOIN_FARMER')) {
+    Schedule::command('farm:dreamcoin')->everyTenMinutes();
+}
