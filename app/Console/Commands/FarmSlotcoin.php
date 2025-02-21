@@ -116,7 +116,8 @@ class FarmSlotcoin extends Command
             } catch (\Throwable $e) {
                 /** Log Error */
                 Log::error('Slotcoin Error', [
-                    'message' => $e->getMessage()
+                    'message' => $e->getMessage(),
+                    'line' => $e->getLine()
                 ]);
             }
         })->filter();
@@ -156,11 +157,14 @@ class FarmSlotcoin extends Command
                         );
                     }
                 } catch (\Throwable $e) {
-                    $account->delete();
+                    if (app()->isProduction()) {
+                        $account->delete();
+                    }
 
                     /** Log Error */
                     Log::error('Slotcoin Error', [
-                        'message' => $e->getMessage()
+                        'message' => $e->getMessage(),
+                        'line' => $e->getLine()
                     ]);
                 }
             })->filter();

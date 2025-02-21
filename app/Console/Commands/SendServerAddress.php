@@ -50,7 +50,8 @@ class SendServerAddress extends Command
                     ]);
             } catch (\Throwable $e) {
                 Log::error('Seeker Error', [
-                    'error' => $e->getMessage()
+                    'message' => $e->getMessage(),
+                    'line' => $e->getLine()
                 ]);
             }
         }

@@ -21,6 +21,7 @@ class CloudFarmerController extends Controller
                     'gold-eagle',
                     'slotcoin',
                     'dreamcoin',
+                    'hrum',
                 ])
             ],
             'user_id' => ['required', 'integer'],

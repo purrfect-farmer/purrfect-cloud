@@ -134,7 +134,8 @@ class FarmDreamcoin extends Command
             } catch (\Throwable $e) {
                 /** Log Error */
                 Log::error('DreamCoin Error', [
-                    'message' => $e->getMessage()
+                    'message' => $e->getMessage(),
+                    'line' => $e->getLine()
                 ]);
             }
         })->filter();
@@ -201,11 +202,14 @@ class FarmDreamcoin extends Command
                         );
                     }
                 } catch (\Throwable $e) {
-                    $account->delete();
+                    if (app()->isProduction()) {
+                        $account->delete();
+                    }
 
                     /** Log Error */
                     Log::error('Dreamcoin Error', [
-                        'message' => $e->getMessage()
+                        'message' => $e->getMessage(),
+                        'line' => $e->getLine()
                     ]);
                 }
             })->filter();

@@ -91,11 +91,14 @@ class FarmGoldEagle extends Command
                             ])->json();
                         }
                     } catch (\Throwable $e) {
-                        $account->delete();
+                        if (app()->isProduction()) {
+                            $account->delete();
+                        }
 
                         /** Log Error */
                         Log::error('Gold Eagle Error', [
-                            'message' => $e->getMessage()
+                            'message' => $e->getMessage(),
+                            'line' => $e->getLine()
                         ]);
                     }
                 });
@@ -230,7 +233,8 @@ class FarmGoldEagle extends Command
         } catch (\Throwable $e) {
             /** Log Error */
             Log::error('Gold Eagle Error', [
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
+                'line' => $e->getLine()
             ]);
         }
     }

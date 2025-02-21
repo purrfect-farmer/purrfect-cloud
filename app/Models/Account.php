@@ -76,6 +76,7 @@ class Account extends Model
             'gold-eagle' => '🥇 Gold Eagle Farmer',
             'slotcoin' => '🎰 Slotcoin Farmer',
             'dreamcoin' => '🔋 DreamCoin Farmer',
+            'hrum' => '🥠 Hrum Farmer',
         ][$account->farmer];
 
 
