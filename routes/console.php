@@ -29,3 +29,8 @@ if (env('ENABLE_SLOTCOIN_FARMER')) {
 if (env('ENABLE_DREAMCOIN_FARMER')) {
     Schedule::command('farm:dreamcoin')->everyTenMinutes();
 }
+
+/** Farm Hrum every 10 Minutes */
+if (env('ENABLE_HRUM_FARMER')) {
+    Schedule::command('farm:hrum')->everyTenMinutes();
+}
