@@ -88,6 +88,7 @@ class CloudFarmerController extends Controller
             'total' => $list->count(),
             'users' => $list->map(fn($account) => [
                 'id' => $account->id,
+                'is_connected' => $account->is_connected,
                 'user_id' => $account->user_id,
                 'username' => $account->telegram_web_app['initDataUnsafe']['user']['username'],
                 'photo_url' => $account->telegram_web_app['initDataUnsafe']['user']['photo_url'],
