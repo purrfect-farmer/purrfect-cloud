@@ -109,8 +109,8 @@ class Account extends Model
 
         /** Status */
         $status = $connected ?
-            '🟩 Status: Connected' :
-            '🟥 Status: Disconnected';
+            '✅ Status: Connected' :
+            '❌ Status: Disconnected';
 
         /** Message */
         $message = $connected ?
