@@ -95,10 +95,7 @@ class CloudFarmerController extends Controller
         $account->delete();
 
         /** Remove the User When There's no Farmer Left */
-        $shouldKick = Account::where(
-            'user_id',
-            $account->user_id
-        )->doesntExist();
+        $shouldKick = Account::userId($account->user_id)->doesntExist();
 
         if ($shouldKick) {
             try {
