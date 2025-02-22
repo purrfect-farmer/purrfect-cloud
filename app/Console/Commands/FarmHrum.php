@@ -214,9 +214,8 @@ class FarmHrum extends Command
                             );
                         }
                     } catch (\Throwable $e) {
-                        if (app()->isProduction()) {
-                            $account->disconnect();
-                        }
+                        /** Disconnect Account */
+                        $account->disconnect();
 
                         /** Log Error */
                         Log::error('Hrum Error', [

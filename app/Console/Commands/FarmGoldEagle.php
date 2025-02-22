@@ -92,9 +92,8 @@ class FarmGoldEagle extends Command
                             ])->json();
                         }
                     } catch (\Throwable $e) {
-                        if (app()->isProduction()) {
-                            $account->disconnect();
-                        }
+                        /** Disconnect Account */
+                        $account->disconnect();
 
                         /** Log Error */
                         Log::error('Gold Eagle Error', [
