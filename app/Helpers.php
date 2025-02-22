@@ -147,7 +147,7 @@ class Helpers
         $totalUsers = $accounts->count();
         $links = $accounts->map(function (Account $account) {
             $id = $account->user_id;
-            $status = $account->is_connected ? '✅' : '❌';
+            $status = $account->is_connected ? '✅' : '🟥';
             $username =
                 '@' . Str::of(
                     $account->telegram_web_app['initDataUnsafe']['user']['username'] ?? '' ?: $id
