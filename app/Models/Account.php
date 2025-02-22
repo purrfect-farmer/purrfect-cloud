@@ -46,13 +46,21 @@ class Account extends Model
      */
     protected static function booted(): void
     {
-        /** Send Connected Message */
+        /** Created */
         static::created(function (Account $account) {
             $account->sendStatusMessage(true);
         });
 
+        /** Updated */
+        static::updated(function (Account $account) {
+            if ($account->wasChanged('is_connected')) {
+                $account->sendStatusMessage(
+                    $account->is_connected
+                );
+            }
+        });
 
-        /** Send Disconnected Message */
+        /** Deleted */
         static::deleted(function (Account $account) {
             $account->sendStatusMessage(false);
         });
@@ -138,17 +146,21 @@ class Account extends Model
         return $builder->where('farmer', $farmer);
     }
 
+    /** Scope User ID */
+    public function scopeUserId(Builder $builder, int|string $id)
+    {
+        return $builder->where('user_id', $id);
+    }
+
     /** Connect */
     public function connect()
     {
-        $this->update(['is_connected' => true]);
-        $this->sendStatusMessage(true);
+        return $this->update(['is_connected' => true]);
     }
 
     /** Disconnect */
     public function disconnect()
     {
-        $this->update(['is_connected' => false]);
-        $this->sendStatusMessage(false);
+        return $this->update(['is_connected' => false]);
     }
 }

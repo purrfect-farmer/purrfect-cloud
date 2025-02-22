@@ -32,25 +32,17 @@ class CloudFarmerController extends Controller
 
         try {
             /** Get Account */
-            $account = Account::where([
-                'farmer' => $data['farmer'],
-                'user_id' => $data['user_id'],
-            ])->first();
+            $account = Account::farmer($data['farmer'])
+                ->userId($data['user_id'])
+                ->first();
 
             /** Update Account */
             if ($account) {
-                $previouslyDisconnected = !$account->is_connected;
-                $account->update([
+                return tap($account)->update([
                     'is_connected' => true,
                     'telegram_web_app' => $data['telegram_web_app'],
                     'headers' => $data['headers'],
                 ]);
-
-                if ($previouslyDisconnected) {
-                    $account->sendStatusMessage(true);
-                }
-
-                return $account;
             } else {
                 /** Allowed */
                 $allowed = env('ACCESS_REQUIRE_MEMBERSHIP') === false ||
