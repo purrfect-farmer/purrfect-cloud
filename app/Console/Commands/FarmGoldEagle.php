@@ -63,7 +63,8 @@ class FarmGoldEagle extends Command
             if (!$this->getOtp()) return;
 
             /** Start Farming */
-            Account::where('farmer', 'gold-eagle')
+            Account::farmer('gold-eagle')
+                ->connected()
                 ->get()
                 ->each(function (Account $account) {
                     try {
@@ -92,7 +93,7 @@ class FarmGoldEagle extends Command
                         }
                     } catch (\Throwable $e) {
                         if (app()->isProduction()) {
-                            $account->delete();
+                            $account->disconnect();
                         }
 
                         /** Log Error */
@@ -109,7 +110,7 @@ class FarmGoldEagle extends Command
 
             /** Get Links */
             $links = Helpers::getCloudAccountLinks(
-                Account::where('farmer', 'gold-eagle')->get()
+                Account::farmer('gold-eagle')->get()
             );
 
             /** Send Message */

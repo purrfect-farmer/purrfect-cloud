@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Helpers;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
@@ -21,6 +22,7 @@ class Account extends Model
     protected $fillable = [
         'farmer',
         'user_id',
+        'is_connected',
         'telegram_web_app',
         'headers',
     ];
@@ -46,27 +48,27 @@ class Account extends Model
     {
         /** Send Connected Message */
         static::created(function (Account $account) {
-            static::sendStatusMessage($account, true);
+            $account->sendStatusMessage(true);
         });
+
 
         /** Send Disconnected Message */
         static::deleted(function (Account $account) {
-            static::sendStatusMessage($account, false);
+            $account->sendStatusMessage(false);
         });
     }
 
     /**
      * Send Status Message
-     * @param \App\Models\Account $account
      * @param bool $connected
      * @return void
      */
-    protected static function sendStatusMessage(Account $account, $connected = true)
+    public function sendStatusMessage($connected = true)
     {
         /** Message Key */
         $key =  implode(':', [
-            $account->farmer,
-            $account->user_id,
+            $this->farmer,
+            $this->user_id,
             'sync'
         ]);
 
@@ -77,16 +79,16 @@ class Account extends Model
             'slotcoin' => '🎰 Slotcoin Farmer',
             'dreamcoin' => '🔋 DreamCoin Farmer',
             'hrum' => '🥠 Hrum Farmer',
-        ][$account->farmer];
+        ][$this->farmer];
 
 
         /** User ID */
-        $id = $account->user_id;
+        $id = $this->user_id;
 
         /** Username */
         $username =
             '@' . Str::of(
-                $account->telegram_web_app['initDataUnsafe']['user']['username'] ?? '' ?: $id
+                $this->telegram_web_app['initDataUnsafe']['user']['username'] ?? '' ?: $id
             )
             ->limit(15);
 
@@ -117,10 +119,36 @@ class Account extends Model
                 "<i>$message</i>",
             ],
             [
-                'chat_id' => $account->user_id,
+                'chat_id' => $this->user_id,
                 'disable_notification' => false,
                 'message_thread_id' => ''
             ]
         );
+    }
+
+    /** Scope Connected */
+    public function scopeConnected(Builder $builder)
+    {
+        return $builder->where('is_connected', true);
+    }
+
+    /** Scope Farmer */
+    public function scopeFarmer(Builder $builder, string $farmer)
+    {
+        return $builder->where('farmer', $farmer);
+    }
+
+    /** Connect */
+    public function connect()
+    {
+        $this->update(['is_connected' => true]);
+        $this->sendStatusMessage(true);
+    }
+
+    /** Disconnect */
+    public function disconnect()
+    {
+        $this->update(['is_connected' => false]);
+        $this->sendStatusMessage(false);
     }
 }

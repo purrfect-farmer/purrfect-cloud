@@ -48,7 +48,7 @@ class FarmSlotcoin extends Command
 
             /** Get Links */
             $links = Helpers::getCloudAccountLinks(
-                Account::where('farmer', 'slotcoin')->get()
+                Account::farmer('slotcoin')->get()
             );
 
             /** Send Message */
@@ -125,7 +125,8 @@ class FarmSlotcoin extends Command
 
     protected function retrieveAccounts()
     {
-        return Account::where('farmer', 'slotcoin')
+        return Account::farmer('slotcoin')
+            ->connected()
             ->get()->map(function (Account $account) {
                 try {
                     /** Daily Check-In */
@@ -158,7 +159,7 @@ class FarmSlotcoin extends Command
                     }
                 } catch (\Throwable $e) {
                     if (app()->isProduction()) {
-                        $account->delete();
+                        $account->disconnect();
                     }
 
                     /** Log Error */

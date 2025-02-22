@@ -36,7 +36,8 @@ class FarmHrum extends Command
             $startDate = now();
 
             /** Start Farming */
-            Account::where('farmer', 'hrum')
+            Account::farmer('hrum')
+                ->connected()
                 ->get()
                 ->each(function (Account $account) {
                     try {
@@ -214,7 +215,7 @@ class FarmHrum extends Command
                         }
                     } catch (\Throwable $e) {
                         if (app()->isProduction()) {
-                            $account->delete();
+                            $account->disconnect();
                         }
 
                         /** Log Error */
@@ -230,7 +231,7 @@ class FarmHrum extends Command
 
             /** Get Links */
             $links = Helpers::getCloudAccountLinks(
-                Account::where('farmer', 'hrum')->get()
+                Account::farmer('hrum')->get()
             );
 
             /** Send Message */

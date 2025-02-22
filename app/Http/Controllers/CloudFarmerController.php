@@ -39,10 +39,18 @@ class CloudFarmerController extends Controller
 
             /** Update Account */
             if ($account) {
-                return tap($account)->update([
+                $previouslyDisconnected = !$account->is_connected;
+                $account->update([
+                    'is_connected' => true,
                     'telegram_web_app' => $data['telegram_web_app'],
                     'headers' => $data['headers'],
                 ]);
+
+                if ($previouslyDisconnected) {
+                    $account->sendStatusMessage(true);
+                }
+
+                return $account;
             } else {
                 /** Allowed */
                 $allowed = env('ACCESS_REQUIRE_MEMBERSHIP') === false ||
@@ -63,6 +71,7 @@ class CloudFarmerController extends Controller
                         'user_id' => $data['user_id'],
                         'telegram_web_app' => $data['telegram_web_app'],
                         'headers' => $data['headers'],
+                        'is_connected' => true,
                     ]);
                 } else {
                     abort(400, 'Not allowed!');

@@ -49,7 +49,7 @@ class FarmFunatic extends Command
 
             /** Get Links */
             $links = Helpers::getCloudAccountLinks(
-                Account::where('farmer', 'funatic')->get()
+                Account::farmer('funatic')->get()
             );
 
             /** Send Message */
@@ -115,7 +115,8 @@ class FarmFunatic extends Command
 
     protected function retrieveAccounts()
     {
-        return Account::where('farmer', 'funatic')
+        return Account::farmer('funatic')
+            ->connected()
             ->get()->map(function (Account $account) {
                 try {
                     /** Daily Bonus */
@@ -216,7 +217,7 @@ class FarmFunatic extends Command
                     }
                 } catch (\Throwable $e) {
                     if (app()->isProduction()) {
-                        $account->delete();
+                        $account->disconnect();
                     }
 
                     /** Log Error */

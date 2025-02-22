@@ -49,7 +49,7 @@ class FarmDreamcoin extends Command
 
             /** Get Links */
             $links = Helpers::getCloudAccountLinks(
-                Account::where('farmer', 'dreamcoin')->get()
+                Account::farmer('dreamcoin')->get()
             );
 
             /** Send Message */
@@ -143,7 +143,8 @@ class FarmDreamcoin extends Command
 
     protected function retrieveAccounts()
     {
-        return Account::where('farmer', 'dreamcoin')
+        return Account::farmer('dreamcoin')
+            ->connected()
             ->get()->map(function (Account $account) {
                 try {
                     /** Daily Check-In */
@@ -203,7 +204,7 @@ class FarmDreamcoin extends Command
                     }
                 } catch (\Throwable $e) {
                     if (app()->isProduction()) {
-                        $account->delete();
+                        $account->disconnect();
                     }
 
                     /** Log Error */
