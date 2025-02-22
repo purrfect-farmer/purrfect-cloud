@@ -170,7 +170,7 @@ class Helpers
      * Find Website main script
      * @param string $url
      * @param string $name
-     * @return mixed|TFirstDefault
+     * @return mixed
      */
     public static function findDropMainScript($url, $name = "index")
     {
