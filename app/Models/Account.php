@@ -36,6 +36,7 @@ class Account extends Model
     protected function casts(): array
     {
         return [
+            'is_connected' => 'boolean',
             'telegram_web_app' => 'array',
             'headers' => 'array',
         ];
