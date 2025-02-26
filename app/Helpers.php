@@ -155,17 +155,13 @@ class Helpers
                     13
                 )
             );
-            $farmerTitle = htmlspecialchars('(' . Str::padBoth(
-                Str::limit(
-                    $account->telegram_web_app['farmerTitle'] ?? 'TGUser',
-                    8
-                ),
-                10,
-                '.'
+            $farmerTitle = htmlspecialchars('(' . Str::limit(
+                $account->telegram_web_app['farmerTitle'] ?? 'TGUser',
+                8
             ) . ')');
 
 
-            return "$status <b>$farmerTitle</b> <a href=\"tg://user?id=$id\">$username</a>";
+            return "$status <a href=\"tg://user?id=$id\">$username</a> <b>$farmerTitle</b>";
         })->implode("\n");
 
         return "\n<blockquote><b>👤 Accounts</b>: $totalUsers\n$links</blockquote>\n";
