@@ -152,7 +152,7 @@ class Helpers
 
                 '@' . Str::limit(
                     $account->telegram_web_app['initDataUnsafe']['user']['username'] ?? '' ?: $id,
-                    15
+                    13
                 )
             );
             $farmerTitle = htmlspecialchars('(' . Str::padBoth(
@@ -160,7 +160,7 @@ class Helpers
                     $account->telegram_web_app['farmerTitle'] ?? 'TGUser',
                     8
                 ),
-                12,
+                10,
                 '.'
             ) . ')');
 
