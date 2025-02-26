@@ -153,8 +153,12 @@ class Helpers
                     $account->telegram_web_app['initDataUnsafe']['user']['username'] ?? '' ?: $id
                 )
                 ->limit(15);
+            $farmerTitle = '(' . Str::of(
+                $account->telegram_web_app['farmerTitle'] ?? 'TGUser'
+            )
+                ->limit(8) . ')';
 
-            return "<a href=\"tg://user?id=$id\">$status $username</a>";
+            return "<a href=\"tg://user?id=$id\">$status $username $farmerTitle</a>";
         })->implode("\n");
 
         return "\n<blockquote><b>👤 Accounts</b>: $totalUsers\n$links</blockquote>\n";
