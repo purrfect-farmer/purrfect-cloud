@@ -162,7 +162,9 @@ class Helpers
                 8
             ) . ')';
 
-            return "<a href=\"tg://user?id=$id\">$status $username $farmerTitle</a>";
+            $textContent = htmlspecialchars("$status $username $farmerTitle");
+
+            return "<a href=\"tg://user?id=$id\">$textContent</a>";
         })->implode("\n");
 
         return "\n<blockquote><b>👤 Accounts</b>: $totalUsers\n$links</blockquote>\n";
