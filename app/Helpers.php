@@ -149,14 +149,17 @@ class Helpers
             $id = $account->user_id;
             $status = $account->is_connected ? '✅' : '❌';
             $username =
-                '@' . Str::of(
-                    $account->telegram_web_app['initDataUnsafe']['user']['username'] ?? '' ?: $id
-                )
-                ->limit(15);
-            $farmerTitle = '(' . Str::of(
-                $account->telegram_web_app['farmerTitle'] ?? 'TGUser'
-            )
-                ->limit(8) . ')';
+                '@' . Str::padRight(
+                    Str::limit(
+                        $account->telegram_web_app['initDataUnsafe']['user']['username'] ?? '' ?: $id,
+                        12
+                    ),
+                    15
+                );
+            $farmerTitle = '(' . Str::limit(
+                $account->telegram_web_app['farmerTitle'] ?? 'TGUser',
+                8
+            ) . ')';
 
             return "<a href=\"tg://user?id=$id\">$status $username $farmerTitle</a>";
         })->implode("\n");
