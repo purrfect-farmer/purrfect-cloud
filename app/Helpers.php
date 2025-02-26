@@ -152,16 +152,11 @@ class Helpers
 
                 '@' . Str::limit(
                     $account->telegram_web_app['initDataUnsafe']['user']['username'] ?? '' ?: $id,
-                    13
+                    15
                 )
             );
-            $farmerTitle = htmlspecialchars('(' . Str::limit(
-                $account->telegram_web_app['farmerTitle'] ?? 'TGUser',
-                8
-            ) . ')');
 
-
-            return "$status <a href=\"tg://user?id=$id\">$username</a> <b>$farmerTitle</b>";
+            return "$status <a href=\"tg://user?id=$id\">$username</a>";
         })->implode("\n");
 
         return "\n<blockquote><b>👤 Accounts</b>: $totalUsers\n$links</blockquote>\n";
