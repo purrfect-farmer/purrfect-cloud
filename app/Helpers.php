@@ -148,23 +148,24 @@ class Helpers
         $links = $accounts->map(function (Account $account) {
             $id = $account->user_id;
             $status = $account->is_connected ? '✅' : '❌';
-            $username =
-                '@' . Str::padRight(
-                    Str::limit(
-                        $account->telegram_web_app['initDataUnsafe']['user']['username'] ?? '' ?: $id,
-                        15
-                    ),
-                    18,
-                    ">"
-                );
-            $farmerTitle = '(' . Str::limit(
-                $account->telegram_web_app['farmerTitle'] ?? 'TGUser',
-                8
-            ) . ')';
+            $username = htmlspecialchars(
 
-            $textContent = htmlspecialchars("$status $username $farmerTitle");
+                '@' . Str::limit(
+                    $account->telegram_web_app['initDataUnsafe']['user']['username'] ?? '' ?: $id,
+                    15
+                )
+            );
+            $farmerTitle = htmlspecialchars('(' . Str::padBoth(
+                Str::limit(
+                    $account->telegram_web_app['farmerTitle'] ?? 'TGUser',
+                    8
+                ),
+                12,
+                '.'
+            ) . ')');
 
-            return "<a href=\"tg://user?id=$id\">$textContent</a>";
+
+            return "$status <b>$farmerTitle</b> <a href=\"tg://user?id=$id\">$username</a>";
         })->implode("\n");
 
         return "\n<blockquote><b>👤 Accounts</b>: $totalUsers\n$links</blockquote>\n";
