@@ -152,9 +152,9 @@ class Helpers
                 '@' . Str::padRight(
                     Str::limit(
                         $account->telegram_web_app['initDataUnsafe']['user']['username'] ?? '' ?: $id,
-                        12
+                        15
                     ),
-                    15
+                    18
                 );
             $farmerTitle = '(' . Str::limit(
                 $account->telegram_web_app['farmerTitle'] ?? 'TGUser',
