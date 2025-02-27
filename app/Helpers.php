@@ -190,15 +190,15 @@ class Helpers
 
             /** Farmer Title */
             $farmerTitle = $displayFarmerTitle ? htmlspecialchars(
-                '(' .
+                '<b>(' .
                     Str::limit(
                         $account->telegram_web_app['farmerTitle'] ?? 'TGUser',
                         8
                     )
-                    . ')'
+                    . ')</b>'
             ) : '';
 
-            return "$status <a href=\"tg://user?id=$id\">$username</a> $farmerTitle";
+            return "$status $farmerTitle <a href=\"tg://user?id=$id\">$username</a>";
         })->implode("\n");
 
         return "\n<blockquote><b>👤 Accounts</b>: $totalUsers\n$links</blockquote>\n";
