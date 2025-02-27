@@ -171,38 +171,51 @@ class Helpers
     {
         $displayFarmerTitle = config('farmer.display_farmer_title');
         $totalUsers = $accounts->count();
-        $links = $accounts->map(function (Account $account) use ($displayFarmerTitle) {
+        $list = $accounts->map(function (Account $account) use ($displayFarmerTitle) {
             $id = $account->user_id;
             $status = $account->is_connected ? '✅' : '❌';
 
             /** Username */
-            $username = htmlspecialchars(
-                '@' . Str::padRight(
-                    Str::lower(
-                        Str::limit(
-                            $account->telegram_web_app['initDataUnsafe']['user']['username'] ?? ''
-                                ?: $id,
-                            12
-                        )
-                    ),
-                    15,
-                    '  '
-                )
+            $username = Str::padRight(
+                Str::lower(
+                    Str::limit(
+                        $account->telegram_web_app['initDataUnsafe']['user']['username'] ?? ''
+                            ?: $id,
+                        12
+                    )
+                ),
+                15,
+                '  '
             );
 
             /** Farmer Title */
-            $farmerTitle = $displayFarmerTitle ? htmlspecialchars(
-                '<b>(' .
-                    Str::upper(
-                        Str::limit(
-                            $account->telegram_web_app['farmerTitle'] ?? 'TGUser',
-                            8
-                        )
-                    )
-                    . ')</b>'
+            $title = $displayFarmerTitle ? Str::upper(
+                Str::limit(
+                    $account->telegram_web_app['farmerTitle'] ?? 'TGUser',
+                    8
+                )
             ) : '';
 
-            return "$status $farmerTitle <a href=\"tg://user?id=$id\">$username</a>";
+            return compact(
+                'id',
+                'status',
+                'username',
+                'title'
+            );
+        });
+
+        /** Sort By Title */
+        if ($displayFarmerTitle) {
+            $list = $list->sortBy('title');
+        }
+
+        $links = $list->map(function ($data) {
+            $id = $data['id'];
+            $status = $data['status'];
+            $username = htmlspecialchars('@' . $data['username']);
+            $title = $data['title'] ? '<b>(' . htmlspecialchars($data['title']) . ')</b>' : '';
+
+            return "$status $title <a href=\"tg://user?id=$id\">$username</a>";
         })->implode("\n");
 
         return "\n<blockquote><b>👤 Accounts</b>: $totalUsers\n$links</blockquote>\n";
