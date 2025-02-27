@@ -178,10 +178,12 @@ class Helpers
             /** Username */
             $username = htmlspecialchars(
                 '@' . Str::padRight(
-                    Str::limit(
-                        $account->telegram_web_app['initDataUnsafe']['user']['username'] ?? ''
-                            ?: $id,
-                        12
+                    Str::lower(
+                        Str::limit(
+                            $account->telegram_web_app['initDataUnsafe']['user']['username'] ?? ''
+                                ?: $id,
+                            12
+                        )
                     ),
                     15,
                     '  '
@@ -191,9 +193,11 @@ class Helpers
             /** Farmer Title */
             $farmerTitle = $displayFarmerTitle ? htmlspecialchars(
                 '<b>(' .
-                    Str::limit(
-                        $account->telegram_web_app['farmerTitle'] ?? 'TGUser',
-                        8
+                    Str::upper(
+                        Str::limit(
+                            $account->telegram_web_app['farmerTitle'] ?? 'TGUser',
+                            8
+                        )
                     )
                     . ')</b>'
             ) : '';
@@ -201,7 +205,7 @@ class Helpers
             return "$status $farmerTitle <a href=\"tg://user?id=$id\">$username</a>";
         })->implode("\n");
 
-        return "\n<pre><b>👤 Accounts</b>: $totalUsers\n$links</pre>\n";
+        return "\n<blockquote><b>👤 Accounts</b>: $totalUsers\n$links</blockquote>\n";
     }
 
     /** Fetch Content */
