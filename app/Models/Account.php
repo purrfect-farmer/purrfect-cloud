@@ -82,13 +82,7 @@ class Account extends Model
         ]);
 
         /** Title */
-        $title = [
-            'funatic' => '🤡 Funatic Farmer',
-            'gold-eagle' => '🥇 Gold Eagle Farmer',
-            'slotcoin' => '🎰 Slotcoin Farmer',
-            'dreamcoin' => '🔋 DreamCoin Farmer',
-            'hrum' => '🥠 Hrum Farmer',
-        ][$this->farmer];
+        $title = config('farmer.drops')[$this->farmer]['title'];
 
 
         /** User ID */

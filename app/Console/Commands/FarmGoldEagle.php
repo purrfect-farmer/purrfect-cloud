@@ -107,19 +107,8 @@ class FarmGoldEagle extends Command
             /** End Date */
             $endDate = now();
 
-            /** Get Links */
-            $links = Helpers::getCloudAccountLinks(
-                Account::farmer('gold-eagle')->get()
-            );
-
             /** Send Message */
-            Helpers::sendCloudFarmerMessage('gold-eagle.completed', [
-                "<b>🥇 Gold Eagle Farmer</b>",
-                "<i>✅ Status: Completed</i>",
-                $links,
-                "<b>🗓️ Start Date</b>: $startDate",
-                "<b>🗓️ End Date</b>: $endDate"
-            ]);
+            Helpers::sendFarmingCompletedMessage('gold-eagle', $startDate, $endDate);
         });
     }
 

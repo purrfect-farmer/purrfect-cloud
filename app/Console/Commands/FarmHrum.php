@@ -228,19 +228,8 @@ class FarmHrum extends Command
             /** End Date */
             $endDate = now();
 
-            /** Get Links */
-            $links = Helpers::getCloudAccountLinks(
-                Account::farmer('hrum')->get()
-            );
-
             /** Send Message */
-            Helpers::sendCloudFarmerMessage('hrum.completed', [
-                "<b>🥠 Hrum Farmer</b>",
-                "<i>✅ Status: Completed</i>",
-                $links,
-                "<b>🗓️ Start Date</b>: $startDate",
-                "<b>🗓️ End Date</b>: $endDate"
-            ]);
+            Helpers::sendFarmingCompletedMessage('hrum', $startDate, $endDate);
         });
     }
 

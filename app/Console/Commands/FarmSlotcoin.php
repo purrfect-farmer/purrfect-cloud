@@ -46,19 +46,8 @@ class FarmSlotcoin extends Command
             /** End Date */
             $endDate = now();
 
-            /** Get Links */
-            $links = Helpers::getCloudAccountLinks(
-                Account::farmer('slotcoin')->get()
-            );
-
             /** Send Message */
-            Helpers::sendCloudFarmerMessage('slotcoin.completed', [
-                "<b>🎰 Slotcoin Farmer</b>",
-                "<i>✅ Status: Completed</i>",
-                $links,
-                "<b>🗓️ Start Date</b>: $startDate",
-                "<b>🗓️ End Date</b>: $endDate"
-            ]);
+            Helpers::sendFarmingCompletedMessage('slotcoin', $startDate, $endDate);
         });
     }
 

@@ -47,19 +47,8 @@ class FarmDreamcoin extends Command
             /** End Date */
             $endDate = now();
 
-            /** Get Links */
-            $links = Helpers::getCloudAccountLinks(
-                Account::farmer('dreamcoin')->get()
-            );
-
             /** Send Message */
-            Helpers::sendCloudFarmerMessage('dreamcoin.completed', [
-                "<b>🔋 Dreamcoin Farmer</b>",
-                "<i>✅ Status: Completed</i>",
-                $links,
-                "<b>🗓️ Start Date</b>: $startDate",
-                "<b>🗓️ End Date</b>: $endDate"
-            ]);
+            Helpers::sendFarmingCompletedMessage('dreamcoin', $startDate, $endDate);
         });
     }
 

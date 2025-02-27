@@ -4,6 +4,7 @@ namespace App;
 
 use App\Models\Account;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -104,6 +105,30 @@ class Helpers
     }
 
     /**
+     * Send Farming Completed Message
+     * @param string $farmer
+     * @param Carbon $startDate
+     * @param Carbon $endDate
+     * @return \Telegram\Bot\Objects\Message
+     */
+    public static function sendFarmingCompletedMessage($farmer, $startDate, $endDate)
+    {
+        $key = $farmer . '.completed';
+        $title = config('farmer.drops')[$farmer]['title'];
+        $links = static::getCloudAccountLinks(
+            Account::farmer($farmer)->get()
+        );
+
+        return static::sendCloudFarmerMessage($key, [
+            "<b>$title</b>",
+            "<i>✅ Status: Completed</i>",
+            $links,
+            "<b>🗓️ Start Date</b>: $startDate",
+            "<b>🗓️ End Date</b>: $endDate"
+        ]);
+    }
+
+    /**
      * Pin message
      * @param int $id
      * @param array $options
@@ -144,19 +169,36 @@ class Helpers
      */
     public static function getCloudAccountLinks(Collection $accounts)
     {
+        $displayFarmerTitle = config('farmer.display_farmer_title');
         $totalUsers = $accounts->count();
-        $links = $accounts->map(function (Account $account) {
+        $links = $accounts->map(function (Account $account) use ($displayFarmerTitle) {
             $id = $account->user_id;
             $status = $account->is_connected ? '✅' : '❌';
-            $username = htmlspecialchars(
 
-                '@' . Str::limit(
-                    $account->telegram_web_app['initDataUnsafe']['user']['username'] ?? '' ?: $id,
-                    15
+            /** Username */
+            $username = htmlspecialchars(
+                '@' . Str::padRight(
+                    Str::limit(
+                        $account->telegram_web_app['initDataUnsafe']['user']['username'] ?? ''
+                            ?: $id,
+                        12
+                    ),
+                    15,
+                    '  '
                 )
             );
 
-            return "$status <a href=\"tg://user?id=$id\">$username</a>";
+            /** Farmer Title */
+            $farmerTitle = $displayFarmerTitle ? htmlspecialchars(
+                '(' .
+                    Str::limit(
+                        $account->telegram_web_app['farmerTitle'] ?? 'TGUser',
+                        8
+                    )
+                    . ')'
+            ) : '';
+
+            return "$status <a href=\"tg://user?id=$id\">$username</a> $farmerTitle";
         })->implode("\n");
 
         return "\n<blockquote><b>👤 Accounts</b>: $totalUsers\n$links</blockquote>\n";

@@ -16,13 +16,11 @@ class CloudFarmerController extends Controller
             'farmer' => [
                 'required',
                 'string',
-                Rule::in([
-                    'funatic',
-                    'gold-eagle',
-                    'slotcoin',
-                    'dreamcoin',
-                    'hrum',
-                ])
+                Rule::in(
+                    collect(config('farmer.drops'))
+                        ->filter(fn($drop) => $drop['enabled'])
+                        ->keys()
+                )
             ],
             'user_id' => ['required', 'integer'],
             'telegram_web_app' => ['required', 'array'],

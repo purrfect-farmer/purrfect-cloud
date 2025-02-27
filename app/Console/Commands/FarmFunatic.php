@@ -47,19 +47,8 @@ class FarmFunatic extends Command
             /** End Date */
             $endDate = now();
 
-            /** Get Links */
-            $links = Helpers::getCloudAccountLinks(
-                Account::farmer('funatic')->get()
-            );
-
             /** Send Message */
-            Helpers::sendCloudFarmerMessage('funatic.completed', [
-                "<b>🤡 Funatic Farmer</b>",
-                "<i>✅ Status: Completed</i>",
-                $links,
-                "<b>🗓️ Start Date</b>: $startDate",
-                "<b>🗓️ End Date</b>: $endDate"
-            ]);
+            Helpers::sendFarmingCompletedMessage('funatic', $startDate, $endDate);
         });
     }
 

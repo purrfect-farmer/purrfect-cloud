@@ -3,8 +3,6 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Concurrency;
 
 class Farm extends Command
 {
@@ -27,9 +25,11 @@ class Farm extends Command
      */
     public function handle()
     {
-        Concurrency::driver('fork')->run([
-            fn() => $this->call('farm:gold-eagle'),
-            fn() => $this->call('farm:funatic'),
-        ]);
+        collect(config('farmer.drops'))
+            ->filter(fn($drop) => $drop['enabled'])
+            ->keys()
+            ->map(
+                fn($key) => fn() => $this->call('farm:' . $key)
+            )->all();
     }
 }
