@@ -201,7 +201,7 @@ class Helpers
             return "$status $farmerTitle <a href=\"tg://user?id=$id\">$username</a>";
         })->implode("\n");
 
-        return "\n<blockquote><b>👤 Accounts</b>: $totalUsers\n$links</blockquote>\n";
+        return "\n<pre><b>👤 Accounts</b>: $totalUsers\n$links</pre>\n";
     }
 
     /** Fetch Content */
