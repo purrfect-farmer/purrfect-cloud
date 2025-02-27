@@ -209,11 +209,12 @@ class Helpers
             $list = $list->sortBy('title');
         }
 
+        /** Retrieve Links */
         $links = $list->map(function ($data) {
             $id = $data['id'];
             $status = $data['status'];
             $username = htmlspecialchars('@' . $data['username']);
-            $title = $data['title'] ? '<b>(' . htmlspecialchars($data['title']) . ')</b>' : '';
+            $title = $data['title'] ? '<b>' . htmlspecialchars('(' . $data['title'] . ')') . '</b>' : '';
 
             return "$status $title <a href=\"tg://user?id=$id\">$username</a>";
         })->implode("\n");
