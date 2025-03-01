@@ -182,7 +182,7 @@ class FarmGoldEagle extends Command
             'stardust-claim',
             $account,
             [
-                "Claimed <b>$amount</b> StarDust to <b>$address</i>",
+                "Claimed <b>$amount</b> StarDust to <b>$address</b>",
                 "<a href=\"https://stellar.expert/explorer/public/tx/$hash\">View Transaction</a>"
             ],
             false
