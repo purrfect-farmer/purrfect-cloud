@@ -15,6 +15,7 @@ use OTPHP\TOTP;
 use phpseclib3\Crypt\PublicKeyLoader;
 use phpseclib3\Crypt\RSA;
 use phpseclib3\Crypt\RSA\PublicKey;
+use Telegram\Bot\Laravel\Facades\Telegram;
 
 class FarmGoldEagle extends Command
 {
@@ -91,6 +92,21 @@ class FarmGoldEagle extends Command
                                 'data' => $data,
                             ])->json();
                         }
+
+                        /** Claim to Wallet */
+                        if ($progress['coins_amount'] >= 50_000) {
+                            $tasks = $this->getApi($account)
+                                ->get('https://gold-eagle-api.fly.dev/task/my/available')->json();
+
+                            $claimable = collect($tasks)->every(
+                                fn($task) => $task['task_type'] !== 'Sl8' || $task['status'] === 'Completed'
+                            );
+
+                            /** Claim To Sl8 */
+                            if ($claimable) {
+                                $this->claimToSl8($account);
+                            }
+                        }
                     } catch (\Throwable $e) {
                         /** Disconnect Account */
                         $account->disconnect();
@@ -110,6 +126,67 @@ class FarmGoldEagle extends Command
             /** Send Message */
             Helpers::sendFarmingCompletedMessage('gold-eagle', $startDate, $endDate);
         });
+    }
+
+    /**
+     * Claim to Sl8
+     * @param \App\Models\Account $account
+     * @return void
+     */
+    protected function claimToSl8(Account $account)
+    {
+        /** Retrieve User */
+        $user = $this->getApi($account)->get('https://gold-eagle-api.fly.dev/user/me')->json();
+
+        /** Ensure User is Registered */
+        if ($user['is_sl8_user']) {
+            /** Get SL8 Info */
+            $sl8 = $this->getApi($account)->get('https://gold-eagle-api.fly.dev/me/sl8')->json();
+
+            /** Wallet is Active */
+            if ($sl8['wallet_status'] === 'Active') {
+                /** Get Progress */
+                $progress = $this->getApi($account)->get('https://gold-eagle-api.fly.dev/user/me/progress')->json();
+
+                /** Claim */
+                $result = $this->getApi($account)->post('https://gold-eagle-api.fly.dev/wallet/claim')->json();
+
+                /** Send Claim Notification */
+                $this->sendClaimNotification(
+                    $account,
+                    $progress['coins_amount'],
+                    $sl8['wallet_address'],
+                    $result['hash']
+                );
+            }
+        }
+    }
+
+
+    /**
+     * Send Claim Notification
+     * @param \App\Models\Account $account
+     * @param string $amount
+     * @param string $address
+     * @param string $hash
+     * @return void
+     */
+    protected function sendClaimNotification(
+        Account $account,
+        $amount,
+        $address,
+        $hash
+    ) {
+        /** Send Message */
+        Helpers::sendUserMessage(
+            'stardust-claim',
+            $account,
+            [
+                "Claimed <b>$amount</b> StarDust to <b>$address</i>",
+                "<a href=\"https://stellar.expert/explorer/public/tx/$hash\">View Transaction</a>"
+            ],
+            false
+        );
     }
 
     /**

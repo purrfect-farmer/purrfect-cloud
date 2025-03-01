@@ -68,12 +68,17 @@ class Helpers
      * @param string $key
      * @param array|string $text
      * @param array $options
+     * @param bool $deletePreviousMessage
      * @return \Telegram\Bot\Objects\Message
      */
-    public static function sendCloudFarmerMessage($key, $text, $options = [])
-    {
-        $cache_key = 'cloud-message:' . $key;
-        $previous_message_id = Cache::get($cache_key);
+    public static function sendCloudFarmerMessage(
+        $key,
+        $text,
+        $options = [],
+        $deletePreviousMessage = true
+    ) {
+
+        /** Configure Params */
         $params = [
             'chat_id' => env('TELEGRAM_CHAT_ID'),
             'message_thread_id' => env('TELEGRAM_CHAT_THREAD_ID'),
@@ -83,23 +88,29 @@ class Helpers
             ...$options
         ];
 
-
-        /** Delete Previous Message */
-        try {
-            if ($previous_message_id) {
-                Telegram::bot()->deleteMessage([
-                    'chat_id' => $params['chat_id'],
-                    'message_id' => $previous_message_id
-                ]);
-            }
-        } catch (\Throwable $e) {
-        }
-
         /** Send New Message */
         $message = Telegram::bot()->sendMessage($params);
 
-        /** Put Message Id in Cache */
-        Cache::forever($cache_key, $message->messageId);
+        /** Delete Previous Message */
+        if ($deletePreviousMessage) {
+            $cacheKey = 'cloud-message:' . $key;
+            $previousMessageId = Cache::get($cacheKey);
+            if ($previousMessageId) {
+                try {
+                    Telegram::bot()->deleteMessage([
+                        'chat_id' => $params['chat_id'],
+                        'message_id' => $previousMessageId
+                    ]);
+                } catch (\Throwable $e) {
+                }
+            }
+
+            /** Put New Message Id in Cache */
+            Cache::forever(
+                $cacheKey,
+                $message->messageId
+            );
+        }
 
         return $message;
     }
@@ -111,8 +122,11 @@ class Helpers
      * @param Carbon $endDate
      * @return \Telegram\Bot\Objects\Message
      */
-    public static function sendFarmingCompletedMessage($farmer, $startDate, $endDate)
-    {
+    public static function sendFarmingCompletedMessage(
+        $farmer,
+        $startDate,
+        $endDate
+    ) {
         $key = $farmer . '.completed';
         $title = config('farmer.drops')[$farmer]['title'];
         $links = static::getCloudAccountLinks(
@@ -126,6 +140,68 @@ class Helpers
             "<b>🗓️ Start Date</b>: $startDate",
             "<b>🗓️ End Date</b>: $endDate"
         ]);
+    }
+
+
+    /**
+     * Send Message to User
+     * @param string $key
+     * @param \App\Models\Account $account
+     * @param array $message
+     * @param bool $deletePreviousMessage
+     * @return \Telegram\Bot\Objects\Message
+     */
+    public static function sendUserMessage(
+        $key,
+        Account $account,
+        $message,
+        $deletePreviousMessage = true
+    ) {
+        /** Message Key */
+        $key =  implode(':', [
+            $account->farmer,
+            $account->user_id,
+            $key
+        ]);
+
+        /** Title */
+        $title = config('farmer.drops')[$account->farmer]['title'];
+
+
+        /** User ID */
+        $id = $account->user_id;
+
+        /** Username */
+        $username =
+            htmlspecialchars(
+                '@' . Str::limit(
+                    $account->telegram_web_app['initDataUnsafe']['user']['username'] ?? '' ?: $id,
+                    15
+                )
+            );
+
+        /** User Mention Link */
+        $link = "<a href=\"tg://user?id=$id\">$username</a>";
+
+        /** Date */
+        $date = now();
+
+        /** Send Message */
+        return static::sendCloudFarmerMessage(
+            $key,
+            [
+                "<b>$title</b>",
+                "<b>👤 Account</b>: $link",
+                "<b>🗓️ Date</b>: $date",
+                ...$message
+            ],
+            [
+                'chat_id' => $account->user_id,
+                'disable_notification' => false,
+                'message_thread_id' => ''
+            ],
+            $deletePreviousMessage
+        );
     }
 
     /**

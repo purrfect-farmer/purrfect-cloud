@@ -6,7 +6,6 @@ use App\Helpers;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Str;
 
 class Account extends Model
 {
@@ -74,33 +73,6 @@ class Account extends Model
      */
     public function sendStatusMessage($connected = true)
     {
-        /** Message Key */
-        $key =  implode(':', [
-            $this->farmer,
-            $this->user_id,
-            'sync'
-        ]);
-
-        /** Title */
-        $title = config('farmer.drops')[$this->farmer]['title'];
-
-
-        /** User ID */
-        $id = $this->user_id;
-
-        /** Username */
-        $username =
-            '@' . Str::of(
-                $this->telegram_web_app['initDataUnsafe']['user']['username'] ?? '' ?: $id
-            )
-            ->limit(15);
-
-        /** User Mention Link */
-        $link = "<a href=\"tg://user?id=$id\">$username</a>";
-
-        /** Date */
-        $date = now();
-
         /** Status */
         $status = $connected ?
             '✅ Status: Connected' :
@@ -112,20 +84,13 @@ class Account extends Model
             'Please kindly re-open the farmer and sync to cloud.';
 
         /** Send Message */
-        Helpers::sendCloudFarmerMessage(
-            $key,
+        Helpers::sendUserMessage(
+            'sync',
+            $this,
             [
-                "<b>$title</b>",
-                "<b>👤 Account</b>: $link",
-                "<b>🗓️ Date</b>: $date",
                 "<i>$status</i>",
                 "<i>$message</i>",
             ],
-            [
-                'chat_id' => $this->user_id,
-                'disable_notification' => false,
-                'message_thread_id' => ''
-            ]
         );
     }
 
