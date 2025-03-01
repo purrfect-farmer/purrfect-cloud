@@ -75,8 +75,8 @@ class Account extends Model
     {
         /** Status */
         $status = $connected ?
-            '✅ Status: Connected' :
-            '❌ Status: Disconnected';
+            '<b>✅ Status:</b> Connected' :
+            '<b>❌ Status:</b> Disconnected';
 
         /** Message */
         $message = $connected ?
@@ -88,7 +88,7 @@ class Account extends Model
             'sync',
             $this,
             [
-                "<i>$status</i>",
+                "$status",
                 "<blockquote><i>$message</i></blockquote>",
             ],
         );
