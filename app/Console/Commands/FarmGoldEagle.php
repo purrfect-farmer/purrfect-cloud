@@ -166,7 +166,7 @@ class FarmGoldEagle extends Command
     /**
      * Send Claim Notification
      * @param \App\Models\Account $account
-     * @param string $amount
+     * @param int $amount
      * @param string $address
      * @param string $hash
      * @return void
@@ -177,13 +177,23 @@ class FarmGoldEagle extends Command
         $address,
         $hash
     ) {
+
+        $formattedAmount = number_format($amount);
+        $addressLink = "https://stellar.expert/explorer/public/account/$address";
+        $txLink = "https://stellar.expert/explorer/public/tx/$hash";
+
+
+
         /** Send Message */
         Helpers::sendUserMessage(
             'stardust-claim',
             $account,
             [
-                "Claimed <b>$amount</b> StarDust to <b>$address</b>",
-                "<a href=\"https://stellar.expert/explorer/public/tx/$hash\">View Transaction</a>"
+                "<i>Successfully claimed <a href=\"$txLink\"><b>$formattedAmount StarDust</b></a> to <a href=\"$addressLink\"><b>$address</b></a></i>",
+                "<b>💸 Amount</b>: <a href=\"$txLink\">$formattedAmount</a>",
+                "<b>📘 Address</b>: <a href=\"$addressLink\">$address</a>",
+                "<b>🧾 Hash</b>: $hash",
+                "<a href=\"$txLink\">View Transaction</a>"
             ],
             false
         );
