@@ -149,7 +149,9 @@ class FarmGoldEagle extends Command
                 $progress = $this->getApi($account)->get('https://gold-eagle-api.fly.dev/user/me/progress')->json();
 
                 /** Claim */
-                $result = $this->getApi($account)->post('https://gold-eagle-api.fly.dev/wallet/claim')->json();
+                $result = $this->getApi($account)
+                    ->timeout(30)
+                    ->post('https://gold-eagle-api.fly.dev/wallet/claim')->json();
 
                 /** Send Claim Notification */
                 $this->sendClaimNotification(
