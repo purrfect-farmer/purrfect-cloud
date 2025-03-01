@@ -54,8 +54,7 @@ class FarmFunatic extends Command
 
     protected function getApi(Account $account)
     {
-        return Http::timeout(10)
-            ->withHeaders($account->headers)
+        return Http::withHeaders($account->headers)
             ->withHeaders([
                 'Origin' => 'https://clicker.funtico.com',
                 'Referer' => 'https://clicker.funtico.com/',

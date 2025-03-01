@@ -55,8 +55,7 @@ class FarmDreamcoin extends Command
 
     protected function getApi(Account $account)
     {
-        return Http::timeout(10)
-            ->withHeaders($account->headers)
+        return Http::withHeaders($account->headers)
             ->withHeaders([
                 'Origin' => 'https://dreamcoin.ai',
                 'Referer' => 'https://dreamcoin.ai/',

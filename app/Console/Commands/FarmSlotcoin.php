@@ -54,8 +54,7 @@ class FarmSlotcoin extends Command
 
     protected function getApi(Account $account)
     {
-        return Http::timeout(10)
-            ->withHeaders($account->headers)
+        return Http::withHeaders($account->headers)
             ->withHeaders([
                 'Origin' => 'https://app.slotcoin.app',
                 'Referer' => 'https://app.slotcoin.app/',
