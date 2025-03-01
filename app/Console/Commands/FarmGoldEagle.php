@@ -189,11 +189,11 @@ class FarmGoldEagle extends Command
             'stardust-claim',
             $account,
             [
-                "<i>Successfully claimed <a href=\"$txLink\"><b>$formattedAmount StarDust</b></a> to <a href=\"$addressLink\"><b>$address</b></a></i>",
-                "<b>💸 Amount</b>: <a href=\"$txLink\">$formattedAmount</a>",
+                "<b>💰 Amount</b>: <a href=\"$txLink\">$formattedAmount</a>",
                 "<b>📘 Address</b>: <a href=\"$addressLink\">$address</a>",
                 "<b>🧾 Hash</b>: $hash",
-                "<a href=\"$txLink\">View Transaction</a>"
+                "<a href=\"$txLink\">View Transaction</a>",
+                "<blockquote><i>Successfully claimed <a href=\"$txLink\"><b>$formattedAmount StarDust</b></a> to <a href=\"$addressLink\"><b>$address</b></a></i></blockquote>",
             ],
             false
         );
