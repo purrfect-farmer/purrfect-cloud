@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Account;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Telegram\Bot\Laravel\Facades\Telegram;
 
@@ -92,34 +91,6 @@ class CloudFarmerController extends Controller
         /** Delete the Account */
         $account->delete();
 
-        /** Remove the User When There's no Farmer Left */
-        $shouldKick = Account::userId($account->user_id)->doesntExist();
-
-        if ($shouldKick) {
-            try {
-                /** Remove User */
-                Telegram::bot()->banChatMember([
-                    'chat_id' => config('farmer.chat_id'),
-                    'user_id' => $account->user_id
-                ]);
-
-                /** Unban User */
-                Telegram::bot()->unbanChatMember([
-                    'chat_id' => config('farmer.chat_id'),
-                    'user_id' => $account->user_id,
-                    'only_if_banned' => true,
-                ]);
-            } catch (\Throwable $e) {
-                /** Log Error */
-                Log::error('Disconnect Account', [
-                    'account' => $account,
-                    'error' => $e->getMessage(),
-                ]);
-            }
-        }
-
-        return [
-            'kicked' => $shouldKick
-        ];
+        return response()->noContent();
     }
 }
