@@ -121,6 +121,6 @@ class Account extends Model
     /** Disconnect */
     public function disconnect()
     {
-        return $this->update(['is_connected' => false]);
+        return $this->when(app()->isProduction())->update(['is_connected' => false]);
     }
 }
