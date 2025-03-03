@@ -69,7 +69,7 @@ class Helpers
      * @param array|string $text
      * @param array $options
      * @param bool $deletePreviousMessage
-     * @return \Telegram\Bot\Objects\Message
+     * @return \Telegram\Bot\Objects\Message|null
      */
     public static function sendCloudFarmerMessage(
         $key,
@@ -77,6 +77,8 @@ class Helpers
         $options = [],
         $deletePreviousMessage = true
     ) {
+        /** Disable Messages */
+        if (env('DISABLE_TELEGRAM_MESSAGES')) return;
 
         /** Configure Params */
         $params = [

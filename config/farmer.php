@@ -15,6 +15,10 @@ return [
             'title' => '👨‍🍳 Wonton Farmer',
             'enabled' => env('ENABLE_WONTON_FARMER', true)
         ],
+        'tsubasa' => [
+            'title' => '⚽️ Tsubasa Farmer',
+            'enabled' => env('ENABLE_TSUBASA_FARMER', true)
+        ],
         'funatic' => [
             'title' => '🤡 Funatic Farmer',
             'enabled' => env('ENABLE_FUNATIC_FARMER', true)
