@@ -68,7 +68,7 @@ class SendServerAddress extends Command
                 "<b>🗓️ Updated</b>: $date",
             ],
             [
-                'message_thread_id' => env('TELEGRAM_CHAT_ANNOUNCEMENT_THREAD_ID'),
+                'message_thread_id' => config('farmer.announcement_thread_id'),
                 'disable_notification' => false,
             ]
         );

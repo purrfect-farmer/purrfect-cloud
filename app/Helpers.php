@@ -78,12 +78,12 @@ class Helpers
         $deletePreviousMessage = true
     ) {
         /** Disable Messages */
-        if (env('DISABLE_TELEGRAM_MESSAGES')) return;
+        if (config('farmer.disable_telegram_messages')) return;
 
         /** Configure Params */
         $params = [
-            'chat_id' => env('TELEGRAM_CHAT_ID'),
-            'message_thread_id' => env('TELEGRAM_CHAT_THREAD_ID'),
+            'chat_id' => config('farmer.chat_id'),
+            'message_thread_id' => config('farmer.farming_thread_id'),
             'disable_notification' => true,
             'parse_mode' => 'HTML',
             'text' => is_array($text) ? implode("\n", $text) : $text,
@@ -129,19 +129,24 @@ class Helpers
         $startDate,
         $endDate
     ) {
-        $key = $farmer . '.completed';
-        $title = config('farmer.drops')[$farmer]['title'];
+        $config = config('farmer.drops')[$farmer];
+        $title = $config['title'];
         $links = static::getCloudAccountLinks(
             Account::farmer($farmer)->get()
         );
+        $key = $farmer . '.completed';
 
-        return static::sendCloudFarmerMessage($key, [
-            "<b>$title</b>",
-            "<i>✅ Status: Completed</i>",
-            $links,
-            "<b>🗓️ Start Date</b>: $startDate",
-            "<b>🗓️ End Date</b>: $endDate"
-        ]);
+        return static::sendCloudFarmerMessage(
+            $key,
+            [
+                "<b>$title</b>",
+                "<i>✅ Status: Completed</i>",
+                $links,
+                "<b>🗓️ Start Date</b>: $startDate",
+                "<b>🗓️ End Date</b>: $endDate"
+            ],
+            ['message_thread_id' => $config['thread_id']]
+        );
     }
 
 
@@ -215,7 +220,7 @@ class Helpers
     public static function pinCloudMessage(int $id, $options = [])
     {
         $params = [
-            'chat_id' => env('TELEGRAM_CHAT_ID'),
+            'chat_id' => config('farmer.chat_id'),
             'message_id' => $id,
             ...$options
         ];
@@ -232,7 +237,7 @@ class Helpers
     public static function unpinCloudMessage(int $id, $options = [])
     {
         $params = [
-            'chat_id' => env('TELEGRAM_CHAT_ID'),
+            'chat_id' => config('farmer.chat_id'),
             'message_id' => $id,
             ...$options
         ];

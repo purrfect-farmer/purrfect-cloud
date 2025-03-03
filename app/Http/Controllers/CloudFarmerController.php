@@ -43,12 +43,12 @@ class CloudFarmerController extends Controller
                 ]);
             } else {
                 /** Allowed */
-                $allowed = env('ACCESS_REQUIRE_MEMBERSHIP') === false ||
+                $allowed = config('farmer.access_require_membership') === false ||
                     collect(['creator', 'administrator', 'member'])
                     ->contains(
                         Telegram::bot()
                             ->getChatMember([
-                                'chat_id' => env('TELEGRAM_CHAT_ID'),
+                                'chat_id' => config('farmer.chat_id'),
                                 'user_id' =>  $data['user_id']
                             ])->status
                     );
@@ -99,13 +99,13 @@ class CloudFarmerController extends Controller
             try {
                 /** Remove User */
                 Telegram::bot()->banChatMember([
-                    'chat_id' => env('TELEGRAM_CHAT_ID'),
+                    'chat_id' => config('farmer.chat_id'),
                     'user_id' => $account->user_id
                 ]);
 
                 /** Unban User */
                 Telegram::bot()->unbanChatMember([
-                    'chat_id' => env('TELEGRAM_CHAT_ID'),
+                    'chat_id' => config('farmer.chat_id'),
                     'user_id' => $account->user_id,
                     'only_if_banned' => true,
                 ]);

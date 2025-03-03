@@ -265,7 +265,7 @@ class FarmGoldEagle extends Command
                             "<b>🗓️ Detected At</b>: " . now(),
                         ],
                         [
-                            'message_thread_id' => env('TELEGRAM_CHAT_ERROR_THREAD_ID'),
+                            'message_thread_id' => config('farmer.error_thread_id'),
                             'disable_notification' => false,
                         ]
                     );
