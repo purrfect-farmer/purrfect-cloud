@@ -11,6 +11,10 @@ return [
             'title' => '🥠 Hrum Farmer',
             'enabled' => env('ENABLE_HRUM_FARMER', false)
         ],
+        'wonton' => [
+            'title' => '👨‍🍳 Wonton Farmer',
+            'enabled' => env('ENABLE_WONTON_FARMER', false)
+        ],
         'funatic' => [
             'title' => '🤡 Funatic Farmer',
             'enabled' => env('ENABLE_FUNATIC_FARMER', false)

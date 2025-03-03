@@ -342,4 +342,30 @@ class Helpers
 
         return $scriptResponse;
     }
+
+    /**
+     * Get extra points
+     * @param int $points
+     * @return int
+     */
+    public static function extraGamePoints($points)
+    {
+        return intval(
+            $points + static::randomPercent($points, 0, 20)
+        );
+    }
+
+    /**
+     * Get a random percentage of the value
+     * @param int $value
+     * @param int $min
+     * @param int $max
+     * @return float
+     */
+    public static function randomPercent($value, $min = 0, $max = 100)
+    {
+        return floor(
+            $value * rand($min, $max) / 100
+        );
+    }
 }
