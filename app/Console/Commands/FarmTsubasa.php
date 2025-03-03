@@ -148,11 +148,11 @@ class FarmTsubasa extends Command
                             )->post(
                                 'https://api.app.ton.tsubasa-rivals.com/api/card/levelup',
                                 [
-                                    'cardId' => $card['id'],
-                                    'categoryId' => $card['category'],
+                                    'card_id' => $card['id'],
+                                    'category_id' => $card['category'],
                                     'initData' => $initData
                                 ]
-                            );
+                            )->json();
                         }
                     } catch (\Throwable $e) {
                         /** Disconnect Account */
