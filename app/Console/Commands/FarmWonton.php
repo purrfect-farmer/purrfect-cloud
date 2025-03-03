@@ -2,16 +2,16 @@
 
 namespace App\Console\Commands;
 
+use App\Console\Commands\Traits\Farmer;
 use App\Helpers;
 use App\Models\Account;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Sleep;
 
 class FarmWonton extends Command
 {
+    use Farmer;
+
     /**
      * The name and signature of the console command.
      *
@@ -26,16 +26,21 @@ class FarmWonton extends Command
      */
     protected $description = 'Farm Wonton Automatically';
 
+
+    /**
+     * The origin for all requests.
+     *
+     * @var string
+     */
+    protected $origin = 'https://www.wonton.restaurant';
+
+
     /**
      * Execute the console command.
      */
     public function handle()
     {
-
-        Cache::lock($this->signature)->get(function () {
-            /** Start Date */
-            $startDate = now();
-
+        $this->farm(function () {
             /** Retrieve Accounts */
             $accounts = $this->retrieveAccounts();
 
@@ -43,45 +48,13 @@ class FarmWonton extends Command
             if ($accounts->isNotEmpty()) {
                 $this->farmAccounts($accounts);
             }
-
-            /** End Date */
-            $endDate = now();
-
-            /** Send Message */
-            Helpers::sendFarmingCompletedMessage('wonton', $startDate, $endDate);
         });
     }
-
-    protected function getBaseHeaders()
-    {
-        return [
-            'Origin' => 'https://www.wonton.restaurant',
-            'Referer' => 'https://www.wonton.restaurant/',
-            'X-Requested-With' => 'org.telegram.messenger'
-        ];
-    }
-
-    protected function getApi(Account $account)
-    {
-        return Http::withHeaders($account->headers)
-            ->withHeaders(
-                $this->getBaseHeaders()
-            )
-            ->withUserAgent(
-                $account->getUserAgent()
-            );
-    }
-
 
     protected function setAuth(Account $account)
     {
         /** Get Access Token */
-        $accessToken = Http::withHeaders(
-            $this->getBaseHeaders()
-        )
-            ->withUserAgent(
-                $account->getUserAgent()
-            )
+        $accessToken = $this->getBaseApi($account)
             ->post('https://wonton.food/api/v1/user/auth', [
                 'initData' => $account->telegram_web_app['initData'],
                 'inviteCode' => '',
@@ -117,10 +90,7 @@ class FarmWonton extends Command
                 );
             } catch (\Throwable $e) {
                 /** Log Error */
-                Log::error('Wonton Error', [
-                    'message' => $e->getMessage(),
-                    'line' => $e->getLine()
-                ]);
+                $this->logError($e);
             }
         })->filter();
 
@@ -301,10 +271,7 @@ class FarmWonton extends Command
                     $account->disconnect();
 
                     /** Log Error */
-                    Log::error('Wonton Error', [
-                        'message' => $e->getMessage(),
-                        'line' => $e->getLine()
-                    ]);
+                    $this->logError($e);
                 }
             })->filter();
     }

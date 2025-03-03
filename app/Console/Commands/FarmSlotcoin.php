@@ -2,15 +2,14 @@
 
 namespace App\Console\Commands;
 
-use App\Helpers;
+use App\Console\Commands\Traits\Farmer;
 use App\Models\Account;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 
 class FarmSlotcoin extends Command
 {
+    use Farmer;
+
     /**
      * The name and signature of the console command.
      *
@@ -25,16 +24,20 @@ class FarmSlotcoin extends Command
      */
     protected $description = 'Farm Slotcoin';
 
+
+    /**
+     * The origin for all requests.
+     *
+     * @var string
+     */
+    protected $origin = 'https://app.slotcoin.app';
+
     /**
      * Execute the console command.
      */
     public function handle()
     {
-        Cache::lock($this->signature)->get(function () {
-            /** Start Date */
-            $startDate = now();
-
-
+        $this->farm(function () {
             /** Retrieve Accounts */
             $accounts = $this->retrieveAccounts();
 
@@ -42,35 +45,9 @@ class FarmSlotcoin extends Command
             while ($accounts->isNotEmpty()) {
                 $accounts = $this->farmAccounts($accounts);
             }
-
-            /** End Date */
-            $endDate = now();
-
-            /** Send Message */
-            Helpers::sendFarmingCompletedMessage('slotcoin', $startDate, $endDate);
         });
     }
 
-
-    protected function getBaseHeaders()
-    {
-        return [
-            'Origin' => 'https://app.slotcoin.app',
-            'Referer' => 'https://app.slotcoin.app/',
-            'X-Requested-With' => 'org.telegram.messenger'
-        ];
-    }
-
-    protected function getApi(Account $account)
-    {
-        return Http::withHeaders($account->headers)
-            ->withHeaders(
-                $this->getBaseHeaders()
-            )
-            ->withUserAgent(
-                $account->getUserAgent()
-            );
-    }
 
     /**
      *  Set Authorization
@@ -80,12 +57,7 @@ class FarmSlotcoin extends Command
     protected function setAuth(Account $account)
     {
         /** Get Access Token */
-        $accessToken = Http::withHeaders(
-            $this->getBaseHeaders()
-        )
-            ->withUserAgent(
-                $account->getUserAgent()
-            )
+        $accessToken = $this->getBaseApi($account)
             ->post('https://api.slotcoin.app/v1/clicker/auth', [
                 'initData' => $account->telegram_web_app['initData'],
                 'referralCode' => ''
@@ -134,10 +106,7 @@ class FarmSlotcoin extends Command
                 }
             } catch (\Throwable $e) {
                 /** Log Error */
-                Log::error('Slotcoin Error', [
-                    'message' => $e->getMessage(),
-                    'line' => $e->getLine()
-                ]);
+                $this->logError($e);
             }
         })->filter();
     }
@@ -184,10 +153,7 @@ class FarmSlotcoin extends Command
                     $account->disconnect();
 
                     /** Log Error */
-                    Log::error('Slotcoin Error', [
-                        'message' => $e->getMessage(),
-                        'line' => $e->getLine()
-                    ]);
+                    $this->logError($e);
                 }
             })->filter();
     }

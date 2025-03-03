@@ -2,16 +2,14 @@
 
 namespace App\Console\Commands;
 
-use App\Helpers;
+use App\Console\Commands\Traits\Farmer;
 use App\Models\Account;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Sleep;
 
 class FarmFunatic extends Command
 {
+    use Farmer;
+
     /**
      * The name and signature of the console command.
      *
@@ -27,15 +25,18 @@ class FarmFunatic extends Command
     protected $description = 'Farm Funatic Automatically';
 
     /**
+     * The origin for all requests.
+     *
+     * @var string
+     */
+    protected $origin = 'https://clicker.funtico.com';
+
+    /**
      * Execute the console command.
      */
     public function handle()
     {
-
-        Cache::lock($this->signature)->get(function () {
-            /** Start Date */
-            $startDate = now();
-
+        $this->farm(function () {
             /** Retrieve Accounts */
             $accounts = $this->retrieveAccounts();
 
@@ -43,34 +44,7 @@ class FarmFunatic extends Command
             while ($accounts->isNotEmpty()) {
                 $accounts = $this->farmAccounts($accounts);
             }
-
-            /** End Date */
-            $endDate = now();
-
-            /** Send Message */
-            Helpers::sendFarmingCompletedMessage('funatic', $startDate, $endDate);
         });
-    }
-
-
-    protected function getBaseHeaders()
-    {
-        return [
-            'Origin' => 'https://clicker.funtico.com',
-            'Referer' => 'https://clicker.funtico.com/',
-            'X-Requested-With' => 'org.telegram.messenger'
-        ];
-    }
-
-    protected function getApi(Account $account)
-    {
-        return Http::withHeaders($account->headers)
-            ->withHeaders(
-                $this->getBaseHeaders()
-            )
-            ->withUserAgent(
-                $account->getUserAgent()
-            );
     }
 
     /**
@@ -84,12 +58,7 @@ class FarmFunatic extends Command
         $initData = $account->telegram_web_app['initData'];
 
         /** Get Access Token */
-        $accessToken = Http::withHeaders(
-            $this->getBaseHeaders()
-        )
-            ->withUserAgent(
-                $account->getUserAgent()
-            )
+        $accessToken = $this->getBaseApi($account)
             ->post(
                 'https://api2.funtico.com/api/lucky-funatic/login?' . $initData,
             )
@@ -125,10 +94,7 @@ class FarmFunatic extends Command
                 }
             } catch (\Throwable $e) {
                 /** Log Error */
-                Log::error('Funatic Error', [
-                    'message' => $e->getMessage(),
-                    'line' => $e->getLine()
-                ]);
+                $this->logError($e);
             }
         })->filter();
     }
@@ -244,10 +210,7 @@ class FarmFunatic extends Command
                     $account->disconnect();
 
                     /** Log Error */
-                    Log::error('Funatic Error', [
-                        'message' => $e->getMessage(),
-                        'line' => $e->getLine()
-                    ]);
+                    $this->logError($e);
                 }
             })->filter();
     }

@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Console\Commands\Traits\Farmer;
 use App\Helpers;
 use App\Models\Account;
 use ParagonIE\ConstantTime\Base32;
@@ -10,15 +11,15 @@ use ParagonIE\ConstantTime\Base64;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 use OTPHP\TOTP;
 use phpseclib3\Crypt\PublicKeyLoader;
 use phpseclib3\Crypt\RSA;
 use phpseclib3\Crypt\RSA\PublicKey;
-use Telegram\Bot\Laravel\Facades\Telegram;
 
 class FarmGoldEagle extends Command
 {
+    use Farmer;
+
     /**
      * TOTP Secret
      * @var string
@@ -29,7 +30,7 @@ class FarmGoldEagle extends Command
      * Private Key
      * @var string
      */
-    const PEM = '-----BEGIN PUBLIC KEY----- MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyH0A/d/2Dc1QGDCpVgD/ 8Xx1o3GHccjybtK3AM4Wv0faLZL6J1jDLGdmOEnE2+HkTuxTBSVBZT1a+8Iazxkd LqTihCZxGUxp6i9CZatICimC7LbdGJW++t+X9l7EH6uEBPuSjQcuNuaODQkefncW //rni5iksdd3pjQRLM+PVEMzPw+pvgfPfAn0fUDqer0itUJFQ5P0+tVaL/6AlcBY EqnirvIo8tfps/+9yGqc2znCVWwaR+1uCeVZ6gbt96XPVxaGf+hKn+TwiJo2sykH OGADDSK8sEWca7DqSQScGSTc5/DD2CeSK78pwlhYOQb6694PI0Cr5g+tpPm94gk/ nwIDAQAB -----END PUBLIC KEY-----';
+    const PUBLIC_KEY = '-----BEGIN PUBLIC KEY----- MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyH0A/d/2Dc1QGDCpVgD/ 8Xx1o3GHccjybtK3AM4Wv0faLZL6J1jDLGdmOEnE2+HkTuxTBSVBZT1a+8Iazxkd LqTihCZxGUxp6i9CZatICimC7LbdGJW++t+X9l7EH6uEBPuSjQcuNuaODQkefncW //rni5iksdd3pjQRLM+PVEMzPw+pvgfPfAn0fUDqer0itUJFQ5P0+tVaL/6AlcBY EqnirvIo8tfps/+9yGqc2znCVWwaR+1uCeVZ6gbt96XPVxaGf+hKn+TwiJo2sykH OGADDSK8sEWca7DqSQScGSTc5/DD2CeSK78pwlhYOQb6694PI0Cr5g+tpPm94gk/ nwIDAQAB -----END PUBLIC KEY-----';
 
     /**
      * TOTP Instance
@@ -52,16 +53,20 @@ class FarmGoldEagle extends Command
     protected $description = 'Farm Gold Eagle Automatically';
 
     /**
+     * The origin for all requests.
+     *
+     * @var string
+     */
+    protected $origin = 'https://telegram.geagle.online';
+
+    /**
      * Execute the console command.
      */
     public function handle()
     {
-        Cache::lock($this->signature)->get(function () {
-            /** Start Date */
-            $startDate = now();
-
+        $this->farm(function () {
             /** Get OTP */
-            if (!$this->getOtp()) return;
+            if (!$this->getOtp()) return false;
 
             /** Start Farming */
             Account::farmer('gold-eagle')
@@ -112,19 +117,9 @@ class FarmGoldEagle extends Command
                         $account->disconnect();
 
                         /** Log Error */
-                        Log::error('Gold Eagle Error', [
-                            'message' => $e->getMessage(),
-                            'line' => $e->getLine()
-                        ]);
+                        $this->logError($e);
                     }
                 });
-
-
-            /** End Date */
-            $endDate = now();
-
-            /** Send Message */
-            Helpers::sendFarmingCompletedMessage('gold-eagle', $startDate, $endDate);
         });
     }
 
@@ -226,24 +221,12 @@ class FarmGoldEagle extends Command
         /**
          * @var PublicKey
          */
-        $key = PublicKeyLoader::load(static::PEM);
+        $key = PublicKeyLoader::load(static::PUBLIC_KEY);
         $data = $key->withPadding(RSA::ENCRYPTION_PKCS1)->encrypt($json);
 
         return Base64::encode($data);
     }
 
-    protected function getApi(Account $account)
-    {
-        return Http::withHeaders($account->headers)
-            ->withHeaders([
-                'Origin' => 'https://telegram.geagle.online',
-                'Referer' => 'https://telegram.geagle.online/',
-                'X-Requested-With' => 'org.telegram.messenger'
-            ])
-            ->withUserAgent(
-                $account->getUserAgent()
-            );
-    }
 
     /**
      * Convert Base32 Secret to Hex
@@ -307,10 +290,7 @@ class FarmGoldEagle extends Command
             return $otp;
         } catch (\Throwable $e) {
             /** Log Error */
-            Log::error('Gold Eagle Error', [
-                'message' => $e->getMessage(),
-                'line' => $e->getLine()
-            ]);
+            $this->logError($e);
         }
     }
 }

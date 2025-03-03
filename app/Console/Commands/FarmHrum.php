@@ -2,16 +2,15 @@
 
 namespace App\Console\Commands;
 
-use App\Helpers;
+use App\Console\Commands\Traits\Farmer;
 use App\Models\Account;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class FarmHrum extends Command
 {
+    use Farmer;
+
     /**
      * The name and signature of the console command.
      *
@@ -27,14 +26,18 @@ class FarmHrum extends Command
     protected $description = 'Farm Hrum Automatically';
 
     /**
+     * The origin for all requests.
+     *
+     * @var string
+     */
+    protected $origin = 'https://game.hrum.me';
+
+    /**
      * Execute the console command.
      */
     public function handle()
     {
-        Cache::lock($this->signature)->get(function () {
-            /** Start Date */
-            $startDate = now();
-
+        $this->farm(function () {
             /** Start Farming */
             Account::farmer('hrum')
                 ->connected()
@@ -218,23 +221,14 @@ class FarmHrum extends Command
                         $account->disconnect();
 
                         /** Log Error */
-                        Log::error('Hrum Error', [
-                            'message' => $e->getMessage(),
-                            'line' => $e->getLine()
-                        ]);
+                        $this->logError($e);
                     }
                 });
-
-            /** End Date */
-            $endDate = now();
-
-            /** Send Message */
-            Helpers::sendFarmingCompletedMessage('hrum', $startDate, $endDate);
         });
     }
 
     protected function makeHrumRequest(
-        string $key = null,
+        ?string $key = null,
         Account $account,
         mixed $data,
         string $url,
@@ -255,19 +249,6 @@ class FarmHrum extends Command
             ->json('data');
     }
 
-
-    protected function getApi(Account $account)
-    {
-        return Http::withHeaders($account->headers)
-            ->withHeaders([
-                'Origin' => 'https://game.hrum.me',
-                'Referer' => 'https://game.hrum.me/',
-                'X-Requested-With' => 'org.telegram.messenger'
-            ])
-            ->withUserAgent(
-                $account->getUserAgent()
-            );
-    }
 
     protected function getHrumHeaders($data, $key)
     {

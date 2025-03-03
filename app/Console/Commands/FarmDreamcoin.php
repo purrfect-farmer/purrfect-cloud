@@ -2,16 +2,15 @@
 
 namespace App\Console\Commands;
 
-use App\Helpers;
+use App\Console\Commands\Traits\Farmer;
 use App\Models\Account;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 
 class FarmDreamcoin extends Command
 {
+    use Farmer;
+
     /**
      * The name and signature of the console command.
      *
@@ -27,15 +26,18 @@ class FarmDreamcoin extends Command
     protected $description = 'Farm Dreamcoin';
 
     /**
+     * The origin for all requests.
+     *
+     * @var string
+     */
+    protected $origin = 'https://dreamcoin.ai';
+
+    /**
      * Execute the console command.
      */
     public function handle()
     {
-        Cache::lock($this->signature)->get(function () {
-            /** Start Date */
-            $startDate = now();
-
-
+        $this->farm(function () {
             /** Retrieve Accounts */
             $accounts = $this->retrieveAccounts();
 
@@ -43,36 +45,8 @@ class FarmDreamcoin extends Command
             while ($accounts->isNotEmpty()) {
                 $accounts = $this->farmAccounts($accounts);
             }
-
-            /** End Date */
-            $endDate = now();
-
-            /** Send Message */
-            Helpers::sendFarmingCompletedMessage('dreamcoin', $startDate, $endDate);
         });
     }
-
-    protected function getBaseHeaders()
-    {
-        return [
-            'Origin' => 'https://dreamcoin.ai',
-            'Referer' => 'https://dreamcoin.ai/',
-            'X-Requested-With' => 'org.telegram.messenger'
-        ];
-    }
-
-
-    protected function getApi(Account $account)
-    {
-        return Http::withHeaders($account->headers)
-            ->withHeaders(
-                $this->getBaseHeaders()
-            )
-            ->withUserAgent(
-                $account->getUserAgent()
-            );
-    }
-
 
     /**
      *  Set Authorization
@@ -88,12 +62,7 @@ class FarmDreamcoin extends Command
         $initDataUnsafe = $account->telegram_web_app['initDataUnsafe'];
 
         /** Get Access Token */
-        $accessToken = Http::withHeaders(
-            $this->getBaseHeaders()
-        )
-            ->withUserAgent(
-                $account->getUserAgent()
-            )
+        $accessToken = $this->getBaseApi($account)
             ->post(
                 'https://api.dreamcoin.ai/Auth/telegram',
                 [
@@ -168,10 +137,7 @@ class FarmDreamcoin extends Command
                 }
             } catch (\Throwable $e) {
                 /** Log Error */
-                Log::error('DreamCoin Error', [
-                    'message' => $e->getMessage(),
-                    'line' => $e->getLine()
-                ]);
+                $this->logError($e);
             }
         })->filter();
     }
@@ -245,10 +211,7 @@ class FarmDreamcoin extends Command
                     $account->disconnect();
 
                     /** Log Error */
-                    Log::error('Dreamcoin Error', [
-                        'message' => $e->getMessage(),
-                        'line' => $e->getLine()
-                    ]);
+                    $this->logError($e);
                 }
             })->filter();
     }
