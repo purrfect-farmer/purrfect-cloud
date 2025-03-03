@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'display_farmer_title' => env('DISPLAY_FARMER_TITLE', true),
+    'display_farmer_title' => env('DISPLAY_FARMER_TITLE', false),
     'drops' => [
         'gold-eagle' => [
             'title' => '🥇 Gold Eagle Farmer',
