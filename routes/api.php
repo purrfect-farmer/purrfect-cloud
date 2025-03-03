@@ -10,6 +10,11 @@ Route::get('server', function () {
     return ['name' => config('app.name')];
 });
 
+/** Farmers */
+Route::get('farmers', function () {
+    return collect(config('farmer.drops'))->keys();
+});
+
 /** Sync */
 Route::post('sync', [CloudFarmerController::class, 'sync']);
 
