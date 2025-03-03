@@ -93,8 +93,8 @@ trait Farmer
         /** Log Error */
         Log::error($title . ' Error', [
             'message' => $e->getMessage(),
+            'file' => $e->getFile(),
             'line' => $e->getLine(),
-            'file' => $e->getFile()
         ]);
     }
 
