@@ -130,7 +130,7 @@ class FarmWonton extends Command
                     $farming = $this->getApi($account)->get('https://wonton.food/api/v1/user/farming-status')->json();
 
                     /** Should Start Farming? */
-                    $shoudStartFarming = !$farming['finishAt'] || $farming['claimed'];
+                    $shoudStartFarming = !isset($farming['finishAt']) || $farming['claimed'];
 
                     if ($shoudStartFarming) {
                         /** Start Farming */
