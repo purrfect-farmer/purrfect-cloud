@@ -68,7 +68,7 @@ class FarmWonton extends Command
                 $this->getBaseHeaders()
             )
             ->withUserAgent(
-                $account->headers['User-Agent'] ?? Helpers::getUserAgent($account->user_id)
+                $account->getUserAgent()
             );
     }
 
@@ -80,7 +80,7 @@ class FarmWonton extends Command
             $this->getBaseHeaders()
         )
             ->withUserAgent(
-                $account->headers['User-Agent'] ?? Helpers::getUserAgent($account->user_id)
+                $account->getUserAgent()
             )
             ->post('https://wonton.food/api/v1/user/auth', [
                 'initData' => $account->telegram_web_app['initData'],
@@ -90,9 +90,7 @@ class FarmWonton extends Command
             ->json('tokens.accessToken');
 
         /** Set Headers */
-        $account->headers = collect($account->headers)->map(
-            fn($v, $k) => strtolower($k) === 'authorization' ? 'bearer ' . $accessToken : $v
-        )->all();
+        $account->setAuthorizationHeader('bearer ' . $accessToken);
     }
 
     protected function farmAccounts($accounts)

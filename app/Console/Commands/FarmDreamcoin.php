@@ -52,18 +52,65 @@ class FarmDreamcoin extends Command
         });
     }
 
+    protected function getBaseHeaders()
+    {
+        return [
+            'Origin' => 'https://dreamcoin.ai',
+            'Referer' => 'https://dreamcoin.ai/',
+            'X-Requested-With' => 'org.telegram.messenger'
+        ];
+    }
+
 
     protected function getApi(Account $account)
     {
         return Http::withHeaders($account->headers)
-            ->withHeaders([
-                'Origin' => 'https://dreamcoin.ai',
-                'Referer' => 'https://dreamcoin.ai/',
-                'X-Requested-With' => 'org.telegram.messenger'
-            ])
+            ->withHeaders(
+                $this->getBaseHeaders()
+            )
             ->withUserAgent(
-                $account->headers['User-Agent'] ?? Helpers::getUserAgent($account->user_id)
+                $account->getUserAgent()
             );
+    }
+
+
+    /**
+     *  Set Authorization
+     * @param \App\Models\Account $account
+     * @return void
+     */
+    protected function setAuth(Account $account)
+    {
+        /** Init Data */
+        $initData = $account->telegram_web_app['initData'];
+
+        /** Init Data Unsafe */
+        $initDataUnsafe = $account->telegram_web_app['initDataUnsafe'];
+
+        /** Get Access Token */
+        $accessToken = Http::withHeaders(
+            $this->getBaseHeaders()
+        )
+            ->withUserAgent(
+                $account->getUserAgent()
+            )
+            ->post(
+                'https://api.dreamcoin.ai/Auth/telegram',
+                [
+                    'auth_date' => $initDataUnsafe['auth_date'],
+                    'hash' => $initDataUnsafe['hash'],
+                    'id' => $initDataUnsafe['user']['id'],
+                    'first_name' => $initDataUnsafe['user']['first_name'],
+                    'last_name' => $initDataUnsafe['user']['last_name'],
+                    'username' => $initDataUnsafe['user']['username'],
+                    'photo_url' => $initDataUnsafe['user']['photo_url'],
+                    'raw_init_data' => $initData
+                ]
+            )
+            ->json('token');
+
+        /** Set Headers */
+        $account->setAuthorizationHeader('Bearer ' . $accessToken);
     }
 
     protected function farmAccounts($accounts)
@@ -135,6 +182,9 @@ class FarmDreamcoin extends Command
             ->connected()
             ->get()->map(function (Account $account) {
                 try {
+                    /** Set Auth */
+                    $this->setAuth($account);
+
                     /** Daily Check-In */
                     $dailyTasks = $this->getApi($account)->get('https://api.dreamcoin.ai/DailyTasks/current')->json('dailyTasks');
                     $today = now()->toDateString();

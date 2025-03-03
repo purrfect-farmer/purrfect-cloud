@@ -52,17 +52,48 @@ class FarmSlotcoin extends Command
     }
 
 
+    protected function getBaseHeaders()
+    {
+        return [
+            'Origin' => 'https://app.slotcoin.app',
+            'Referer' => 'https://app.slotcoin.app/',
+            'X-Requested-With' => 'org.telegram.messenger'
+        ];
+    }
+
     protected function getApi(Account $account)
     {
         return Http::withHeaders($account->headers)
-            ->withHeaders([
-                'Origin' => 'https://app.slotcoin.app',
-                'Referer' => 'https://app.slotcoin.app/',
-                'X-Requested-With' => 'org.telegram.messenger'
-            ])
+            ->withHeaders(
+                $this->getBaseHeaders()
+            )
             ->withUserAgent(
-                $account->headers['User-Agent'] ?? Helpers::getUserAgent($account->user_id)
+                $account->getUserAgent()
             );
+    }
+
+    /**
+     *  Set Authorization
+     * @param \App\Models\Account $account
+     * @return void
+     */
+    protected function setAuth(Account $account)
+    {
+        /** Get Access Token */
+        $accessToken = Http::withHeaders(
+            $this->getBaseHeaders()
+        )
+            ->withUserAgent(
+                $account->getUserAgent()
+            )
+            ->post('https://api.slotcoin.app/v1/clicker/auth', [
+                'initData' => $account->telegram_web_app['initData'],
+                'referralCode' => ''
+            ])
+            ->json('accessToken');
+
+        /** Set Headers */
+        $account->setAuthorizationHeader($accessToken);
     }
 
     protected function farmAccounts($accounts)
@@ -117,6 +148,9 @@ class FarmSlotcoin extends Command
             ->connected()
             ->get()->map(function (Account $account) {
                 try {
+                    /** Set Auth */
+                    $this->setAuth($account);
+
                     /** Daily Check-In */
                     $dailyCheckIn = $this->getApi($account)->post('https://api.slotcoin.app/v1/clicker/check-in/info')->json();
                     $timeToClaim = intval($dailyCheckIn['time_to_claim']);

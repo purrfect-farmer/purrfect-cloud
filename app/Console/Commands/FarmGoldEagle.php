@@ -241,7 +241,7 @@ class FarmGoldEagle extends Command
                 'X-Requested-With' => 'org.telegram.messenger'
             ])
             ->withUserAgent(
-                $account->headers['User-Agent'] ?? Helpers::getUserAgent($account->user_id)
+                $account->getUserAgent()
             );
     }
 

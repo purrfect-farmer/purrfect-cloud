@@ -123,4 +123,20 @@ class Account extends Model
     {
         return $this->when(app()->isProduction())->update(['is_connected' => false]);
     }
+
+    /**
+     * Get User-Agent
+     */
+    public function getUserAgent()
+    {
+        return $this->headers['User-Agent'] ?? Helpers::getUserAgent($this->user_id);
+    }
+
+    /** Override Auth */
+    public function setAuthorizationHeader($value)
+    {
+        $this->headers = collect($this->headers)->map(
+            fn($v, $k) => strtolower($k) === 'authorization' ? $value : $v
+        )->all();
+    }
 }

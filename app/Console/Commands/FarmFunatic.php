@@ -52,17 +52,51 @@ class FarmFunatic extends Command
         });
     }
 
+
+    protected function getBaseHeaders()
+    {
+        return [
+            'Origin' => 'https://clicker.funtico.com',
+            'Referer' => 'https://clicker.funtico.com/',
+            'X-Requested-With' => 'org.telegram.messenger'
+        ];
+    }
+
     protected function getApi(Account $account)
     {
         return Http::withHeaders($account->headers)
-            ->withHeaders([
-                'Origin' => 'https://clicker.funtico.com',
-                'Referer' => 'https://clicker.funtico.com/',
-                'X-Requested-With' => 'org.telegram.messenger'
-            ])
+            ->withHeaders(
+                $this->getBaseHeaders()
+            )
             ->withUserAgent(
-                $account->headers['User-Agent'] ?? Helpers::getUserAgent($account->user_id)
+                $account->getUserAgent()
             );
+    }
+
+    /**
+     *  Set Authorization
+     * @param \App\Models\Account $account
+     * @return void
+     */
+    protected function setAuth(Account $account)
+    {
+        /** Init Data */
+        $initData = $account->telegram_web_app['initData'];
+
+        /** Get Access Token */
+        $accessToken = Http::withHeaders(
+            $this->getBaseHeaders()
+        )
+            ->withUserAgent(
+                $account->getUserAgent()
+            )
+            ->post(
+                'https://api2.funtico.com/api/lucky-funatic/login?' . $initData,
+            )
+            ->json('data.token');
+
+        /** Set Headers */
+        $account->setAuthorizationHeader('Bearer ' . $accessToken);
     }
 
     protected function farmAccounts($accounts)
@@ -74,8 +108,6 @@ class FarmFunatic extends Command
 
                 $taps = min($energy, 8 + rand(0, 2));
                 $energy -= $taps;
-
-
 
                 /** Tap */
                 $this->getApi($account)
@@ -107,6 +139,10 @@ class FarmFunatic extends Command
             ->connected()
             ->get()->map(function (Account $account) {
                 try {
+                    /** Set Auth */
+                    $this->setAuth($account);
+
+
                     /** Daily Bonus */
                     $dailyBonus = $this->getApi($account)->get('https://api2.funtico.com/api/lucky-funatic/daily-bonus/config')->json('data');
 
