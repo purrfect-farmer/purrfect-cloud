@@ -83,7 +83,6 @@ class Helpers
         /** Configure Params */
         $params = [
             'chat_id' => config('farmer.chat_id'),
-            'message_thread_id' => config('farmer.farming_thread_id'),
             'disable_notification' => true,
             'parse_mode' => 'HTML',
             'text' => is_array($text) ? implode("\n", $text) : $text,
@@ -205,7 +204,6 @@ class Helpers
             [
                 'chat_id' => $account->user_id,
                 'disable_notification' => false,
-                'message_thread_id' => ''
             ],
             $deletePreviousMessage
         );

@@ -4,7 +4,6 @@ return [
     'access_require_membership' => env('ACCESS_REQUIRE_MEMBERSHIP', true),
 
     'chat_id' => env('TELEGRAM_CHAT_ID', ''),
-    'farming_thread_id' => env('TELEGRAM_CHAT_FARMING_THREAD_ID', ''),
     'announcement_thread_id' => env('TELEGRAM_CHAT_ANNOUNCEMENT_THREAD_ID', ''),
     'error_thread_id' => env('TELEGRAM_CHAT_ERROR_THREAD_ID', ''),
 
