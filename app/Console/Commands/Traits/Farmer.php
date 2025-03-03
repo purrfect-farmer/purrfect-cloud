@@ -21,14 +21,8 @@ trait Farmer
             /** Start Date */
             $startDate = now();
 
-
-            try {
-                /** Run Callback */
-                $result = call_user_func($callback);
-            } catch (\Throwable $e) {
-                /** Log Error */
-                $this->logError($e);
-            }
+            /** Run Callback */
+            $result = call_user_func($callback);
 
             /** End Date */
             $endDate = now();
