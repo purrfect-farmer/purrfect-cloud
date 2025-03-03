@@ -155,11 +155,11 @@ class FarmTsubasa extends Command
                             )->json();
                         }
                     } catch (\Throwable $e) {
-                        /** Disconnect Account */
-                        $account->disconnect();
-
                         /** Log Error */
                         $this->logError($e);
+
+                        /** Disconnect Account */
+                        $account->disconnect();
                     }
                 });
         });

@@ -149,11 +149,11 @@ class FarmSlotcoin extends Command
                         );
                     }
                 } catch (\Throwable $e) {
-                    /** Disconnect Account */
-                    $account->disconnect();
-
                     /** Log Error */
                     $this->logError($e);
+
+                    /** Disconnect Account */
+                    $account->disconnect();
                 }
             })->filter();
     }
