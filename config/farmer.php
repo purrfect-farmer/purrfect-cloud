@@ -31,11 +31,6 @@ return [
             'enabled' => env('FARMER_WONTON_ENABLED', true),
             'thread_id' => env('FARMER_WONTON_THREAD_ID', '')
         ],
-        'funatic' => [
-            'title' => '🤡 Funatic Farmer',
-            'enabled' => env('FARMER_FUNATIC_ENABLED', true),
-            'thread_id' => env('FARMER_FUNATIC_THREAD_ID', '')
-        ],
         'slotcoin' => [
             'title' => '🎰 Slotcoin Farmer',
             'enabled' => env('FARMER_SLOTCOIN_ENABLED', true),
