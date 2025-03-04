@@ -207,10 +207,12 @@ class FarmWonton extends Command
 
 
                     /** Tasks */
+                    $tasksData = $this->getApi($account)
+                        ->get('https://wonton.food/api/v1/task/list')
+                        ->json();
+                    $taskProgress = $tasksData['taskProgress'];
                     $tasks = collect(
-                        $this->getApi($account)
-                            ->get('https://wonton.food/api/v1/task/list')
-                            ->json('tasks')
+                        $tasksData['tasks']
                     );
 
                     $pendingTasks = $tasks->filter(fn($item) => $item['status'] === 0);
@@ -231,6 +233,14 @@ class FarmWonton extends Command
                                 'taskId' => $unclaimedTasks->random()['id']
                             ])->json();
                     }
+
+                    /** Claim Task Progress */
+                    if ($taskProgress >= 3) {
+                        $this->getApi($account)
+                            ->get('https://wonton.food/api/v1/task/claim-progress')
+                            ->json();
+                    }
+
 
 
 
