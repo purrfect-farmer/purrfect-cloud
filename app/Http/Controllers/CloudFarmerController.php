@@ -73,17 +73,29 @@ class CloudFarmerController extends Controller
 
     public function accounts()
     {
-        return Account::all()->groupBy('farmer')->map(fn($list) => [
+        $list = Account::all()->groupBy('farmer')->map(fn($list) => [
             'total' => $list->count(),
-            'users' => $list->map(fn($account) => [
-                'id' => $account->id,
-                'is_connected' => $account->is_connected,
-                'user_id' => $account->user_id,
-                'username' => $account->telegram_web_app['initDataUnsafe']['user']['username'],
-                'photo_url' => $account->telegram_web_app['initDataUnsafe']['user']['photo_url'],
-                'updated_at' => $account->updated_at
-            ])
+            'users' => $list->map(fn($account) => array_merge(
+                [
+                    'id' => $account->id,
+                    'is_connected' => $account->is_connected,
+                    'user_id' => $account->user_id,
+                    'username' => $account->telegram_web_app['initDataUnsafe']['user']['username'],
+                    'photo_url' => $account->telegram_web_app['initDataUnsafe']['user']['photo_url'],
+                    'updated_at' => $account->updated_at
+                ],
+                config('farmer.display_farmer_title') ? [
+                    'title' => $account->telegram_web_app['farmerTitle'] ?? 'TGUser',
+                ] : []
+            ))
         ]);
+
+        /** Sort By Title */
+        if (config('farmer.display_farmer_title')) {
+            $list = $list->sortBy('title');
+        }
+
+        return $list;
     }
 
     public function disconnect(Account $account)

@@ -250,9 +250,9 @@ class Helpers
      */
     public static function getCloudAccountLinks(Collection $accounts)
     {
-        $displayFarmerTitle = config('farmer.display_farmer_title');
+
         $totalUsers = $accounts->count();
-        $list = $accounts->map(function (Account $account) use ($displayFarmerTitle) {
+        $list = $accounts->map(function (Account $account) {
             $id = $account->user_id;
             $status = $account->is_connected ? '✅' : '❌';
 
@@ -270,7 +270,7 @@ class Helpers
             );
 
             /** Farmer Title */
-            $title = $displayFarmerTitle ? Str::upper(
+            $title = config('farmer.display_farmer_title') ? Str::upper(
                 Str::limit(
                     $account->telegram_web_app['farmerTitle'] ?? 'TGUser',
                     8
@@ -286,7 +286,7 @@ class Helpers
         });
 
         /** Sort By Title */
-        if ($displayFarmerTitle) {
+        if (config('farmer.display_farmer_title')) {
             $list = $list->sortBy('title');
         }
 
