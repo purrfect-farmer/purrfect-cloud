@@ -28,8 +28,8 @@ class FarmAll extends Command
         collect(config('farmer.drops'))
             ->filter(fn($drop) => $drop['enabled'])
             ->keys()
-            ->map(
-                fn($key) => fn() => $this->call('farm:' . $key)
-            )->all();
+            ->each(
+                fn($key) =>  $this->call('farm:' . $key)
+            );
     }
 }
