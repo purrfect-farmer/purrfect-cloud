@@ -373,4 +373,17 @@ class Helpers
             $value * rand($min, $max) / 100
         );
     }
+
+    /**
+     * Check if url is a Telegram Link
+     * @param string $link
+     * @return bool
+     */
+    public static function isTelegramLink($link)
+    {
+        return $link && preg_match(
+            '/^(http|https):\/\/t\.me\/.+/',
+            $link
+        );
+    }
 }

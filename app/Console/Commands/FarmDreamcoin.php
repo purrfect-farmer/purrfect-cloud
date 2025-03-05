@@ -3,9 +3,11 @@
 namespace App\Console\Commands;
 
 use App\Console\Commands\Traits\Farmer;
+use App\Helpers;
 use App\Models\Account;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 class FarmDreamcoin extends Command
 {
@@ -161,6 +163,40 @@ class FarmDreamcoin extends Command
                             'https://api.dreamcoin.ai/DailyTasks/claim/' . $day['id']
                         );
                     }
+
+
+                    /** Rewards */
+                    $rewardsList = $this->getApi($account)->get('https://api.dreamcoin.ai/FreeReward/current')->json();
+                    $rewards = collect($rewardsList)->reduce(
+                        fn($result, $tasks, $key) => $result->concat(
+                            collect($tasks)->filter(
+                                fn($task) => !Helpers::isTelegramLink($task['actionUrl'])
+                            )->map(fn($item) => [
+                                ...$item,
+                                'taskGroup' => $key
+                            ])
+                        ),
+                        collect([])
+                    );
+
+                    /** @var Collection */
+                    $uncompletedRewards = $rewards->filter(fn($task) => !$task['isCompleted']);
+
+
+                    if ($uncompletedRewards->isNotEmpty()) {
+                        /** Get Random Task */
+                        $task = $uncompletedRewards->random();
+
+                        if ($task['taskGroup'] === 'dailyFreeRewards') {
+                            /** Task Group: dailyFreeRewards */
+                            $this->getApi($account)->post('https://api.dreamcoin.ai/FreeReward/claimDaily/' . $task['id']);
+                        } else {
+                            /** Task Group: freeRewards */
+                            $this->getApi($account)->post('https://api.dreamcoin.ai/FreeReward/claim/' . $task['id']);
+                        }
+                    }
+
+
 
                     /** User */
                     $user = $this->getApi($account)->get('https://api.dreamcoin.ai/Users/current')->json();
