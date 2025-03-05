@@ -117,9 +117,6 @@ class FarmSlotcoin extends Command
             ->connected()
             ->get()->map(function (Account $account) {
                 try {
-                    /** Set Auth */
-                    $this->setAuth($account);
-
                     /** Daily Check-In */
                     $dailyCheckIn = $this->getApi($account)->post('https://api.slotcoin.app/v1/clicker/check-in/info')->json();
                     $timeToClaim = intval($dailyCheckIn['time_to_claim']);

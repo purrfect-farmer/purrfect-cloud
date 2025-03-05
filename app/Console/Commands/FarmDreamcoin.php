@@ -148,9 +148,6 @@ class FarmDreamcoin extends Command
             ->connected()
             ->get()->map(function (Account $account) {
                 try {
-                    /** Set Auth */
-                    $this->setAuth($account);
-
                     /** Daily Check-In */
                     $dailyTasks = $this->getApi($account)->get('https://api.dreamcoin.ai/DailyTasks/current')->json('dailyTasks');
                     $today = now()->toDateString();

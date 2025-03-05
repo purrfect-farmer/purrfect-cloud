@@ -120,9 +120,6 @@ class FarmWonton extends Command
             ->connected()
             ->get()->map(function (Account $account) {
                 try {
-                    /** Auth */
-                    $this->setAuth($account);
-
                     /** Daily Check-In */
                     $this->getApi($account)->get('https://wonton.food/api/v1/checkin')->json();
 
