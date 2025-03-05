@@ -75,28 +75,24 @@ class CloudFarmerController extends Controller
     {
         $list = Account::all()->groupBy('farmer')->map(fn($list) => [
             'total' => $list->count(),
-            'users' => $list->map(fn($account) => array_merge(
-                [
-                    'id' => $account->id,
-                    'is_connected' => $account->is_connected,
-                    'user_id' => $account->user_id,
-                    'username' => $account->telegram_web_app['initDataUnsafe']['user']['username'],
-                    'photo_url' => $account->telegram_web_app['initDataUnsafe']['user']['photo_url'],
-                    'updated_at' => $account->updated_at
-                ],
-                config('farmer.display_farmer_title') ? [
-                    'title' => $account->telegram_web_app['farmerTitle'] ?? 'TGUser',
-                ] : []
-            ))
+            'users' => $list->map(
+                fn($account) => array_merge(
+                    [
+                        'id' => $account->id,
+                        'is_connected' => $account->is_connected,
+                        'user_id' => $account->user_id,
+                        'username' => $account->telegram_web_app['initDataUnsafe']['user']['username'],
+                        'photo_url' => $account->telegram_web_app['initDataUnsafe']['user']['photo_url'],
+                        'updated_at' => $account->updated_at
+                    ],
+                    config('farmer.display_farmer_title') ? [
+                        'title' => $account->telegram_web_app['farmerTitle'] ?? 'TGUser',
+                    ] : []
+                )
+            )->sortBy(
+                config('farmer.display_farmer_title') ? 'title' : 'id'
+            )->values()
         ]);
-
-        /** Sort By Title */
-        if (config('farmer.display_farmer_title')) {
-            $list = $list->map(fn($group) => [
-                ...$group,
-                'users' => $group['users']->sortBy('title')->values()
-            ]);
-        }
 
         return $list;
     }
