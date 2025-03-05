@@ -26,11 +26,14 @@ class CleanupAccounts extends Command
      */
     public function handle()
     {
-        Account::whereNotIn(
-            'farmer',
-            collect(config('farmer.drops'))
-                ->filter(fn($drop) => $drop['enabled'])
-                ->keys()
-        )->delete();
+        Account::withoutEvents(function () {
+            Account::whereNotIn(
+                'farmer',
+                collect(config('farmer.drops'))
+                    ->filter(fn($drop) => $drop['enabled'])
+                    ->keys()
+            )->delete();
+        });
+        $this->info("Accounts Deleted");
     }
 }
