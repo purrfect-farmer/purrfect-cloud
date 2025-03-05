@@ -287,7 +287,7 @@ class Helpers
 
         /** Sort By Title */
         if (config('farmer.display_farmer_title')) {
-            $list = $list->sortBy('title');
+            $list = $list->sortBy('title')->values();
         }
 
         /** Retrieve Links */

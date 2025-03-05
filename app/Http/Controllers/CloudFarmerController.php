@@ -94,7 +94,7 @@ class CloudFarmerController extends Controller
         if (config('farmer.display_farmer_title')) {
             $list = $list->map(fn($group) => [
                 ...$group,
-                'users' => $group['users']->sortBy('title')
+                'users' => $group['users']->sortBy('title')->values()
             ]);
         }
 
