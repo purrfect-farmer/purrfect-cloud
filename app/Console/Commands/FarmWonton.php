@@ -152,9 +152,11 @@ class FarmWonton extends Command
                             ->json('shopItems')
                     );
 
-                    $items = $shopItems->filter(fn($item) => intval($item['inventory']) > 0);
+                    $items = $shopItems->filter(fn($item) => intval($item['inventory']) > 0)->values();
                     $skins = $items->filter(fn($item) => intval($item['farmingPower']) !== 0)->values();
                     $bowls = $items->filter(fn($item) => intval($item['farmingPower']) === 0)->values();
+
+
 
                     $selectedSkin = $skins->first(fn($item) => $item['inUse']);
                     $selectedBowl = $bowls->first(fn($item) => $item['bowlDisplay']);
@@ -168,7 +170,7 @@ class FarmWonton extends Command
                                 collect($result['stats'])->map('intval')->max()
                                 ? $current
                                 : $result,
-                            $skins->get(0)
+                            $skins[0]
                         )
                         : null;
 
@@ -180,9 +182,10 @@ class FarmWonton extends Command
                             intval($current['value']) > intval($result['value'])
                                 ? $current
                                 : $result,
-                            $skins->get(0)
+                            $bowls[0]
                         )
                         : null;
+
 
                     /** Use Top Skin */
                     if ($topSkin && $topSkin['inUse'] === false) {
@@ -203,7 +206,6 @@ class FarmWonton extends Command
 
                         $selectedBowl = $topBowl;
                     }
-
 
 
                     /** Tasks */
