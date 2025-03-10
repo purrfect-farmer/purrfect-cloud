@@ -109,7 +109,12 @@ class FarmGoldEagle extends Command
 
                             /** Claim To Sl8 */
                             if ($claimable) {
-                                $this->claimToSl8($account);
+                                try {
+                                    $this->claimToSl8($account);
+                                } catch (\Throwable $e) {
+                                    /** Log Error */
+                                    $this->logError($e);
+                                }
                             }
                         }
                     } catch (\Throwable $e) {
