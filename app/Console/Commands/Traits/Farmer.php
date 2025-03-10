@@ -7,6 +7,7 @@ use App\Models\Account;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Sleep;
 
 trait Farmer
 {
@@ -55,6 +56,9 @@ trait Farmer
      */
     protected function getApi(Account $account)
     {
+        /** Delay */
+        $this->delayRequest();
+
         return Http::withHeaders($account->headers)
             ->withHeaders(
                 $this->getBaseHeaders()
@@ -71,6 +75,9 @@ trait Farmer
      */
     protected function getBaseApi(Account $account)
     {
+        /** Delay */
+        $this->delayRequest();
+
         return Http::withHeaders(
             $this->getBaseHeaders()
         )
@@ -105,5 +112,18 @@ trait Farmer
     protected function getKey()
     {
         return explode(':', $this->signature)[1];
+    }
+
+
+    /**
+     * Delay Request
+     * @return void
+     */
+    protected function delayRequest()
+    {
+        if (property_exists($this, 'delay')) {
+            /** Delay */
+            Sleep::for($this->delay)->seconds();
+        }
     }
 }

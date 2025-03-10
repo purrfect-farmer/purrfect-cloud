@@ -36,6 +36,13 @@ class FarmWonton extends Command
 
 
     /**
+     * The delay in seconds for all requests.
+     *
+     * @var int
+     */
+    protected $delay = 3;
+
+    /**
      * Execute the console command.
      */
     public function handle()
