@@ -143,6 +143,10 @@ class Account extends Model
     /** Session */
     public function session()
     {
-        return $this->hasOne(MadelineSession::class, 'user_id');
+        return $this->hasOne(
+            MadelineSession::class,
+            'user_id',
+            'user_id'
+        );
     }
 }

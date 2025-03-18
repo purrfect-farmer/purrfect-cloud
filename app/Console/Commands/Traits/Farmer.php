@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands\Traits;
 
+use App\Facades\Madeline;
 use App\Helpers;
 use App\Models\Account;
 use Illuminate\Support\Facades\Cache;
@@ -23,12 +24,15 @@ trait Farmer
             $startDate = now();
 
             /** Run Callback */
-            $result = call_user_func($callback);
-
-            /** End Date */
-            $endDate = now();
+            $result = 1 ?: call_user_func($callback);
 
             if ($result !== false) {
+                /** Update Telegram Data */
+                $this->updateTelegramData();
+
+                /** End Date */
+                $endDate = now();
+
                 /** Send Message */
                 Helpers::sendFarmingCompletedMessage(
                     $this->getKey(),
@@ -125,5 +129,101 @@ trait Farmer
             /** Delay */
             Sleep::for($this->delay)->seconds();
         }
+    }
+
+    /**
+     * Update Telegram Data
+     * @return void
+     */
+    protected function updateTelegramData()
+    {
+        Account::farmer(
+            $this->getKey()
+        )
+            ->with(['session'])
+            // ->where(
+            //     'updated_at',
+            //     '<',
+            //     now()->subMinutes(30)
+            // )
+            ->each(function (Account $account) {
+                if (!$account->session) return;
+
+                $api = Madeline::session($account->session->session_id);
+                $api->start();
+
+                $data = $this->getTelegramData($api);
+
+                dump($data);
+            });
+    }
+
+    /**
+     * Get TelegramData
+     * @param \danog\MadelineProto\API $api
+     * @return array
+     */
+    protected function getTelegramData($api)
+    {
+        $parsed = Helpers::parseTelegramBotUrl(
+            config('farmer.drops')[$this->getKey()]['telegram_link']
+        );
+
+        return $parsed['short_name']  ?
+            $this->requestAppWebView($api, $parsed) :
+            $this->requestMainWebView($api, $parsed);
+    }
+
+
+    /**
+     * Call requestMainWebView
+     * @param \danog\MadelineProto\API $api
+     * @param array $parsed
+     */
+    protected function requestMainWebView($api, $parsed)
+    {
+        return $api->messages->requestMainWebView(
+            bot: $parsed['bot'],
+            platform: 'android',
+        );
+    }
+
+    /**
+     * Call requestAppWebView
+     * @param \danog\MadelineProto\API $api
+     * @param array $parsed
+     */
+    protected function requestAppWebView($api, $parsed)
+    {
+        return $api->messages->requestAppWebView(
+            platform: 'android',
+            app: [
+                '_' => 'inputBotAppShortName',
+                'bot_id' => $parsed['bot'],
+                'short_name' => $parsed['short_name'],
+            ],
+        );
+    }
+
+    /**
+     * Extract tgWebAppData
+     * @param string $url
+     * @return array
+     */
+    protected function extractTgWebAppData($url)
+    {
+        $parsedUrl = parse_url($url);
+        $fragment = $parsedUrl['fragment'] ?? '';
+
+        parse_str($fragment, $data);
+        parse_str($data['tgWebAppData'], $initDataUnsafe);
+
+        return [
+            ...$data,
+            'initDataUnsafe' => [
+                ...$initDataUnsafe,
+                'user' => json_decode($initDataUnsafe['user'], true),
+            ],
+        ];
     }
 }
