@@ -24,7 +24,7 @@ trait Farmer
             $startDate = now();
 
             /** Run Callback */
-            $result = 1 ?: call_user_func($callback);
+            $result = call_user_func($callback);
 
             if ($result !== false) {
                 /** Update Telegram Data */
@@ -141,21 +141,62 @@ trait Farmer
             $this->getKey()
         )
             ->with(['session'])
-            // ->where(
-            //     'updated_at',
-            //     '<',
-            //     now()->subMinutes(30)
-            // )
+            ->where(
+                'updated_at',
+                '<',
+                now()->subMinutes(30)
+            )
             ->each(function (Account $account) {
-                if (!$account->session) return;
-
-                $api = Madeline::session($account->session->session_id);
-                $api->start();
-
-                $data = $this->getTelegramData($api);
-
-                dump($data);
+                if ($account->session) {
+                    $this->refetchAuth($account);
+                }
             });
+    }
+
+    protected function refetchAuthOrDisconnect(Account $account)
+    {
+        /** Refetch Auth using Session */
+        if ($account->session) {
+            $this->refetchAuth($account);
+        } else {
+            $account->disconnect();
+        }
+    }
+
+
+    /**
+     * Refetch Auth
+     * @param \App\Models\Account $account
+     * @return void
+     */
+    protected function refetchAuth(Account $account)
+    {
+        $api = Madeline::session($account->session->session_id);
+        $api->start();
+
+        $result = $this->getTelegramData($api);
+
+        /** Update Telegram Web App */
+        $account->telegram_web_app = [
+            ...$account->telegram_web_app,
+            'initData' => $result['initData'],
+            'initDataUnsafe' => $result['initDataUnsafe'],
+        ];
+
+        /** Try to Update Auth Headers */
+        try {
+            if (method_exists($this, 'setAuth')) {
+                $this->setAuth($account, $result);
+            }
+        } catch (\Throwable $e) {
+            $this->logError($e);
+        }
+
+        /** Mark as connected */
+        $account->is_connected = true;
+
+        /** Save the Account */
+        $account->save();
     }
 
     /**
@@ -169,9 +210,13 @@ trait Farmer
             config('farmer.drops')[$this->getKey()]['telegram_link']
         );
 
-        return $parsed['short_name']  ?
+        $webview = $parsed['short_name']  ?
             $this->requestAppWebView($api, $parsed) :
             $this->requestMainWebView($api, $parsed);
+
+        return $this->extractTgWebAppData(
+            $webview['url']
+        );
     }
 
 
@@ -219,7 +264,10 @@ trait Farmer
         parse_str($data['tgWebAppData'], $initDataUnsafe);
 
         return [
-            ...$data,
+            'url' => $url,
+            'platform' => $data['tgWebAppPlatform'],
+            'version' => $data['tgWebAppVersion'],
+            'initData' => $data['tgWebAppData'],
             'initDataUnsafe' => [
                 ...$initDataUnsafe,
                 'user' => json_decode($initDataUnsafe['user'], true),

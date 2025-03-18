@@ -121,8 +121,8 @@ class FarmGoldEagle extends Command
                         /** Log Error */
                         $this->logError($e);
 
-                        /** Disconnect Account */
-                        $account->disconnect();
+                        /** Refetch Auth or Disconnect Account */
+                        $this->refetchAuthOrDisconnect($account);
                     }
                 });
         });

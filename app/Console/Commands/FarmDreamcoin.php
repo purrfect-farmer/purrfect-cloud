@@ -53,15 +53,16 @@ class FarmDreamcoin extends Command
     /**
      *  Set Authorization
      * @param \App\Models\Account $account
+     * @param array $data
      * @return void
      */
-    protected function setAuth(Account $account)
+    protected function setAuth(Account $account, $data)
     {
         /** Init Data */
-        $initData = $account->telegram_web_app['initData'];
+        $initData = $data['initData'];
 
         /** Init Data Unsafe */
-        $initDataUnsafe = $account->telegram_web_app['initDataUnsafe'];
+        $initDataUnsafe = $data['initDataUnsafe'];
 
         /** Get Access Token */
         $accessToken = $this->getBaseApi($account)
@@ -243,8 +244,8 @@ class FarmDreamcoin extends Command
                     /** Log Error */
                     $this->logError($e);
 
-                    /** Disconnect Account */
-                    $account->disconnect();
+                    /** Refetch Auth or Disconnect Account */
+                    $this->refetchAuthOrDisconnect($account);
                 }
             })->filter();
     }

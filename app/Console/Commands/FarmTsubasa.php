@@ -61,7 +61,6 @@ class FarmTsubasa extends Command
                                 'initData' => $initData,
                                 'lang_code' => $initDataUnsafe['user']['language_code']
                             ]
-
                         )->json();
 
                         /** MasterHash */
@@ -158,8 +157,8 @@ class FarmTsubasa extends Command
                         /** Log Error */
                         $this->logError($e);
 
-                        /** Disconnect Account */
-                        $account->disconnect();
+                        /** Refetch Auth or Disconnect Account */
+                        $this->refetchAuthOrDisconnect($account);
                     }
                 });
         });

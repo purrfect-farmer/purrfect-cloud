@@ -52,14 +52,15 @@ class FarmSlotcoin extends Command
     /**
      *  Set Authorization
      * @param \App\Models\Account $account
+     * @param array $data
      * @return void
      */
-    protected function setAuth(Account $account)
+    protected function setAuth(Account $account, $data)
     {
         /** Get Access Token */
         $accessToken = $this->getBaseApi($account)
             ->post('https://api.slotcoin.app/v1/clicker/auth', [
-                'initData' => $account->telegram_web_app['initData'],
+                'initData' => $data['initData'],
                 'referralCode' => ''
             ])
             ->json('accessToken');
@@ -149,8 +150,8 @@ class FarmSlotcoin extends Command
                     /** Log Error */
                     $this->logError($e);
 
-                    /** Disconnect Account */
-                    $account->disconnect();
+                    /** Refetch Auth or Disconnect Account */
+                    $this->refetchAuthOrDisconnect($account);
                 }
             })->filter();
     }

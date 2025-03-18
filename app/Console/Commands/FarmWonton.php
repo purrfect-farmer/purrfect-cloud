@@ -58,12 +58,18 @@ class FarmWonton extends Command
         });
     }
 
-    protected function setAuth(Account $account)
+    /**
+     *  Set Authorization
+     * @param \App\Models\Account $account
+     * @param array $data
+     * @return void
+     */
+    protected function setAuth(Account $account, $data)
     {
         /** Get Access Token */
         $accessToken = $this->getBaseApi($account)
             ->post('https://wonton.food/api/v1/user/auth', [
-                'initData' => $account->telegram_web_app['initData'],
+                'initData' => $data['initData'],
                 'inviteCode' => '',
                 'newUserPromoteCode' => ''
             ])
@@ -83,7 +89,6 @@ class FarmWonton extends Command
                 $points = intval(
                     Helpers::extraGamePoints(70) * $perItem
                 );
-
 
                 $bonusRound = $this->getApi($account)
                     ->post(
@@ -127,9 +132,6 @@ class FarmWonton extends Command
             ->connected()
             ->get()->map(function (Account $account) {
                 try {
-                    /** Set Auth */
-                    $this->setAuth($account);
-
                     /** Daily Check-In */
                     $this->getApi($account)->get('https://wonton.food/api/v1/checkin')->json();
 
@@ -289,8 +291,8 @@ class FarmWonton extends Command
                     /** Log Error */
                     $this->logError($e);
 
-                    /** Disconnect Account */
-                    $account->disconnect();
+                    /** Refetch Auth or Disconnect Account */
+                    $this->refetchAuthOrDisconnect($account);
                 }
             })->filter();
     }
