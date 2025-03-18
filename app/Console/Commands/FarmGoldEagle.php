@@ -128,6 +128,26 @@ class FarmGoldEagle extends Command
         });
     }
 
+
+    /**
+     *  Set Authorization
+     * @param \App\Models\Account $account
+     * @param array $data
+     * @return void
+     */
+    protected function setAuth(Account $account, $data)
+    {
+        /** Get Access Token */
+        $accessToken = $this->getBaseApi($account)
+            ->post('https://gold-eagle-api.fly.dev/login/telegram', [
+                'init_data_raw' => $data['url']
+            ])
+            ->json('access_token');
+
+        /** Set Headers */
+        $account->setAuthorizationHeader('Bearer ' . $accessToken);
+    }
+
     /**
      * Claim to Sl8
      * @param \App\Models\Account $account
