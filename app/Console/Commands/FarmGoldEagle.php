@@ -59,6 +59,13 @@ class FarmGoldEagle extends Command
      */
     protected $origin = 'https://telegram.geagle.online';
 
+
+    /**
+     * Set Auth only on error
+     * @var boolean
+     */
+    protected $setAuthOnlyOnError = true;
+
     /**
      * Execute the console command.
      */

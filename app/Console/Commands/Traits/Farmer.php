@@ -148,17 +148,33 @@ trait Farmer
             )
             ->each(function (Account $account) {
                 if ($account->session) {
-                    $this->refetchAuth($account);
+                    $this->refetchAuth(
+                        $account,
+                        property_exists(
+                            $this,
+                            'setAuthOnlyOnError'
+                        ) ? $this->setAuthOnlyOnError === false : true
+                    );
                 }
             });
     }
 
+    /** Refetch Auth or Disconnect */
     protected function refetchAuthOrDisconnect(Account $account)
     {
-        /** Refetch Auth using Session */
         if ($account->session) {
-            $this->refetchAuth($account);
+            try {
+                /** Refetch Auth using Session */
+                $this->refetchAuth($account, true);
+            } catch (\Throwable $e) {
+                /** Log Error */
+                $this->logError($e);
+
+                /** Disconnect */
+                $account->disconnect();
+            }
         } else {
+            /** Disconnect */
             $account->disconnect();
         }
     }
@@ -167,9 +183,10 @@ trait Farmer
     /**
      * Refetch Auth
      * @param \App\Models\Account $account
+     * @param boolean $shouldSetAuth
      * @return void
      */
-    protected function refetchAuth(Account $account)
+    protected function refetchAuth(Account $account, $shouldSetAuth = true)
     {
         $api = Madeline::session($account->session->session_id);
         $api->start();
@@ -185,7 +202,9 @@ trait Farmer
 
         /** Try to Update Auth Headers */
         try {
-            if (method_exists($this, 'setAuth')) {
+            if (
+                $shouldSetAuth && method_exists($this, 'setAuth')
+            ) {
                 $this->setAuth($account, $result);
             }
         } catch (\Throwable $e) {
