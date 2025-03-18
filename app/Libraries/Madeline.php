@@ -2,32 +2,55 @@
 
 namespace App\Libraries;
 
-use Illuminate\Support\Facades\Storage;
+
+use danog\MadelineProto\API;
+use danog\MadelineProto\Logger;
+use danog\MadelineProto\Settings;
+use danog\MadelineProto\Settings\Logger as LoggerSettings;
+use danog\MadelineProto\Settings\AppInfo as AppInfoSettings;
+use Illuminate\Contracts\Filesystem\Filesystem;
 
 class Madeline
 {
-    /**
-     * Storage Disk
-     * @var \Illuminate\Contracts\Filesystem\Filesystem
-     */
-    protected $disk;
-    public function __construct()
-    {
-        $this->disk = Storage::disk('local');
+    public function __construct(
+        protected Filesystem $disk
+    ) {
         $this->disk->makeDirectory('madeline');
     }
     public function session($session = 'session.madeline')
     {
-        return new \danog\MadelineProto\API(
-            $this->disk->path('madeline/' . $session),
-            (new \danog\MadelineProto\Settings())
+        return new API(
+            $this->disk->path(
+                $this->resolveSessionPath($session)
+            ),
+            (new Settings())
                 ->setAppInfo(
-                    (new \danog\MadelineProto\Settings\AppInfo())->setApiId(
+                    (new AppInfoSettings)->setApiId(
                         config('madeline.api_id')
                     )->setApiHash(
                         config('madeline.api_hash')
                     )
                 )
+                ->setLogger(
+                    (new LoggerSettings)
+                        ->setType(Logger::LOGGER_FILE)
+                        ->setLevel(Logger::LEVEL_FATAL)
+                        ->setExtra(
+                            storage_path('logs/MadelineProto.log')
+                        )
+                )
         );
+    }
+
+    public function sessionExists($session)
+    {
+        return $this->disk->exists(
+            $this->resolveSessionPath($session)
+        );
+    }
+
+    public function resolveSessionPath($session)
+    {
+        return 'madeline/' . $session;
     }
 }

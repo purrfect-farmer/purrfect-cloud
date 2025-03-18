@@ -19,6 +19,7 @@
         "paquettg/php-html-parser": "^2.2",
         "paragonie/constant_time_encoding": "^3.0",
         "phpseclib/phpseclib": "^3.0",
+        "propaganistas/laravel-phone": "^5.3",
         "spatie/fork": "^1.2",
         "spomky-labs/otphp": "^11.3"
     },

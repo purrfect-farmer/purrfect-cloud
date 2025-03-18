@@ -8,6 +8,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\URL;
 use League\Uri\Uri;
 use Telegram\Bot\Laravel\Facades\Telegram;
 use PHPHtmlParser\Dom;
@@ -385,5 +386,19 @@ class Helpers
             '/^(http|https):\/\/t\.me\/.+/',
             $link
         );
+    }
+
+    public static function parseTelegramBotUrl(string $url)
+    {
+        $parsed = parse_url($url);
+        $paths = explode("/", trim($parsed["path"], "/"));
+
+        parse_str($parsed['query'] ?? '', $query);
+
+        return [
+            'bot' => '@' . $paths[0],
+            'short_name' => $paths[1] ?? '',
+            'param' =>   $query['start'] ?? $query['startapp'] ?? '',
+        ];
     }
 }

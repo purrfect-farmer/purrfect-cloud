@@ -139,4 +139,10 @@ class Account extends Model
             fn($v, $k) => strtolower($k) === 'authorization' ? $value : $v
         )->all();
     }
+
+    /** Session */
+    public function session()
+    {
+        return $this->hasOne(MadelineSession::class, 'user_id');
+    }
 }
