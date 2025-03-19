@@ -188,7 +188,11 @@ trait Farmer
      */
     protected function refetchAuth(Account $account, $shouldSetAuth = true)
     {
-        $api = Madeline::session($account->session->session_id);
+        $api = Madeline::session(
+            $account->session->api_id,
+            $account->session->api_hash,
+            $account->session->session_id
+        );
         $api->start();
 
         $result = $this->getTelegramData($api);

@@ -17,8 +17,11 @@ class Madeline
     ) {
         $this->disk->makeDirectory('madeline');
     }
-    public function session($session = 'session.madeline')
-    {
+    public function session(
+        $apiId,
+        $apiHash,
+        $session = 'session.madeline'
+    ) {
         return new API(
             $this->disk->path(
                 $this->resolveSessionPath($session)
@@ -26,9 +29,9 @@ class Madeline
             (new Settings())
                 ->setAppInfo(
                     (new AppInfoSettings)->setApiId(
-                        config('madeline.api_id')
+                        $apiId
                     )->setApiHash(
-                        config('madeline.api_hash')
+                        $apiHash
                     )
                 )
                 ->setLogger(

@@ -26,7 +26,10 @@ class TelegramLogin extends Command
      */
     public function handle()
     {
-        $client = Madeline::session();
+        $client = Madeline::session(
+            config('madeline.api_id'),
+            config('madeline.api_hash'),
+        );
         $client->start();
     }
 }
