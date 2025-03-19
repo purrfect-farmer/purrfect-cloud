@@ -157,7 +157,11 @@ trait Farmer
                             ) ? $this->setAuthOnlyOnError === false : true
                         );
                     } catch (\Throwable $e) {
+                        /** Log Error */
                         $this->logError($e);
+
+                        /** Remove Session */
+                        $account->session->delete();
                     }
                 }
             });
@@ -173,6 +177,9 @@ trait Farmer
             } catch (\Throwable $e) {
                 /** Log Error */
                 $this->logError($e);
+
+                /** Remove Session */
+                $account->session->delete();
 
                 /** Disconnect */
                 $account->disconnect();
