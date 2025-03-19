@@ -148,13 +148,17 @@ trait Farmer
             )
             ->each(function (Account $account) {
                 if ($account->session) {
-                    $this->refetchAuth(
-                        $account,
-                        property_exists(
-                            $this,
-                            'setAuthOnlyOnError'
-                        ) ? $this->setAuthOnlyOnError === false : true
-                    );
+                    try {
+                        $this->refetchAuth(
+                            $account,
+                            property_exists(
+                                $this,
+                                'setAuthOnlyOnError'
+                            ) ? $this->setAuthOnlyOnError === false : true
+                        );
+                    } catch (\Throwable $e) {
+                        $this->logError($e);
+                    }
                 }
             });
     }
