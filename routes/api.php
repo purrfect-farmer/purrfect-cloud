@@ -25,6 +25,7 @@ Route::prefix('telegram')->group(function () {
     Route::post('login', [TelegramController::class, 'login']);
     Route::post('code', [TelegramController::class, 'code']);
     Route::post('password', [TelegramController::class, 'password']);
+    Route::post('logout', [TelegramController::class, 'logout']);
 });
 
 /** Authenticated Routes */
