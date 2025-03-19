@@ -116,16 +116,18 @@ class TelegramController extends Controller
     public function logout(Request $request)
     {
         $request->validate([
-            'session' => ['required', 'string', 'alpha_num:ascii', new ExistingMadelineSession],
+            'session' => ['required', 'string', 'alpha_num:ascii'],
         ]);
 
-        $api = Madeline::session(
-            $request->session
-        );
-        $api->logout();
+        if (Madeline::sessionExists($request->session)) {
+            $api = Madeline::session(
+                $request->session
+            );
+            $api->logout();
 
-        /** Delete Session */
-        MadelineSession::where('session_id', $request->session)->delete();
+            /** Delete Session */
+            MadelineSession::where('session_id', $request->session)->delete();
+        }
 
         return [
             'status' => true,
