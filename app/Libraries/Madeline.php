@@ -4,9 +4,7 @@ namespace App\Libraries;
 
 
 use danog\MadelineProto\API;
-use danog\MadelineProto\Logger;
 use danog\MadelineProto\Settings;
-use danog\MadelineProto\Settings\Logger as LoggerSettings;
 use danog\MadelineProto\Settings\AppInfo as AppInfoSettings;
 use Illuminate\Contracts\Filesystem\Filesystem;
 
@@ -38,14 +36,6 @@ class Madeline
                         ->setSystemVersion('Linux x86_64')
 
                 )
-                ->setLogger(
-                    (new LoggerSettings)
-                        ->setType(Logger::LOGGER_FILE)
-                        ->setLevel(Logger::LEVEL_FATAL)
-                        ->setExtra(
-                            storage_path('logs/MadelineProto.log')
-                        )
-                )
         );
     }
 
@@ -60,4 +50,6 @@ class Madeline
     {
         return 'madeline/' . $session;
     }
+
+    public static function logger() {}
 }
