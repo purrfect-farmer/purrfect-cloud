@@ -15,8 +15,6 @@ class TelegramController extends Controller
     {
         $request->validate(
             [
-                'api_id' => ['required', 'integer'],
-                'api_hash' => ['required', 'string'],
                 'session' => ['nullable', 'string', 'alpha_num:ascii', new ExistingMadelineSession],
                 'phone' => ['required', 'string', new Phone()],
             ],
@@ -25,8 +23,6 @@ class TelegramController extends Controller
 
         $session =  \Illuminate\Support\Str::random(32);
         $api = Madeline::session(
-            $request->api_id,
-            $request->api_hash,
             $session
         );
 
@@ -41,15 +37,11 @@ class TelegramController extends Controller
     public function code(Request $request)
     {
         $request->validate([
-            'api_id' => ['required', 'integer'],
-            'api_hash' => ['required', 'string'],
             'session' => ['required', 'string', 'alpha_num:ascii', new ExistingMadelineSession],
             'code' => ['required', 'string'],
         ]);
 
         $api = Madeline::session(
-            $request->api_id,
-            $request->api_hash,
             $request->session
         );
 
@@ -73,12 +65,7 @@ class TelegramController extends Controller
             /** Create or Update Session */
             MadelineSession::updateOrCreate(
                 ['user_id' => $result['user']['id']],
-                [
-
-                    'api_id' => $request->api_id,
-                    'api_hash' => $request->api_hash,
-                    'session_id' => $request->session
-                ]
+                ['session_id' => $request->session]
             );
 
             return [
@@ -91,15 +78,11 @@ class TelegramController extends Controller
     public function password(Request $request)
     {
         $request->validate([
-            'api_id' => ['required', 'integer'],
-            'api_hash' => ['required', 'string'],
             'session' => ['required', 'string', 'alpha_num:ascii', new ExistingMadelineSession],
             'password' => ['required', 'string'],
         ]);
 
         $api = Madeline::session(
-            $request->api_id,
-            $request->api_hash,
             $request->session
         );
         $result = $api->complete2faLogin(
@@ -118,12 +101,7 @@ class TelegramController extends Controller
             /** Create or Update Session */
             MadelineSession::updateOrCreate(
                 ['user_id' => $result['user']['id']],
-                [
-
-                    'api_id' => $request->api_id,
-                    'api_hash' => $request->api_hash,
-                    'session_id' => $request->session
-                ]
+                ['session_id' => $request->session]
             );
 
             return [
@@ -138,14 +116,10 @@ class TelegramController extends Controller
     public function logout(Request $request)
     {
         $request->validate([
-            'api_id' => ['required', 'integer'],
-            'api_hash' => ['required', 'string'],
             'session' => ['required', 'string', 'alpha_num:ascii', new ExistingMadelineSession],
         ]);
 
         $api = Madeline::session(
-            $request->api_id,
-            $request->api_hash,
             $request->session
         );
         $api->logout();

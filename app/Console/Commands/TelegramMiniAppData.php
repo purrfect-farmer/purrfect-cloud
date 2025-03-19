@@ -34,10 +34,7 @@ class TelegramMiniAppData extends Command
      */
     public function handle()
     {
-        $this->api = Madeline::session(
-            config('madeline.api_id'),
-            config('madeline.api_hash'),
-        );
+        $this->api = Madeline::session();
         $this->api->start();
 
         $parsed = Helpers::parseTelegramBotUrl(

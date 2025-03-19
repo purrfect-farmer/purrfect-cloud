@@ -12,8 +12,6 @@ class MadelineSession extends Model
      * @var list<string>
      */
     protected $fillable = [
-        'api_id',
-        'api_hash',
         'user_id',
         'session_id',
     ];

@@ -17,11 +17,8 @@ class Madeline
     ) {
         $this->disk->makeDirectory('madeline');
     }
-    public function session(
-        $apiId,
-        $apiHash,
-        $session = 'session.madeline'
-    ) {
+    public function session($session = 'session.madeline')
+    {
         return new API(
             $this->disk->path(
                 $this->resolveSessionPath($session)
@@ -29,10 +26,17 @@ class Madeline
             (new Settings())
                 ->setAppInfo(
                     (new AppInfoSettings)->setApiId(
-                        $apiId
+                        2496
                     )->setApiHash(
-                        $apiHash
+                        '8da85b0d5bfe62527e5b244c209159c3'
                     )
+                        ->setLangPack('webk')
+                        ->setLangCode('en')
+                        ->setSystemLangCode('en-US')
+                        ->setAppVersion('2.2 K')
+                        ->setDeviceModel('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36')
+                        ->setSystemVersion('Linux x86_64')
+
                 )
                 ->setLogger(
                     (new LoggerSettings)
