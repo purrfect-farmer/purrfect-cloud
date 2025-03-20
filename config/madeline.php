@@ -12,10 +12,11 @@ return [
         'system_version' => 'Linux x86_64'
     ],
     'database' => [
-        'uri' => env('MADELINE_DB_URI', 'tcp://localhost'),
-        'database' => env('MADELINE_DB_DATABASE', 'laravel'),
-        'username' => env('MADELINE_DB_USERNAME', 'root'),
-        'password' => env('MADELINE_DB_PASSWORD', ''),
-        'prefix' => 'madeline_'
+        'enabled'   => env('MADELINE_DB_ENABLED', false),
+        'uri'       => env('MADELINE_DB_URI', 'tcp://localhost'),
+        'database'  => env('MADELINE_DB_DATABASE', 'laravel'),
+        'username'  => env('MADELINE_DB_USERNAME', 'root'),
+        'password'  => env('MADELINE_DB_PASSWORD', ''),
+        'prefix'    => env('MADELINE_DB_PREFIX', 'madeline_'),
     ]
 ];

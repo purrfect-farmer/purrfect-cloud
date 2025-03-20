@@ -34,37 +34,44 @@ class Madeline
      */
     public function session(string $session = 'default')
     {
+        /** Settings */
+        $settings = (new Settings())
+            ->setAppInfo(
+                (new AppInfoSettings)
+                    ->setApiId(config('madeline.app.api_id'))
+                    ->setApiHash(config('madeline.app.api_hash'))
+                    ->setLangPack(config('madeline.app.lang_pack'))
+                    ->setLangCode(config('madeline.app.lang_code'))
+                    ->setAppVersion(config('madeline.app.app_version'))
+                    ->setSystemLangCode(config('madeline.app.system_lang_code'))
+                    ->setSystemVersion(config('madeline.app.system_version'))
+                    ->setDeviceModel(config('madeline.app.device_model'))
+
+            )
+            ->setLogger(
+                (new LoggerSettings)
+                    ->setExtra(
+                        $this->logPath($session)
+                    )
+            );
+
+        /** Apply Database Config */
+        if (config('madeline.database.enabled')) {
+            $settings->setDb(
+                (new MysqlSettings)
+                    ->setUri(config('madeline.database.uri'))
+                    ->setDatabase(config('madeline.database.database'))
+                    ->setUsername(config('madeline.database.username'))
+                    ->setPassword(config('madeline.database.password'))
+                    ->setEphemeralFilesystemPrefix(
+                        config('madeline.database.prefix') . $session
+                    )
+            );
+        }
+
         return new API(
             $this->sessionPath($session),
-            (new Settings())
-                ->setAppInfo(
-                    (new AppInfoSettings)
-                        ->setApiId(config('madeline.app.api_id'))
-                        ->setApiHash(config('madeline.app.api_hash'))
-                        ->setLangPack(config('madeline.app.lang_pack'))
-                        ->setLangCode(config('madeline.app.lang_code'))
-                        ->setAppVersion(config('madeline.app.app_version'))
-                        ->setSystemLangCode(config('madeline.app.system_lang_code'))
-                        ->setSystemVersion(config('madeline.app.system_version'))
-                        ->setDeviceModel(config('madeline.app.device_model'))
-
-                )
-                ->setDb(
-                    (new MysqlSettings)
-                        ->setUri(config('madeline.database.uri'))
-                        ->setDatabase(config('madeline.database.database'))
-                        ->setUsername(config('madeline.database.username'))
-                        ->setPassword(config('madeline.database.password'))
-                        ->setEphemeralFilesystemPrefix(
-                            config('madeline.database.prefix') . $session
-                        )
-                )
-                ->setLogger(
-                    (new LoggerSettings)
-                        ->setExtra(
-                            $this->logPath($session)
-                        )
-                )
+            $settings
         );
     }
 
