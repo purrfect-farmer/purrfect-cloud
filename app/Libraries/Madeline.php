@@ -43,7 +43,9 @@ class Madeline
                         ->setDatabase(config('database.connections.mysql.database'))
                         ->setUsername(config('database.connections.mysql.username'))
                         ->setPassword(config('database.connections.mysql.password'))
-                        ->setEphemeralFilesystemPrefix('madeline')
+                        ->setEphemeralFilesystemPrefix(
+                            'madeline_' . substr(md5($session), 0, 10)
+                        )
                 )
         );
     }
