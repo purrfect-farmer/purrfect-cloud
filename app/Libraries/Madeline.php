@@ -6,6 +6,7 @@ namespace App\Libraries;
 use danog\MadelineProto\API;
 use danog\MadelineProto\Settings;
 use danog\MadelineProto\Settings\AppInfo as AppInfoSettings;
+use danog\MadelineProto\Settings\Database\Mysql as MysqlSettings;
 use Illuminate\Contracts\Filesystem\Filesystem;
 
 class Madeline
@@ -35,6 +36,14 @@ class Madeline
                         ->setDeviceModel('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36')
                         ->setSystemVersion('Linux x86_64')
 
+                )
+                ->setDb(
+                    (new MysqlSettings)
+                        ->setUri('tcp://' . config('database.connections.mysql.host'))
+                        ->setDatabase(config('database.connections.mysql.database'))
+                        ->setUsername(config('database.connections.mysql.username'))
+                        ->setPassword(config('database.connections.mysql.password'))
+                        ->setEphemeralFilesystemPrefix('madeline')
                 )
         );
     }
