@@ -35,7 +35,6 @@ class TelegramMiniAppData extends Command
     public function handle()
     {
         $this->api = Madeline::session();
-        $this->api->start();
 
         $parsed = Helpers::parseTelegramBotUrl(
             'https://t.me/purrfect_little_bot/app'

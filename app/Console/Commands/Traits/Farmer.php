@@ -202,7 +202,6 @@ trait Farmer
         $api = Madeline::session(
             $account->session->session_id
         );
-        $api->start();
 
         $result = $this->getTelegramData($api);
 
