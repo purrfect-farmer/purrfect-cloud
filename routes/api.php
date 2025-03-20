@@ -21,7 +21,7 @@ Route::post('sync', [CloudFarmerController::class, 'sync']);
 
 
 /** Telegram */
-Route::prefix('telegram')->group(function () {
+Route::middleware('feature:farmer.enable_telegram_sessions')->prefix('telegram')->group(function () {
     Route::post('login', [TelegramController::class, 'login']);
     Route::post('code', [TelegramController::class, 'code']);
     Route::post('password', [TelegramController::class, 'password']);
@@ -36,5 +36,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
         return $request->user();
     });
 });
+
 
 require __DIR__ . '/auth.php';

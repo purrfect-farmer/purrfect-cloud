@@ -2,6 +2,7 @@
 
 return [
     'access_require_membership' => env('ACCESS_REQUIRE_MEMBERSHIP', true),
+    'enable_telegram_sessions' => env('ENABLE_TELEGRAM_SESSIONS', false),
 
     'chat_id' => env('TELEGRAM_CHAT_ID', ''),
     'announcement_thread_id' => env('TELEGRAM_CHAT_ANNOUNCEMENT_THREAD_ID', ''),
