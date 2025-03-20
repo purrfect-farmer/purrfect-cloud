@@ -62,10 +62,10 @@ class TelegramController extends Controller
             $api->logout();
             abort(400, 'Not allowed!');
         } else {
-            /** Create or Update Session */
-            MadelineSession::updateOrCreate(
-                ['user_id' => $result['user']['id']],
-                ['session_id' => $request->session]
+            /** Save Session */
+            $this->saveSession(
+                $result['user']['id'],
+                $request->session
             );
 
             return [
@@ -97,11 +97,10 @@ class TelegramController extends Controller
             $api->logout();
             abort(400, 'Not allowed!');
         } else {
-
-            /** Create or Update Session */
-            MadelineSession::updateOrCreate(
-                ['user_id' => $result['user']['id']],
-                ['session_id' => $request->session]
+            /** Save Session */
+            $this->saveSession(
+                $result['user']['id'],
+                $request->session
             );
 
             return [
@@ -146,5 +145,41 @@ class TelegramController extends Controller
                     ])->status
             )
         );
+    }
+
+    /**
+     * Save session
+     * @param string $userId
+     * @param string $sessionId
+     * @return void
+     */
+    protected function saveSession(
+        $userId,
+        $sessionId
+    ) {
+        /** Get Existing Session */
+        $existing = MadelineSession::where('user_id', $userId)->first();
+
+        if ($existing) {
+            /** Save Previous Session Id */
+            $previousSessionId = $existing->session_id;
+
+            /** Update Session Id */
+            $existing->forceFill(['session_id' => $sessionId])->save();
+
+            /** Logout of Previous Session */
+            try {
+                Madeline::session($previousSessionId)->logout();
+            } catch (\Throwable $e) {
+            }
+        } else {
+            /** Create a new Session */
+            MadelineSession::create(
+                [
+                    'user_id' => $userId,
+                    'session_id' => $sessionId
+                ]
+            );
+        }
     }
 }
