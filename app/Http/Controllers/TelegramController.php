@@ -21,7 +21,7 @@ class TelegramController extends Controller
             ['phone' => 'Phone is Invalid']
         );
 
-        $session =  \Illuminate\Support\Str::random(32);
+        $session = Madeline::generateSession();
         $api = Madeline::session(
             $session
         );

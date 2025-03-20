@@ -28,9 +28,10 @@ class TelegramListSessions extends Command
     {
         $this->table(
             ['Name'],
-            Madeline::getSessions()->map(
-                fn($item) => [$item]
-            )
+            collect(Madeline::getSessions())
+                ->map(
+                    fn($item) => [$item]
+                )
         );
     }
 }

@@ -27,7 +27,7 @@ class TelegramGetMe extends Command
     public function handle()
     {
         $client = Madeline::session(
-            $this->argument('session') ?? ''
+            $this->argument('session') ?? 'default'
         );
 
         dump($client->getSelf());

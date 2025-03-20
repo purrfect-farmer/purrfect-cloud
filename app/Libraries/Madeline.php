@@ -6,15 +6,25 @@ namespace App\Libraries;
 use danog\MadelineProto\API;
 use danog\MadelineProto\Settings;
 use danog\MadelineProto\Settings\AppInfo as AppInfoSettings;
+use danog\MadelineProto\Settings\Logger as LoggerSettings;
 use danog\MadelineProto\Settings\Database\Mysql as MysqlSettings;
 use Illuminate\Contracts\Filesystem\Filesystem;
+use Illuminate\Support\Facades\Storage;
 
 class Madeline
 {
-    public function __construct(
-        protected Filesystem $disk
-    ) {
-        $this->disk->makeDirectory('madeline');
+    /**
+     * Storage disk
+     * @var Filesystem
+     */
+    protected Filesystem $disk;
+    public function __construct()
+    {
+        /** Create Disk */
+        $this->disk = Storage::build([
+            'driver' => 'local',
+            'root' => storage_path('app/madeline'),
+        ]);
     }
 
     /**
@@ -22,12 +32,10 @@ class Madeline
      * @param string $session
      * @return API
      */
-    public function session($session = 'session.madeline')
+    public function session(string $session = 'default')
     {
         return new API(
-            $this->disk->path(
-                $this->resolveSessionPath($session)
-            ),
+            $this->sessionPath($session),
             (new Settings())
                 ->setAppInfo(
                     (new AppInfoSettings)
@@ -48,7 +56,13 @@ class Madeline
                         ->setUsername(config('madeline.database.username'))
                         ->setPassword(config('madeline.database.password'))
                         ->setEphemeralFilesystemPrefix(
-                            config('madeline.database.prefix') . substr(md5($session), 0, 10)
+                            config('madeline.database.prefix') . $session
+                        )
+                )
+                ->setLogger(
+                    (new LoggerSettings)
+                        ->setExtra(
+                            $this->logPath($session)
                         )
                 )
         );
@@ -59,31 +73,66 @@ class Madeline
      * @param string $session
      * @return bool
      */
-    public function sessionExists($session)
+    public function sessionExists(string $session)
     {
         return $this->disk->exists(
-            $this->resolveSessionPath($session)
+            $this->getSessionFile($session)
         );
     }
 
     /**
-     * Resolve Session Path
-     * @param string $session
-     * @return string
-     */
-    public function resolveSessionPath($session)
-    {
-        return 'madeline/' . $session;
-    }
-
-    /**
      * Get Sessions
-     * @return \Illuminate\Support\Collection<mixed, array|string>
+     * @return array
      */
     public function getSessions()
     {
-        return collect($this->disk->directories('madeline'))->map(
-            fn($item) => str_replace('madeline/', '', $item)
+        return (
+            collect($this->disk->directories())
+            ->map(
+                fn($item) => str_replace(['session_', '.madeline'], '', $item)
+            )
+            ->all()
+        );
+    }
+
+    /** Generate Session */
+    public function generateSession()
+    {
+        do {
+            $session = bin2hex(random_bytes(8));
+        } while ($this->sessionExists($session));
+
+        return $session;
+    }
+
+    /** Get Session File */
+    public function getSessionFile(string $session)
+    {
+        return 'session_' . $session . '.madeline';
+    }
+
+    /** Get Session Path */
+    public function sessionPath(string $session)
+    {
+        return $this->disk->path(
+            $this->getSessionFile($session)
+        );
+    }
+
+    /** Get Log Path */
+    public function logPath(string $session)
+    {
+        return tap(
+            storage_path("logs/madeline/session_{$session}.log"),
+            function ($path) {
+                if (!is_dir(dirname($path))) {
+                    mkdir(
+                        dirname($path),
+                        0755,
+                        true
+                    );
+                }
+            }
         );
     }
 }
