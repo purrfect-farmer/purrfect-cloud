@@ -13,7 +13,7 @@ class TelegramController extends Controller
 {
     public function login(Request $request)
     {
-        $request->validate(
+        $validated = $request->validate(
             [
                 'session' => ['nullable', 'string', 'alpha_num:ascii', new ExistingMadelineSession],
                 'phone' => ['required', 'string', new Phone()],
@@ -21,12 +21,12 @@ class TelegramController extends Controller
             ['phone' => 'Phone is Invalid']
         );
 
-        $session = Madeline::generateSession();
+        $session = $validated['session'] ?: Madeline::generateSession();
         $api = Madeline::session(
             $session
         );
 
-        $result = $api->phoneLogin($request->phone);
+        $result = $api->phoneLogin($validated['phone']);
 
         return [
             'session' => $session,
@@ -36,17 +36,17 @@ class TelegramController extends Controller
 
     public function code(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'session' => ['required', 'string', 'alpha_num:ascii', new ExistingMadelineSession],
             'code' => ['required', 'string'],
         ]);
 
         $api = Madeline::session(
-            $request->session
+            $validated['session']
         );
 
         $result = $api->completePhoneLogin(
-            $request->code
+            $validated['code']
         );
 
         if ($result['_'] === 'account.password') {
@@ -65,7 +65,7 @@ class TelegramController extends Controller
             /** Save Session */
             $this->saveSession(
                 $result['user']['id'],
-                $request->session
+                $validated['session']
             );
 
             return [
@@ -77,16 +77,16 @@ class TelegramController extends Controller
 
     public function password(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'session' => ['required', 'string', 'alpha_num:ascii', new ExistingMadelineSession],
             'password' => ['required', 'string'],
         ]);
 
         $api = Madeline::session(
-            $request->session
+            $validated['session']
         );
         $result = $api->complete2faLogin(
-            $request->password
+            $validated['password']
         );
 
         if (
@@ -100,7 +100,7 @@ class TelegramController extends Controller
             /** Save Session */
             $this->saveSession(
                 $result['user']['id'],
-                $request->session
+                $validated['session']
             );
 
             return [
@@ -114,18 +114,18 @@ class TelegramController extends Controller
 
     public function logout(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'session' => ['required', 'string', 'alpha_num:ascii'],
         ]);
 
-        if (Madeline::sessionExists($request->session)) {
+        if (Madeline::sessionExists($validated['session'])) {
             $api = Madeline::session(
-                $request->session
+                $validated['session']
             );
             $api->logout();
 
             /** Delete Session */
-            MadelineSession::where('session_id', $request->session)->delete();
+            MadelineSession::where('session_id', $validated['session'])->delete();
         }
 
         return [
