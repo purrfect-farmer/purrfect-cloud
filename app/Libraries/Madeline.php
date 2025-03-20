@@ -16,6 +16,12 @@ class Madeline
     ) {
         $this->disk->makeDirectory('madeline');
     }
+
+    /**
+     * Get API
+     * @param string $session
+     * @return API
+     */
     public function session($session = 'session.madeline')
     {
         return new API(
@@ -48,6 +54,11 @@ class Madeline
         );
     }
 
+    /**
+     * Check if session exists
+     * @param string $session
+     * @return bool
+     */
     public function sessionExists($session)
     {
         return $this->disk->exists(
@@ -55,10 +66,24 @@ class Madeline
         );
     }
 
+    /**
+     * Resolve Session Path
+     * @param string $session
+     * @return string
+     */
     public function resolveSessionPath($session)
     {
         return 'madeline/' . $session;
     }
 
-    public static function logger() {}
+    /**
+     * Get Sessions
+     * @return \Illuminate\Support\Collection<mixed, array|string>
+     */
+    public function getSessions()
+    {
+        return collect($this->disk->directories('madeline'))->map(
+            fn($item) => str_replace('madeline/', '', $item)
+        );
+    }
 }
