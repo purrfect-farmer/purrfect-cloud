@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('accounts', function (Blueprint $table) {
             $table->id();
             $table->string('farmer');
-            $table->integer('user_id');
+            $table->unsignedBigInteger('user_id');
             $table->json('telegram_web_app');
             $table->json('headers');
             $table->timestamps();
