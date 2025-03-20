@@ -24,27 +24,25 @@ class Madeline
             ),
             (new Settings())
                 ->setAppInfo(
-                    (new AppInfoSettings)->setApiId(
-                        2496
-                    )->setApiHash(
-                        '8da85b0d5bfe62527e5b244c209159c3'
-                    )
-                        ->setLangPack('webk')
-                        ->setLangCode('en')
-                        ->setSystemLangCode('en-US')
-                        ->setAppVersion('2.2 K')
-                        ->setDeviceModel('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36')
-                        ->setSystemVersion('Linux x86_64')
+                    (new AppInfoSettings)
+                        ->setApiId(config('madeline.app.api_id'))
+                        ->setApiHash(config('madeline.app.api_hash'))
+                        ->setLangPack(config('madeline.app.lang_pack'))
+                        ->setLangCode(config('madeline.app.lang_code'))
+                        ->setAppVersion(config('madeline.app.app_version'))
+                        ->setSystemLangCode(config('madeline.app.system_lang_code'))
+                        ->setSystemVersion(config('madeline.app.system_version'))
+                        ->setDeviceModel(config('madeline.app.device_model'))
 
                 )
                 ->setDb(
                     (new MysqlSettings)
-                        ->setUri('tcp://' . config('database.connections.mysql.host'))
-                        ->setDatabase(config('database.connections.mysql.database'))
-                        ->setUsername(config('database.connections.mysql.username'))
-                        ->setPassword(config('database.connections.mysql.password'))
+                        ->setUri(config('madeline.database.uri'))
+                        ->setDatabase(config('madeline.database.database'))
+                        ->setUsername(config('madeline.database.username'))
+                        ->setPassword(config('madeline.database.password'))
                         ->setEphemeralFilesystemPrefix(
-                            'madeline_' . substr(md5($session), 0, 10)
+                            config('madeline.database.prefix') . substr(md5($session), 0, 10)
                         )
                 )
         );
