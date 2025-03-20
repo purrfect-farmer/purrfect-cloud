@@ -8,7 +8,10 @@ use Illuminate\Support\Facades\Route;
 
 /** Server */
 Route::get('server', function () {
-    return ['name' => config('app.name')];
+    return [
+        'name' => config('app.name'),
+        'is_telegram_sessions_enabled' => config('farmer.enable_telegram_sessions')
+    ];
 });
 
 /** Farmers */
