@@ -123,7 +123,8 @@ trait Farmer
         /** Log Error */
         Log::error($title . ' Error', [
             'message' => $e->getMessage(),
-            'account' => $account->user_id ?? null,
+            'user_id' => $account->user_id ?? null,
+            'username' => $account->telegram_web_app['initDataUnsafe']['user']['username'] ?? null,
             'file' => $e->getFile(),
             'line' => $e->getLine(),
         ]);
