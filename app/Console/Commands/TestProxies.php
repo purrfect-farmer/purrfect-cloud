@@ -27,17 +27,41 @@ class TestProxies extends Command
      */
     public function handle()
     {
+        $passed = [];
+        $failed = [];
+
         foreach (Proxy::list() as $proxy) {
-            $this->line('Testing: ' . $proxy);
+            /** Display Comment */
+            $this->comment('Testing: ' . $proxy);
+
             try {
+                /** Get IP */
+                $ip = Http::withOptions(['proxy' => 'http://' . $proxy])
+                    ->get('http://checkip.amazonaws.com')
+                    ->body();
+
+                /** Add to Passed List */
+                $passed[] = [$proxy];
+
+                /** Log Info */
                 $this->info(
-                    'PASS: ' . Http::withOptions(['proxy' => 'http://' . $proxy])
-                        ->get('http://checkip.amazonaws.com')
-                        ->body()
+                    'PASSED: ' . $ip
                 );
             } catch (\Throwable $e) {
+                /** Add to Failed List */
+                $failed[] = [$proxy];
+
+                /** Log Error */
                 $this->error('ERROR: ' . $proxy);
             }
         }
+
+        /** List Total Passed */
+        $this->info('TOTAL PASSED: ' . count($passed));
+        $this->table(['Proxy'], $passed);
+
+        /** List Total Failed */
+        $this->info('TOTAL FAILED: ' . count($failed));
+        $this->table(['Proxy'], $failed);
     }
 }
