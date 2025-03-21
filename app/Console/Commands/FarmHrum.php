@@ -67,8 +67,8 @@ class FarmHrum extends Command
                                 'startParam' => $initDataUnsafe['start_param'] ?? '',
                                 'photoUrl' => $initDataUnsafe['user']['photo_url'] ?? '',
                                 'chatId' => $initDataUnsafe['chat']['id'] ?? '',
-                                'chatType' => $initDataUnsafe['chat_type'],
-                                'chatInstance' => $initDataUnsafe['chat_instance']
+                                'chatType' => $initDataUnsafe['chat_type'] ?? '',
+                                'chatInstance' => $initDataUnsafe['chat_instance'] ?? ''
                             ],
                             'https://api.hrum.me/telegram/auth'
                         );
