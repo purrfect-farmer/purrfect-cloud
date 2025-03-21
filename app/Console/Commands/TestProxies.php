@@ -61,7 +61,7 @@ class TestProxies extends Command
         $this->table(['Proxy'], $passed);
 
         /** List Total Failed */
-        $this->info('TOTAL FAILED: ' . count($failed));
+        $this->error('TOTAL FAILED: ' . count($failed));
         $this->table(['Proxy'], $failed);
     }
 }
