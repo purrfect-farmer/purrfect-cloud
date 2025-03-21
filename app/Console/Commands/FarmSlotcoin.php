@@ -107,7 +107,7 @@ class FarmSlotcoin extends Command
                 }
             } catch (\Throwable $e) {
                 /** Log Error */
-                $this->logError($e);
+                $this->logError($e, $item['account']);
             }
         })->filter();
     }
@@ -148,7 +148,7 @@ class FarmSlotcoin extends Command
                     }
                 } catch (\Throwable $e) {
                     /** Log Error */
-                    $this->logError($e);
+                    $this->logError($e, $account);
 
                     /** Refetch Auth or Disconnect Account */
                     $this->refetchAuthOrDisconnect($account);

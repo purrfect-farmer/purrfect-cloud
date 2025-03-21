@@ -112,9 +112,10 @@ trait Farmer
     /**
      * Log Farmer Error
      * @param \Throwable $e
+     * @param Account|null $account
      * @return void
      */
-    protected function logError(\Throwable $e)
+    protected function logError(\Throwable $e, ?Account $account = null)
     {
         /** Farmer Title */
         $title = config('farmer.drops')[$this->getKey()]['title'];
@@ -122,6 +123,7 @@ trait Farmer
         /** Log Error */
         Log::error($title . ' Error', [
             'message' => $e->getMessage(),
+            'account' => $account->user_id ?? null,
             'file' => $e->getFile(),
             'line' => $e->getLine(),
         ]);
@@ -176,7 +178,7 @@ trait Farmer
                         );
                     } catch (\Throwable $e) {
                         /** Log Error */
-                        $this->logError($e);
+                        $this->logError($e, $account);
 
                         /** Remove Session */
                         $account->session->delete();
@@ -194,7 +196,7 @@ trait Farmer
                 $this->refetchAuth($account, true);
             } catch (\Throwable $e) {
                 /** Log Error */
-                $this->logError($e);
+                $this->logError($e, $account);
 
                 /** Remove Session */
                 $account->session->delete();
@@ -238,7 +240,7 @@ trait Farmer
                 $this->setAuth($account, $result);
             }
         } catch (\Throwable $e) {
-            $this->logError($e);
+            $this->logError($e, $account);
         }
 
         /** Mark as connected */
