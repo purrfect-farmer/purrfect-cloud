@@ -139,6 +139,9 @@ class CloudFarmerController extends Controller
         }
 
         /** Delete the Account */
-        Account::where('user_id', $account->user_id)->delete();
+        try {
+            Account::where('user_id', $account->user_id)->get()->each->delete();
+        } catch (\Throwable $e) {
+        }
     }
 }
