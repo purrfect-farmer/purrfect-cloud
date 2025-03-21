@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Facades\Madeline;
 use App\Models\Account;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Telegram\Bot\Laravel\Facades\Telegram;
 
@@ -103,5 +105,40 @@ class CloudFarmerController extends Controller
         $account->delete();
 
         return response()->noContent();
+    }
+
+    public function kick(Account $account)
+    {
+        /** Remove Session */
+        if ($account->session) {
+            try {
+                Madeline::session($account->session->session_id)->logout();
+            } catch (\Throwable $e) {
+            }
+        }
+
+        try {
+            /** Remove User */
+            Telegram::bot()->banChatMember([
+                'chat_id' => config('farmer.chat_id'),
+                'user_id' => $account->user_id
+            ]);
+
+            /** Unban User */
+            Telegram::bot()->unbanChatMember([
+                'chat_id' => config('farmer.chat_id'),
+                'user_id' => $account->user_id,
+                'only_if_banned' => true,
+            ]);
+        } catch (\Throwable $e) {
+            /** Log Error */
+            Log::error('Kick Account', [
+                'account' => $account,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+        /** Delete the Account */
+        Account::where('user_id', $account->user_id)->delete();
     }
 }
