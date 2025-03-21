@@ -9,6 +9,9 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote')->hourly();
 
 
+/** Update Proxies */
+Schedule::command('farmer:update-proxies')->hourly();
+
 /** Farm enabled drops every 10 minutes */
 collect(config('farmer.drops'))
     ->filter(fn($drop) => $drop['enabled'])

@@ -11,6 +11,11 @@ return [
     'display_farmer_title' => env('DISPLAY_FARMER_TITLE', false),
     'disable_telegram_messages' => env('DISABLE_TELEGRAM_MESSAGES', false),
 
+    'proxy' => [
+        'enabled' => env('FARMER_PROXY_ENABLED', false),
+        'api_key' => env('FARMER_PROXY_API_KEY', ''),
+    ],
+
     'drops' => [
         'gold-eagle' => [
             'title' => '🥇 Gold Eagle Farmer',

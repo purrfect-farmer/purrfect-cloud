@@ -3,6 +3,7 @@
 namespace App\Console\Commands\Traits;
 
 use App\Facades\Madeline;
+use App\Facades\Proxy;
 use App\Helpers;
 use App\Models\Account;
 use Illuminate\Support\Facades\Cache;
@@ -53,6 +54,17 @@ trait Farmer
         ];
     }
 
+    /** Get Proxy Options */
+    protected function getProxyOptions(Account $account)
+    {
+        if (config('farmer.proxy.enabled')) {
+            $proxy = Proxy::getUnique($account->user_id);
+            return $proxy ? ['proxy' => 'http://' . $proxy] : [];
+        } else {
+            return [];
+        }
+    }
+
     /**
      * Get Account API
      * @param \App\Models\Account $account
@@ -63,7 +75,10 @@ trait Farmer
         /** Delay */
         $this->delayRequest();
 
-        return Http::withHeaders($account->headers)
+        return Http::withOptions(
+            $this->getProxyOptions($account)
+        )
+            ->withHeaders($account->headers)
             ->withHeaders(
                 $this->getBaseHeaders()
             )
@@ -82,9 +97,12 @@ trait Farmer
         /** Delay */
         $this->delayRequest();
 
-        return Http::withHeaders(
-            $this->getBaseHeaders()
+        return Http::withOptions(
+            $this->getProxyOptions($account)
         )
+            ->withHeaders(
+                $this->getBaseHeaders()
+            )
             ->withUserAgent(
                 $account->getUserAgent()
             );

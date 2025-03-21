@@ -39,20 +39,28 @@ class Helpers
      */
     public static function getUserAgent(int $seed)
     {
-        /** Seed */
-        mt_srand($seed);
+        return static::getUniqueItem(
+            static::USER_AGENTS,
+            $seed
+        );
+    }
 
-        /** Get Index */
-        $index = mt_rand(0, count(static::USER_AGENTS) - 1);
 
-        /** Retrieve User Agent */
-        $result = static::USER_AGENTS[$index];
+    /**
+     * Get Unique Item from an Array Based on Seed
+     * @param array $collection
+     * @param int $seed
+     * @return mixed|null
+     */
+    public static function getUniqueItem(array $collection = [], int $seed)
+    {
+        $count = count($collection);
 
-        /** Reset Seed */
-        mt_srand();
+        if ($count === 0) {
+            return null;
+        }
 
-        /** Return Result */
-        return $result;
+        return $collection[$seed % $count];
     }
 
     /**

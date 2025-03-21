@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Libraries\Madeline;
+use App\Libraries\Proxy;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Support\ServiceProvider;
 
@@ -14,6 +15,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton('madeline', Madeline::class);
+        $this->app->singleton('proxy', Proxy::class);
     }
 
     /**
