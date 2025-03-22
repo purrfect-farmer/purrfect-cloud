@@ -72,20 +72,8 @@ trait Farmer
      */
     protected function getApi(Account $account)
     {
-        /** Delay */
-        $this->delayRequest();
 
-        return Http::withOptions(
-            $this->getProxyOptions($account)
-        )
-            ->withHeaders($account->headers)
-            ->withHeaders(
-                $this->getBaseHeaders()
-            )
-            ->withUserAgent(
-                $account->getUserAgent()
-            )
-            ->timeout(30);
+        return $this->getBaseApi($account)->withHeaders($account->headers);
     }
 
     /**
@@ -98,9 +86,10 @@ trait Farmer
         /** Delay */
         $this->delayRequest();
 
-        return Http::withOptions(
-            $this->getProxyOptions($account)
-        )
+        return Http::throw()
+            ->withOptions(
+                $this->getProxyOptions($account)
+            )
             ->withHeaders(
                 $this->getBaseHeaders()
             )
