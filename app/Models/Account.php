@@ -95,9 +95,9 @@ class Account extends Model
     }
 
     /** Scope Connected */
-    public function scopeConnected(Builder $builder)
+    public function scopeConnected(Builder $builder, $connected = true)
     {
-        return $builder->where('is_connected', true);
+        return $builder->where('is_connected', $connected);
     }
 
     /** Scope Farmer */
