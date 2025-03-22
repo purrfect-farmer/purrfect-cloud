@@ -315,7 +315,7 @@ class Helpers
     /** Fetch Content */
     public static function fetchContent($url)
     {
-        return Http::get($url)->body();
+        return Http::throw()->get($url)->body();
     }
 
     /**

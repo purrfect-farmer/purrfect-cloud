@@ -279,7 +279,7 @@ class FarmGoldEagle extends Command
     protected function getOtp()
     {
         try {
-            $config = Http::get("https://raw.githubusercontent.com/purrfect-farmer/purrfect-data/main/config.json")->json();
+            $config = Http::throw()->get("https://raw.githubusercontent.com/purrfect-farmer/purrfect-data/main/config.json")->json();
             $index = $config['gold-eagle']['index'];
             $script = Helpers::findDropMainScript('https://telegram.geagle.online', $index);
             $hasNotifiedDev = Cache::has('error-notice:gold-eagle');

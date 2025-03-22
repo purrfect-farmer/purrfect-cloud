@@ -29,7 +29,7 @@ class SendServerAddress extends Command
     public function handle()
     {
         /** Get IP */
-        $ip = trim(Http::get('http://checkip.amazonaws.com')->body());
+        $ip = trim(Http::throw()->get('http://checkip.amazonaws.com')->body());
 
         /** Address */
         $address = 'http://' . $ip . ':8000';
@@ -40,6 +40,7 @@ class SendServerAddress extends Command
                 Http::baseUrl(
                     config('seeker.server')
                 )
+                    ->throw()
                     ->withHeaders([
                         'Accept' => 'application/json',
                     ])

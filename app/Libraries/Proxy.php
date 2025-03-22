@@ -38,7 +38,8 @@ class Proxy
     public function fetchList()
     {
         try {
-            $response = Http::withHeader('Authorization', 'Token ' . config('farmer.proxy.api_key'))
+            $response = Http::throw()
+                ->withHeader('Authorization', 'Token ' . config('farmer.proxy.api_key'))
                 ->get('https://proxy.webshare.io/api/v2/proxy/list', [
                     'mode' => 'direct',
                     'valid' => true,

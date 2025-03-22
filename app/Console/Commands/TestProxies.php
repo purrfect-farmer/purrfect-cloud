@@ -36,7 +36,7 @@ class TestProxies extends Command
 
             try {
                 /** Get IP */
-                $ip = Http::withOptions(['proxy' => 'http://' . $proxy])
+                $ip = Http::throw()->withOptions(['proxy' => 'http://' . $proxy])
                     ->get('http://checkip.amazonaws.com')
                     ->body();
 
