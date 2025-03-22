@@ -73,10 +73,10 @@ class MadelineSession extends Model
         Helpers::sendCloudFarmerMessage(
             $key,
             [
-                "<b>Cloud Telegram Session</b>",
+                "<b>⚡ Cloud Telegram Session</b>",
                 "$status",
                 "<b>🗓️ Date</b>: $date",
-                "<blockquote><i>$message</i></blockquote>",
+                "<blockquote><b>$message</b></blockquote>",
             ],
             [
                 'chat_id' => $this->user_id,

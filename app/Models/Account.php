@@ -89,7 +89,7 @@ class Account extends Model
             $this,
             [
                 "$status",
-                "<blockquote><i>$message</i></blockquote>",
+                "<blockquote><b>$message</b></blockquote>",
             ],
         );
     }
