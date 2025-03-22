@@ -15,7 +15,7 @@ class TelegramController extends Controller
     {
         $validated = $request->validate(
             [
-                'session' => ['nullable', 'string', 'alpha_num:ascii', new ExistingMadelineSession],
+                'session' => ['nullable', 'string', 'alpha_num:ascii', 'size:16', new ExistingMadelineSession],
                 'phone' => ['required', 'string', new Phone()],
             ],
             ['phone' => 'Phone is Invalid']
@@ -37,7 +37,7 @@ class TelegramController extends Controller
     public function code(Request $request)
     {
         $validated = $request->validate([
-            'session' => ['required', 'string', 'alpha_num:ascii', new ExistingMadelineSession],
+            'session' => ['required', 'string', 'alpha_num:ascii', 'size:16', new ExistingMadelineSession],
             'code' => ['required', 'string'],
         ]);
 
@@ -78,7 +78,7 @@ class TelegramController extends Controller
     public function password(Request $request)
     {
         $validated = $request->validate([
-            'session' => ['required', 'string', 'alpha_num:ascii', new ExistingMadelineSession],
+            'session' => ['required', 'string', 'alpha_num:ascii', 'size:16', new ExistingMadelineSession],
             'password' => ['required', 'string'],
         ]);
 
@@ -115,7 +115,7 @@ class TelegramController extends Controller
     public function logout(Request $request)
     {
         $validated = $request->validate([
-            'session' => ['required', 'string', 'alpha_num:ascii'],
+            'session' => ['required', 'string', 'alpha_num:ascii', 'size:16'],
         ]);
 
         if (Madeline::sessionExists($validated['session'])) {
@@ -132,6 +132,18 @@ class TelegramController extends Controller
             'status' => true,
         ];
     }
+
+    public function check(Request $request)
+    {
+        $validated = $request->validate([
+            'session' => ['required', 'string', 'alpha_num:ascii', 'size:16'],
+        ]);
+
+        return [
+            'status' => Madeline::sessionExists($validated['session']),
+        ];
+    }
+
     protected function userIsAllowed($id)
     {
         return (
