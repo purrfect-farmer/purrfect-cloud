@@ -32,6 +32,14 @@ class FarmSlotcoin extends Command
      */
     protected $origin = 'https://app.slotcoin.app';
 
+
+    /**
+     * The delay in seconds for all requests.
+     *
+     * @var int
+     */
+    protected $delay = 2;
+
     /**
      * Execute the console command.
      */

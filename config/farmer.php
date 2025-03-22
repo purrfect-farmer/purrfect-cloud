@@ -25,6 +25,12 @@ return [
             'thread_id' => env('FARMER_GOLD_EAGLE_THREAD_ID', ''),
             'telegram_link' => 'https://t.me/gold_eagle_coin_bot/main?startapp=r_ubdOBYN6KX'
         ],
+        'digger' => [
+            'title' => '🏴‍☠️ Digger Farmer',
+            'enabled' => env('FARMER_DIGGER_ENABLED', true),
+            'thread_id' => env('FARMER_DIGGER_THREAD_ID', ''),
+            'telegram_link' => 'https://t.me/diggerton_bot/dig?startapp=bro1147265290'
+        ],
         'hrum' => [
             'title' => '🥠 Hrum Farmer',
             'enabled' => env('FARMER_HRUM_ENABLED', true),
@@ -42,6 +48,12 @@ return [
             'enabled' => env('FARMER_WONTON_ENABLED', true),
             'thread_id' => env('FARMER_WONTON_THREAD_ID', ''),
             'telegram_link' => 'https://t.me/WontonOrgBot/gameapp?startapp=referralCode=K45JQRG7'
+        ],
+        'funatic' => [
+            'title' => '🤡 Funatic Farmer',
+            'enabled' => env('FARMER_FUNATIC_ENABLED', true),
+            'thread_id' => env('FARMER_FUNATIC_THREAD_ID', ''),
+            'telegram_link' => 'https://t.me/LuckyFunaticBot/lucky_funatic?startapp=1147265290'
         ],
         'slotcoin' => [
             'title' => '🎰 Slotcoin Farmer',
