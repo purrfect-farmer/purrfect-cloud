@@ -64,7 +64,7 @@ class MadelineSession extends Model
         /** Message */
         $message = $status ?
             'Telegram account has been logged in on Cloud.' :
-            'Telegram account has been logged out of Cloud';
+            'Telegram account has been logged out of Cloud.';
 
         /** Date */
         $date = now();
