@@ -172,9 +172,6 @@ trait Farmer
                     } catch (\Throwable $e) {
                         /** Log Error */
                         $this->logError($e, $account);
-
-                        /** Remove Session */
-                        $account->session->delete();
                     }
                 }
             });
@@ -190,9 +187,6 @@ trait Farmer
             } catch (\Throwable $e) {
                 /** Log Error */
                 $this->logError($e, $account);
-
-                /** Remove Session */
-                $account->session->delete();
 
                 /** Disconnect */
                 $account->disconnect();
@@ -216,14 +210,25 @@ trait Farmer
             $account->session->session_id
         );
 
-        $result = $this->getTelegramData($api);
+        try {
+            $result = $this->getTelegramData($api);
 
-        /** Update Telegram Web App */
-        $account->telegram_web_app = [
-            ...$account->telegram_web_app,
-            'initData' => $result['initData'],
-            'initDataUnsafe' => $result['initDataUnsafe'],
-        ];
+            /** Update Telegram Web App */
+            $account->telegram_web_app = [
+                ...$account->telegram_web_app,
+                'initData' => $result['initData'],
+                'initDataUnsafe' => $result['initDataUnsafe'],
+            ];
+        } catch (\Throwable $e) {
+            /** Logout */
+            $api->logout();
+
+            /** Delete Session */
+            $account->session->delete();
+
+            /** Throw Error */
+            throw $e;
+        }
 
         /** Try to Update Auth Headers */
         try {
