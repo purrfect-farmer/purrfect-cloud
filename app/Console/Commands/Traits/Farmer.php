@@ -171,9 +171,6 @@ trait Farmer
                     } catch (\Throwable $e) {
                         /** Log Error */
                         $this->logError($e, $account);
-
-                        /** Remove Session */
-                        $account->session->delete();
                     }
                 }
             });
@@ -189,9 +186,6 @@ trait Farmer
             } catch (\Throwable $e) {
                 /** Log Error */
                 $this->logError($e, $account);
-
-                /** Remove Session */
-                $account->session->delete();
 
                 /** Disconnect */
                 $account->disconnect();
