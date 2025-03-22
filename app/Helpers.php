@@ -8,6 +8,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\URL;
 use League\Uri\Uri;
 use Telegram\Bot\Laravel\Facades\Telegram;
@@ -98,31 +99,40 @@ class Helpers
             ...$options
         ];
 
-        /** Send New Message */
-        $message = Telegram::bot()->sendMessage($params);
+        try {
 
-        /** Delete Previous Message */
-        if ($deletePreviousMessage) {
-            $cacheKey = 'cloud-message:' . $key;
-            $previousMessageId = Cache::get($cacheKey);
-            if ($previousMessageId) {
-                try {
-                    Telegram::bot()->deleteMessage([
-                        'chat_id' => $params['chat_id'],
-                        'message_id' => $previousMessageId
-                    ]);
-                } catch (\Throwable $e) {
+            /** Send New Message */
+            $message = Telegram::bot()->sendMessage($params);
+
+            /** Delete Previous Message */
+            if ($deletePreviousMessage) {
+                $cacheKey = 'cloud-message:' . $key;
+                $previousMessageId = Cache::get($cacheKey);
+                if ($previousMessageId) {
+                    try {
+                        Telegram::bot()->deleteMessage([
+                            'chat_id' => $params['chat_id'],
+                            'message_id' => $previousMessageId
+                        ]);
+                    } catch (\Throwable $e) {
+                    }
                 }
+
+                /** Put New Message Id in Cache */
+                Cache::forever(
+                    $cacheKey,
+                    $message->messageId
+                );
             }
 
-            /** Put New Message Id in Cache */
-            Cache::forever(
-                $cacheKey,
-                $message->messageId
-            );
-        }
 
-        return $message;
+            return $message;
+        } catch (\Throwable $e) {
+            Log::error('Telegram Message', [
+                'message' => $e->getMessage(),
+                'params' => $params
+            ]);
+        }
     }
 
     /**
