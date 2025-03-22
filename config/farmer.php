@@ -14,6 +14,8 @@ return [
     'proxy' => [
         'enabled' => env('FARMER_PROXY_ENABLED', false),
         'api_key' => env('FARMER_PROXY_API_KEY', ''),
+        'page' => env('FARMER_PROXY_PAGE', 1),
+        'page_size' => env('FARMER_PROXY_PAGE_SIZE', 100),
     ],
 
     'drops' => [

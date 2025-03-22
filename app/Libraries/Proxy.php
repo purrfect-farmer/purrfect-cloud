@@ -43,8 +43,8 @@ class Proxy
                 ->get('https://proxy.webshare.io/api/v2/proxy/list', [
                     'mode' => 'direct',
                     'valid' => true,
-                    'page' => 1,
-                    'page_size' => 100
+                    'page' => config('farmer.proxy.page'),
+                    'page_size' => config('farmer.proxy.page_size')
                 ])
                 ->json();
 
