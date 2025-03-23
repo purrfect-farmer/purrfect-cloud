@@ -37,7 +37,7 @@ class TelegramMiniAppData extends Command
         $this->api = Madeline::session();
 
         $parsed = Helpers::parseTelegramBotUrl(
-            'https://t.me/purrfect_little_bot/app'
+            'https://t.me/purrfect_little_bot/app?startapp=purrfect'
         );
 
 
@@ -45,6 +45,7 @@ class TelegramMiniAppData extends Command
             $this->requestAppWebView($parsed) :
             $this->requestMainWebView($parsed);
 
+        dump($parsed);
         dump($result);
         dump($this->extractTgWebAppData($result['url']));
     }
@@ -72,6 +73,7 @@ class TelegramMiniAppData extends Command
     {
         return $this->api->messages->requestMainWebView(
             bot: $parsed['bot'],
+            start_param: $parsed['param'],
             platform: 'android',
         );
     }
@@ -80,6 +82,7 @@ class TelegramMiniAppData extends Command
     {
         return $this->api->messages->requestAppWebView(
             platform: 'android',
+            start_param: $parsed['param'],
             app: [
                 '_' => 'inputBotAppShortName',
                 'bot_id' => $parsed['bot'],
@@ -95,8 +98,6 @@ class TelegramMiniAppData extends Command
 
         parse_str($fragment, $data);
         parse_str($data['tgWebAppData'], $initDataUnsafe);
-
-
 
         return [
             ...$data,
