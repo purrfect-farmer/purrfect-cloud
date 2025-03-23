@@ -80,7 +80,7 @@ class FarmFunatic extends Command
     {
         return $farmers->map(function ($item) {
             try {
-                $farmer = $item['account'];
+                $farmer = $item['farmer'];
                 $energy = $item['energy'];
 
                 $taps = min($energy, 8 + rand(0, 2));
@@ -96,13 +96,13 @@ class FarmFunatic extends Command
                 /** Return Energy and Farmer */
                 if ($energy > 0) {
                     return compact(
-                        'account',
+                        'farmer',
                         'energy'
                     );
                 }
             } catch (\Throwable $e) {
                 /** Log Error */
-                $this->logError($e, $item['account']);
+                $this->logError($e, $item['farmer']);
             }
         })->filter();
     }
@@ -205,7 +205,7 @@ class FarmFunatic extends Command
                     /** Return Energy and Farmer */
                     if ($energy > 0) {
                         return compact(
-                            'account',
+                            'farmer',
                             'energy'
                         );
                     }

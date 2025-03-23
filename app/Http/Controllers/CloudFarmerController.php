@@ -113,8 +113,12 @@ class CloudFarmerController extends Controller
         return response()->noContent();
     }
 
-    public function kick(Account $account)
+    /** Kick Member */
+    public function kick(int $id)
     {
+        /** Get Account */
+        $account = Account::where('user_id', $id)->firstOrFail();
+
         /** Remove Session */
         if ($account->session_id) {
             try {
@@ -138,7 +142,7 @@ class CloudFarmerController extends Controller
             ]);
         } catch (\Throwable $e) {
             /** Log Error */
-            Log::error('Kick Account', [
+            Log::error('Kick Member', [
                 'account' => $account,
                 'error' => $e->getMessage(),
             ]);

@@ -83,7 +83,7 @@ class FarmWonton extends Command
     {
         $games = $farmers->map(function ($item) {
             try {
-                $farmer = $item['account'];
+                $farmer = $item['farmer'];
                 $selectedSkin = $item['selectedSkin'];
                 $perItem = collect($selectedSkin['stats'])->map('intval')->max();
                 $points = intval(
@@ -96,13 +96,13 @@ class FarmWonton extends Command
                     )->json('bonusRound');
 
                 return compact(
-                    'account',
+                    'farmer',
                     'points',
                     'bonusRound'
                 );
             } catch (\Throwable $e) {
                 /** Log Error */
-                $this->logError($e, $item['account']);
+                $this->logError($e, $item['farmer']);
             }
         })->filter();
 
@@ -111,7 +111,7 @@ class FarmWonton extends Command
 
         /** Claim Points */
         $games->each(function ($item) {
-            $farmer = $item['account'];
+            $farmer = $item['farmer'];
             $points = $item['points'];
             $bonusRound = $item['bonusRound'];
 
@@ -281,7 +281,7 @@ class FarmWonton extends Command
                     /** Return Tickets and Farmer */
                     if ($tickets > 0) {
                         return compact(
-                            'account',
+                            'farmer',
                             'tickets',
                             'selectedSkin',
                             'selectedBowl',

@@ -89,7 +89,7 @@ class FarmDreamcoin extends Command
     {
         return $farmers->map(function ($item) {
             try {
-                $farmer = $item['account'];
+                $farmer = $item['farmer'];
                 $energy = $item['energy'];
 
                 /** @var Collection */
@@ -133,14 +133,14 @@ class FarmDreamcoin extends Command
                 /** Return Energy and Farmer */
                 if ($energy > 0) {
                     return compact(
-                        'account',
+                        'farmer',
                         'availableMultipliers',
                         'energy',
                     );
                 }
             } catch (\Throwable $e) {
                 /** Log Error */
-                $this->logError($e, $item['account']);
+                $this->logError($e, $item['farmer']);
             }
         })->filter();
     }
@@ -235,7 +235,7 @@ class FarmDreamcoin extends Command
                     /** Return Energy and Farmer */
                     if ($energy > 0) {
                         return compact(
-                            'account',
+                            'farmer',
                             'energy',
                             'availableMultipliers',
                         );

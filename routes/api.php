@@ -10,18 +10,15 @@ use Illuminate\Support\Facades\Route;
 Route::get('server', function () {
     return [
         'name' => config('app.name'),
+        'farmers' => collect(config('farmer.drops'))
+            ->filter(fn($drop) => $drop['enabled'])
+            ->keys(),
         'is_telegram_sessions_enabled' => config('farmer.enable_telegram_sessions')
     ];
 });
 
-/** Farmers */
-Route::get('farmers', function () {
-    return collect(config('farmer.drops'))->keys();
-});
-
 /** Sync */
 Route::post('sync', [CloudFarmerController::class, 'sync']);
-
 
 /** Telegram */
 Route::middleware('feature:farmer.enable_telegram_sessions')->prefix('telegram')->group(function () {
@@ -36,7 +33,7 @@ Route::middleware('feature:farmer.enable_telegram_sessions')->prefix('telegram')
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/farmers', [CloudFarmerController::class, 'farmers']);
     Route::post('/farmers/{farmer}/disconnect', [CloudFarmerController::class, 'disconnect']);
-    Route::post('/accounts/{account}/kick', [CloudFarmerController::class, 'kick']);
+    Route::post('/members/{id}/kick', [CloudFarmerController::class, 'kick']);
     Route::get('/user', function (Request $request) {
         return $request->user();
     });

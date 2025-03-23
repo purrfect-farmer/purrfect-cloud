@@ -34,6 +34,7 @@ class CleanupFarmers extends Command
                     ->keys()
             )->delete();
         });
-        $this->info("Farmers Deleted");
+
+        $this->info('Farmers Deleted');
     }
 }

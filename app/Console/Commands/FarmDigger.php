@@ -107,7 +107,7 @@ class FarmDigger extends Command
         /** Claim Reward */
         $farmers->each(function ($item) {
             try {
-                $farmer = $item['account'];
+                $farmer = $item['farmer'];
                 $reward = $item['reward'];
 
                 /** Claim Reward */
@@ -121,7 +121,7 @@ class FarmDigger extends Command
                     );
             } catch (\Throwable $e) {
                 /** Log Error */
-                $this->logError($e, $item['account']);
+                $this->logError($e, $item['farmer']);
             }
         });
     }
@@ -131,7 +131,7 @@ class FarmDigger extends Command
     {
         return $farmers->map(function ($item) {
             try {
-                $farmer = $item['account'];
+                $farmer = $item['farmer'];
                 $energy = $item['energy'];
                 $uid = $item['uid'];
 
@@ -151,14 +151,14 @@ class FarmDigger extends Command
                 /** Return Energy and Farmer */
                 if ($energy > 0) {
                     return compact(
-                        'account',
+                        'farmer',
                         'energy',
                         'uid',
                     );
                 }
             } catch (\Throwable $e) {
                 /** Log Error */
-                $this->logError($e, $item['account']);
+                $this->logError($e, $item['farmer']);
             }
         })->filter();
     }
@@ -297,7 +297,7 @@ class FarmDigger extends Command
                     /** Return Energy and Farmer */
                     if ($energy > 0 || $reward) {
                         return compact(
-                            'account',
+                            'farmer',
                             'uid',
                             'energy',
                             'reward'

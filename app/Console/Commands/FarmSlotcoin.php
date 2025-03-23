@@ -81,7 +81,7 @@ class FarmSlotcoin extends Command
     {
         return $farmers->map(function ($item) {
             try {
-                $farmer = $item['account'];
+                $farmer = $item['farmer'];
                 $ticketsCount = $item['ticketsCount'];
                 $energy = $item['energy'];
                 $bid = $item['bid'];
@@ -107,7 +107,7 @@ class FarmSlotcoin extends Command
                 /** Return Energy and Farmer */
                 if ($energy >= $bid || $ticketsCount > 0) {
                     return compact(
-                        'account',
+                        'farmer',
                         'ticketsCount',
                         'energy',
                         'bid',
@@ -115,7 +115,7 @@ class FarmSlotcoin extends Command
                 }
             } catch (\Throwable $e) {
                 /** Log Error */
-                $this->logError($e, $item['account']);
+                $this->logError($e, $item['farmer']);
             }
         })->filter();
     }
@@ -148,7 +148,7 @@ class FarmSlotcoin extends Command
                     /** Return Energy and Farmer */
                     if ($energy >= $bid || $ticketsCount > 0) {
                         return compact(
-                            'account',
+                            'farmer',
                             'ticketsCount',
                             'energy',
                             'bid',
