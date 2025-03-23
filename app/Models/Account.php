@@ -80,8 +80,8 @@ class Account extends Model
 
         /** Message */
         $message = $connected ?
-            'Automatic cloud farming has commenced.' :
-            'Please kindly re-open the farmer and sync to cloud.';
+            'Automatic Cloud Farming has commenced. Remember to keep track of your account.' :
+            'Please kindly re-open the Farmer and Sync to Cloud.';
 
         /** Send Message */
         Helpers::sendUserMessage(
