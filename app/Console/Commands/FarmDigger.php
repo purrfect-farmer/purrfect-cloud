@@ -2,14 +2,14 @@
 
 namespace App\Console\Commands;
 
-use App\Console\Commands\Traits\Farmer;
-use App\Models\Account;
+use App\Console\Commands\Traits\FarmerTrait;
+use App\Models\Farmer;
 use Illuminate\Console\Command;
 use Illuminate\Support\Sleep;
 
 class FarmDigger extends Command
 {
-    use Farmer;
+    use FarmerTrait;
 
     const CHEST_TYPES = [
         7 => 'usdt_chest',
@@ -51,11 +51,11 @@ class FarmDigger extends Command
     public function handle()
     {
         $this->farm(function () {
-            /** Retrieve Accounts */
-            $accounts = $this->retrieveAccounts();
+            /** Retrieve Farmers */
+            $farmers = $this->retrieveFarmers();
 
             /** Rewards */
-            $rewards = $accounts->filter(fn($item) => isset($item['reward']));
+            $rewards = $farmers->filter(fn($item) => isset($item['reward']));
 
             /** Claim Rewards */
             if ($rewards->isNotEmpty()) {
@@ -63,27 +63,28 @@ class FarmDigger extends Command
             }
 
             /** Taps */
-            $taps = $accounts->filter(fn($item) => $item['energy'] > 0);
+            $taps = $farmers->filter(fn($item) => $item['energy'] > 0);
 
             /** Claim Taps */
             while ($taps->isNotEmpty()) {
-                $taps = $this->farmAccounts($taps);
+                $taps = $this->farmFarmers($taps);
             }
         });
     }
 
     /**
      *  Set Authorization
-     * @param \App\Models\Account $account
+     * @param \App\Models\Farmer $farmer
+     * @param array $data
      * @return void
      */
-    protected function setAuth(Account $account)
+    protected function setAuth(Farmer $farmer, $data)
     {
         /** Init Data */
-        $initData = $account->telegram_web_app['initData'];
+        $initData = $data['initData'];
 
         /** Get Access Token */
-        $accessToken = $this->getBaseApi($account)
+        $accessToken = $this->getBaseApi($farmer)
             ->post(
                 'https://api.diggergame.app/api/auth',
                 [
@@ -94,23 +95,23 @@ class FarmDigger extends Command
             ->json('result.auth.token');
 
         /** Set Headers */
-        $account->setAuthorizationHeader('Bearer ' . $accessToken);
+        $farmer->setAuthorizationHeader('Bearer ' . $accessToken);
     }
 
 
-    protected function claimRewards($accounts)
+    protected function claimRewards($farmers)
     {
         /** Sleep */
         Sleep::for(10)->seconds();
 
         /** Claim Reward */
-        $accounts->each(function ($item) {
+        $farmers->each(function ($item) {
             try {
-                $account = $item['account'];
+                $farmer = $item['account'];
                 $reward = $item['reward'];
 
                 /** Claim Reward */
-                $this->getApi($account)
+                $this->getApi($farmer)
                     ->post(
                         'https://api.diggergame.app/api/content/update',
                         [
@@ -125,12 +126,12 @@ class FarmDigger extends Command
         });
     }
 
-    /** Farm Accounts */
-    protected function farmAccounts($accounts)
+    /** Farm Farmers */
+    protected function farmFarmers($farmers)
     {
-        return $accounts->map(function ($item) {
+        return $farmers->map(function ($item) {
             try {
-                $account = $item['account'];
+                $farmer = $item['account'];
                 $energy = $item['energy'];
                 $uid = $item['uid'];
 
@@ -138,7 +139,7 @@ class FarmDigger extends Command
                 $energy -= $taps;
 
                 /** Tap */
-                $this->getApi($account)
+                $this->getApi($farmer)
                     ->post(
                         'https://api.diggergame.app/api/play/tap',
                         [
@@ -147,7 +148,7 @@ class FarmDigger extends Command
                         ]
                     );
 
-                /** Return Energy and Account */
+                /** Return Energy and Farmer */
                 if ($energy > 0) {
                     return compact(
                         'account',
@@ -162,26 +163,26 @@ class FarmDigger extends Command
         })->filter();
     }
 
-    protected function retrieveAccounts()
+    protected function retrieveFarmers()
     {
-        return Account::farmer('digger')
+        return Farmer::farmer('digger')
             ->connected()
-            ->get()->map(function (Account $account) {
+            ->get()->map(function (Farmer $farmer) {
                 try {
                     /** Dig */
                     try {
-                        $this->getApi($account)
+                        $this->getApi($farmer)
                             ->post('https://api.diggergame.app/api/play/dig', [
-                                'init_data' => $account->telegram_web_app['initData'],
+                                'init_data' => $farmer->telegram_web_app['initData'],
                                 'platform' => 'android'
                             ]);
                     } catch (\Throwable $e) {
-                        $this->logError($e, $account);
+                        $this->logError($e, $farmer);
                     }
 
                     /** Get Tasks */
                     $tasks = collect(
-                        $this->getApi($account)
+                        $this->getApi($farmer)
                             ->get('https://api.diggergame.app/api/user-task/list')
                             ->json('result')
                     );
@@ -191,7 +192,7 @@ class FarmDigger extends Command
 
                     /** Start a random Task */
                     if ($pendingTasks->isNotEmpty()) {
-                        $this->getApi($account)
+                        $this->getApi($farmer)
                             ->post('https://api.diggergame.app/api/user-task/update', [
                                 'type' => $pendingTasks->random()['type']
                             ])
@@ -200,7 +201,7 @@ class FarmDigger extends Command
 
                     /** Claim a random Task */
                     if ($unclaimedTasks->isNotEmpty()) {
-                        $this->getApi($account)
+                        $this->getApi($farmer)
                             ->post('https://api.diggergame.app/api/user-task/check', [
                                 'type' => $unclaimedTasks->random()['type']
                             ])
@@ -209,7 +210,7 @@ class FarmDigger extends Command
 
 
                     /** Get User */
-                    $user = $this->getApi($account)
+                    $user = $this->getApi($farmer)
                         ->get('https://api.diggergame.app/api/me')
                         ->json('result');
 
@@ -217,7 +218,7 @@ class FarmDigger extends Command
                     $balance = $user['coin_cnt'];
 
                     /** Cards */
-                    $cards = $this->getApi($account)
+                    $cards = $this->getApi($farmer)
                         ->get('https://api.diggergame.app/api/user/card/list')
                         ->json('result');
 
@@ -241,7 +242,7 @@ class FarmDigger extends Command
 
                     if ($selectedCard) {
                         /** Buy or Upgrade Card */
-                        $this->getApi($account)->post(
+                        $this->getApi($farmer)->post(
                             'https://api.diggergame.app/api/user/card/buy',
                             ['card_id' => $selectedCard['card']['id']]
                         );
@@ -250,7 +251,7 @@ class FarmDigger extends Command
 
                     /** Get Chest Status */
                     $chestStatus = collect(
-                        $this->getApi($account)
+                        $this->getApi($farmer)
                             ->get('https://api.diggergame.app/api/content/chest/status')
                             ->json('result.chest_statuses')
                     );
@@ -264,7 +265,7 @@ class FarmDigger extends Command
 
                     $reward = $viewableChests->isNotEmpty() ?
                         (
-                            $this->getApi($account)
+                            $this->getApi($farmer)
                             ->post('https://api.diggergame.app/api/content/intent', [
                                 'platform' => '2',
                                 'type' => static::CHEST_TYPES[$viewableChests->random()['chest_id']],
@@ -275,7 +276,7 @@ class FarmDigger extends Command
 
                     /** Get Chests */
                     $chests = collect(
-                        $this->getApi($account)
+                        $this->getApi($farmer)
                             ->get('https://api.diggergame.app/api/user-chest/list')
                             ->json('result')
                     )
@@ -293,7 +294,7 @@ class FarmDigger extends Command
                     $energy = $currentChest ?
                         $currentChest['open_tap_cnt'] - $currentChest['current_tap_cnt'] : 0;
 
-                    /** Return Energy and Account */
+                    /** Return Energy and Farmer */
                     if ($energy > 0 || $reward) {
                         return compact(
                             'account',
@@ -304,10 +305,10 @@ class FarmDigger extends Command
                     }
                 } catch (\Throwable $e) {
                     /** Log Error */
-                    $this->logError($e, $account);
+                    $this->logError($e, $farmer);
 
-                    /** Refetch Auth or Disconnect Account */
-                    $this->refetchAuthOrDisconnect($account);
+                    /** Refetch Auth or Disconnect Farmer */
+                    $this->refetchAuthOrDisconnect($farmer);
                 }
             })->filter();
     }

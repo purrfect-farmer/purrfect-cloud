@@ -2,14 +2,14 @@
 
 namespace App\Console\Commands;
 
-use App\Console\Commands\Traits\Farmer;
-use App\Models\Account;
+use App\Console\Commands\Traits\FarmerTrait;
+use App\Models\Farmer;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
 
 class FarmHrum extends Command
 {
-    use Farmer;
+    use FarmerTrait;
 
     /**
      * The name and signature of the console command.
@@ -39,20 +39,20 @@ class FarmHrum extends Command
     {
         $this->farm(function () {
             /** Start Farming */
-            Account::farmer('hrum')
+            Farmer::farmer('hrum')
                 ->connected()
                 ->get()
-                ->each(function (Account $account) {
+                ->each(function (Farmer $farmer) {
                     try {
 
                         /** Platform */
                         $platform = 'android';
 
                         /** Init Data */
-                        $initData = $account->telegram_web_app['initData'];
+                        $initData = $farmer->telegram_web_app['initData'];
 
                         /** Init Data Unsafe */
-                        $initDataUnsafe = $account->telegram_web_app['initDataUnsafe'];
+                        $initDataUnsafe = $farmer->telegram_web_app['initDataUnsafe'];
 
                         /** Api-Key */
                         $key = $initDataUnsafe['hash'];
@@ -60,7 +60,7 @@ class FarmHrum extends Command
                         /** Auth */
                         $this->makeHrumRequest(
                             null,
-                            $account,
+                            $farmer,
                             [
                                 'platform' => $platform,
                                 'initData' => $initData,
@@ -77,7 +77,7 @@ class FarmHrum extends Command
                         /** All Data */
                         $allData = $this->makeHrumRequest(
                             $key,
-                            $account,
+                            $farmer,
                             [],
                             'https://api.hrum.me/user/data/all',
                             JSON_FORCE_OBJECT
@@ -87,7 +87,7 @@ class FarmHrum extends Command
                         $afterData =
                             $this->makeHrumRequest(
                                 $key,
-                                $account,
+                                $farmer,
                                 [
                                     'lang' => 'en'
                                 ],
@@ -101,7 +101,7 @@ class FarmHrum extends Command
                         /** Daily Check-In */
                         $dailyRewards = $this->makeHrumRequest(
                             $key,
-                            $account,
+                            $farmer,
                             [],
                             'https://api.hrum.me/quests/daily',
                             JSON_FORCE_OBJECT
@@ -113,7 +113,7 @@ class FarmHrum extends Command
                             /** Get Result */
                             $result = $this->makeHrumRequest(
                                 $key,
-                                $account,
+                                $farmer,
                                 $day,
                                 'https://api.hrum.me/quests/daily/claim'
                             );
@@ -145,7 +145,7 @@ class FarmHrum extends Command
                             /** Check */
                             $check = $this->makeHrumRequest(
                                 $key,
-                                $account,
+                                $farmer,
                                 [
                                     $riddle['key'],
                                     $riddle['checkData']
@@ -157,7 +157,7 @@ class FarmHrum extends Command
                             /** Get Result */
                             $result =  $this->makeHrumRequest(
                                 $key,
-                                $account,
+                                $farmer,
                                 [
                                     $riddle['key'],
                                     $riddle['checkData']
@@ -191,7 +191,7 @@ class FarmHrum extends Command
                             /** Get Result */
                             $result =  $this->makeHrumRequest(
                                 $key,
-                                $account,
+                                $farmer,
                                 [
                                     $task['key'],
                                     null
@@ -210,7 +210,7 @@ class FarmHrum extends Command
                         if ($cookies > 0) {
                             $this->makeHrumRequest(
                                 $key,
-                                $account,
+                                $farmer,
                                 [],
                                 'https://api.hrum.me/user/cookie/open',
                                 JSON_FORCE_OBJECT
@@ -218,10 +218,10 @@ class FarmHrum extends Command
                         }
                     } catch (\Throwable $e) {
                         /** Log Error */
-                        $this->logError($e, $account);
+                        $this->logError($e, $farmer);
 
-                        /** Refetch Auth or Disconnect Account */
-                        $this->refetchAuthOrDisconnect($account);
+                        /** Refetch Auth or Disconnect Farmer */
+                        $this->refetchAuthOrDisconnect($farmer);
                     }
                 });
         });
@@ -229,7 +229,7 @@ class FarmHrum extends Command
 
     protected function makeHrumRequest(
         ?string $key = null,
-        Account $account,
+        Farmer $farmer,
         mixed $data,
         string $url,
         int $flags = 0
@@ -238,7 +238,7 @@ class FarmHrum extends Command
         $requestBody = json_encode(['data' => $data], $flags);
 
         /** Get Result */
-        return $this->getApi($account)->withHeaders(
+        return $this->getApi($farmer)->withHeaders(
             $this->getHrumHeaders(
                 $requestBody,
                 $key

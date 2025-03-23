@@ -2,161 +2,99 @@
 
 namespace App\Models;
 
+use App\Facades\Proxy;
 use App\Helpers;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Account extends Model
 {
-    /** @use HasFactory<\Database\Factories\AccountFactory> */
-    use HasFactory;
-
-
     /**
      * The attributes that are mass assignable.
      *
      * @var list<string>
      */
     protected $fillable = [
-        'farmer',
         'user_id',
-        'is_connected',
-        'telegram_web_app',
-        'headers',
+        'session_id',
+        'proxy'
     ];
 
-
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'is_connected' => 'boolean',
-            'telegram_web_app' => 'array',
-            'headers' => 'array',
-        ];
-    }
 
     /**
      * The "booted" method of the model.
      */
     protected static function booted(): void
     {
-        /** Created */
-        static::created(function (Account $account) {
-            $account->sendStatusMessage(true);
+        /** Creating */
+        static::creating(function (Account $account) {
+            $account->proxy = Proxy::getRandomUnused();
         });
 
         /** Updated */
         static::updated(function (Account $account) {
-            if ($account->wasChanged('is_connected')) {
-                $account->sendStatusMessage(
-                    $account->is_connected
+            if ($account->wasChanged('session_id')) {
+                $account->sendSessionStatusMessage(
+                    $account->session_id !== null
                 );
             }
         });
 
         /** Deleted */
         static::deleted(function (Account $account) {
-            $account->sendStatusMessage(false);
+            if ($account->session_id) {
+                $account->sendSessionStatusMessage(false);
+            }
         });
     }
 
     /**
      * Send Status Message
-     * @param bool $connected
+     * @param bool $loggedIn
      * @return void
      */
-    public function sendStatusMessage($connected = true)
+    public function sendSessionStatusMessage($loggedIn = true)
     {
+        /** Message Key */
+        $key =  implode(':', [
+            'cloud-telegram-session',
+            $this->user_id
+        ]);
+
         /** Status */
-        $status = $connected ?
-            '<b>✅ Status:</b> Connected' :
-            '<b>❌ Status:</b> Disconnected';
+        $status = $loggedIn ?
+            '<b>✅ Status:</b> Logged In' :
+            '<b>❌ Status:</b> Logged Out';
 
         /** Message */
-        $message = $connected ?
-            'Automatic Cloud Farming has commenced. Remember to keep track of your account.' :
-            'Please kindly re-open the Farmer and Sync to Cloud.';
+        $message = $loggedIn ?
+            'Your Telegram account was successfully logged in on Cloud. Automatic refetch has been enabled.' :
+            'Your Telegram account was logged out of Cloud. Automatic refetch has been disabled.';
+
+        /** Date */
+        $date = now();
 
         /** Send Message */
-        Helpers::sendUserMessage(
-            'sync',
-            $this,
+        Helpers::sendCloudFarmerMessage(
+            $key,
             [
+                "<b>⚡ Cloud Telegram Session</b>",
                 "$status",
+                "<b>🗓️ Date</b>: $date",
                 "<blockquote><b>$message</b></blockquote>",
             ],
+            [
+                'chat_id' => $this->user_id,
+                'disable_notification' => false,
+            ]
         );
     }
 
-    /** Scope Connected */
-    public function scopeConnected(Builder $builder, $connected = true)
-    {
-        return $builder->where('is_connected', $connected);
-    }
 
-    /** Scope Farmer */
-    public function scopeFarmer(Builder $builder, string $farmer)
+    /** Farmers */
+    public function farmers()
     {
-        return $builder->where('farmer', $farmer);
-    }
-
-    /** Scope User ID */
-    public function scopeUserId(Builder $builder, int|string $id)
-    {
-        return $builder->where('user_id', $id);
-    }
-
-    /** Scope Needs Refetch */
-    public function scopeNeedsRefetch(Builder $builder)
-    {
-        return $builder
-            ->where('is_connected', false)
-            ->orWhere(
-                'updated_at',
-                '<',
-                now()->subMinutes(30)
-            );
-    }
-
-    /** Connect */
-    public function connect()
-    {
-        return $this->update(['is_connected' => true]);
-    }
-
-    /** Disconnect */
-    public function disconnect()
-    {
-        return $this->update(['is_connected' => false]);
-    }
-
-    /**
-     * Get User-Agent
-     */
-    public function getUserAgent()
-    {
-        return $this->headers['User-Agent'] ?? Helpers::getUserAgent($this->user_id);
-    }
-
-    /** Override Auth */
-    public function setAuthorizationHeader($value)
-    {
-        $this->headers = collect($this->headers)->map(
-            fn($v, $k) => strtolower($k) === 'authorization' ? $value : $v
-        )->all();
-    }
-
-    /** Session */
-    public function session()
-    {
-        return $this->hasOne(
-            MadelineSession::class,
+        return $this->hasMany(
+            Farmer::class,
             'user_id',
             'user_id'
         );

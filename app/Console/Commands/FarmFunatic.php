@@ -2,13 +2,13 @@
 
 namespace App\Console\Commands;
 
-use App\Console\Commands\Traits\Farmer;
-use App\Models\Account;
+use App\Console\Commands\Traits\FarmerTrait;
+use App\Models\Farmer;
 use Illuminate\Console\Command;
 
 class FarmFunatic extends Command
 {
-    use Farmer;
+    use FarmerTrait;
 
     /**
      * The name and signature of the console command.
@@ -44,55 +44,56 @@ class FarmFunatic extends Command
     public function handle()
     {
         $this->farm(function () {
-            /** Retrieve Accounts */
-            $accounts = $this->retrieveAccounts();
+            /** Retrieve Farmers */
+            $farmers = $this->retrieveFarmers();
 
             /** Tap */
-            while ($accounts->isNotEmpty()) {
-                $accounts = $this->farmAccounts($accounts);
+            while ($farmers->isNotEmpty()) {
+                $farmers = $this->farmFarmers($farmers);
             }
         });
     }
 
     /**
      *  Set Authorization
-     * @param \App\Models\Account $account
+     * @param \App\Models\Farmer $farmer
+     * @param array $data
      * @return void
      */
-    protected function setAuth(Account $account)
+    protected function setAuth(Farmer $farmer, $data)
     {
         /** Init Data */
-        $initData = $account->telegram_web_app['initData'];
+        $initData = $data['initData'];
 
         /** Get Access Token */
-        $accessToken = $this->getBaseApi($account)
+        $accessToken = $this->getBaseApi($farmer)
             ->post(
                 'https://api2.funtico.com/api/lucky-funatic/login?' . $initData,
             )
             ->json('data.token');
 
         /** Set Headers */
-        $account->setAuthorizationHeader('Bearer ' . $accessToken);
+        $farmer->setAuthorizationHeader('Bearer ' . $accessToken);
     }
 
-    protected function farmAccounts($accounts)
+    protected function farmFarmers($farmers)
     {
-        return $accounts->map(function ($item) {
+        return $farmers->map(function ($item) {
             try {
-                $account = $item['account'];
+                $farmer = $item['account'];
                 $energy = $item['energy'];
 
                 $taps = min($energy, 8 + rand(0, 2));
                 $energy -= $taps;
 
                 /** Tap */
-                $this->getApi($account)
+                $this->getApi($farmer)
                     ->post(
                         'https://clicker.api.funtico.com/tap',
                         ['taps' => $taps]
                     );
 
-                /** Return Energy and Account */
+                /** Return Energy and Farmer */
                 if ($energy > 0) {
                     return compact(
                         'account',
@@ -106,24 +107,24 @@ class FarmFunatic extends Command
         })->filter();
     }
 
-    protected function retrieveAccounts()
+    protected function retrieveFarmers()
     {
-        return Account::farmer('funatic')
+        return Farmer::farmer('funatic')
             ->connected()
-            ->get()->map(function (Account $account) {
+            ->get()->map(function (Farmer $farmer) {
                 try {
                     /** Daily Bonus */
-                    $dailyBonus = $this->getApi($account)->get('https://api2.funtico.com/api/lucky-funatic/daily-bonus/config')->json('data');
+                    $dailyBonus = $this->getApi($farmer)->get('https://api2.funtico.com/api/lucky-funatic/daily-bonus/config')->json('data');
 
                     /** Claim Daily-Bonus */
                     if ($dailyBonus['cooldown'] === 0) {
-                        $this->getApi($account)->withBody('')->post(
+                        $this->getApi($farmer)->withBody('')->post(
                             'https://api2.funtico.com/api/lucky-funatic/daily-bonus/claim'
                         );
                     }
 
                     /** Get Boosters */
-                    $boosters = $this->getApi($account)->get('https://clicker.api.funtico.com/boosters')->json('data');
+                    $boosters = $this->getApi($farmer)->get('https://clicker.api.funtico.com/boosters')->json('data');
                     $availableBoosters = collect($boosters)->filter(
                         fn($item) => (
                             $item['price'] === 0 &&
@@ -135,9 +136,9 @@ class FarmFunatic extends Command
 
                     /** Purchase Booster */
                     if ($availableBoosters->isNotEmpty()) {
-                        $availableBoosters->each(function ($booster) use ($account) {
+                        $availableBoosters->each(function ($booster) use ($farmer) {
                             /** Activate Booster */
-                            $this->getApi($account)->post(
+                            $this->getApi($farmer)->post(
                                 'https://clicker.api.funtico.com/boosters/activate',
                                 [
                                     'boosterType' => $booster['type']
@@ -148,13 +149,13 @@ class FarmFunatic extends Command
 
 
                     /** Get Game */
-                    $game = $this->getApi($account)->get('https://clicker.api.funtico.com/game')->json('data');
+                    $game = $this->getApi($farmer)->get('https://clicker.api.funtico.com/game')->json('data');
 
                     /** Balance */
                     $balance = $game['funz']['currentFunzBalance'];
 
                     /** Cards */
-                    $cards = $this->getApi($account)->get('https://api2.funtico.com/api/lucky-funatic/cards')->json('data');
+                    $cards = $this->getApi($farmer)->get('https://api2.funtico.com/api/lucky-funatic/cards')->json('data');
 
                     /** Upgradeable Cards */
                     $upgradableCards = collect($cards)->filter(
@@ -188,7 +189,7 @@ class FarmFunatic extends Command
                         $isUpgrade = $card['level'] !== null;
 
                         /** Buy or Upgrade Card */
-                        $this->getApi($account)->post(
+                        $this->getApi($farmer)->post(
                             $isUpgrade ?
                                 'https://api2.funtico.com/api/lucky-funatic/upgrade-card' :
                                 'https://api2.funtico.com/api/lucky-funatic/buy-card',
@@ -201,7 +202,7 @@ class FarmFunatic extends Command
                     /** Energy */
                     $energy = $game['energy']['currentEnergyBalance'];
 
-                    /** Return Energy and Account */
+                    /** Return Energy and Farmer */
                     if ($energy > 0) {
                         return compact(
                             'account',
@@ -210,10 +211,10 @@ class FarmFunatic extends Command
                     }
                 } catch (\Throwable $e) {
                     /** Log Error */
-                    $this->logError($e, $account);
+                    $this->logError($e, $farmer);
 
-                    /** Refetch Auth or Disconnect Account */
-                    $this->refetchAuthOrDisconnect($account);
+                    /** Refetch Auth or Disconnect Farmer */
+                    $this->refetchAuthOrDisconnect($farmer);
                 }
             })->filter();
     }

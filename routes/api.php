@@ -34,8 +34,8 @@ Route::middleware('feature:farmer.enable_telegram_sessions')->prefix('telegram')
 
 /** Authenticated Routes */
 Route::middleware(['auth:sanctum'])->group(function () {
-    Route::get('/accounts', [CloudFarmerController::class, 'accounts']);
-    Route::post('/accounts/{account}/disconnect', [CloudFarmerController::class, 'disconnect']);
+    Route::get('/farmers', [CloudFarmerController::class, 'farmers']);
+    Route::post('/farmers/{farmer}/disconnect', [CloudFarmerController::class, 'disconnect']);
     Route::post('/accounts/{account}/kick', [CloudFarmerController::class, 'kick']);
     Route::get('/user', function (Request $request) {
         return $request->user();

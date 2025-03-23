@@ -2,16 +2,16 @@
 
 namespace App\Console\Commands;
 
-use App\Console\Commands\Traits\Farmer;
+use App\Console\Commands\Traits\FarmerTrait;
 use App\Helpers;
-use App\Models\Account;
+use App\Models\Farmer;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 class FarmDreamcoin extends Command
 {
-    use Farmer;
+    use FarmerTrait;
 
     /**
      * The name and signature of the console command.
@@ -40,23 +40,23 @@ class FarmDreamcoin extends Command
     public function handle()
     {
         $this->farm(function () {
-            /** Retrieve Accounts */
-            $accounts = $this->retrieveAccounts();
+            /** Retrieve Farmers */
+            $farmers = $this->retrieveFarmers();
 
             /** Tap */
-            while ($accounts->isNotEmpty()) {
-                $accounts = $this->farmAccounts($accounts);
+            while ($farmers->isNotEmpty()) {
+                $farmers = $this->farmFarmers($farmers);
             }
         });
     }
 
     /**
      *  Set Authorization
-     * @param \App\Models\Account $account
+     * @param \App\Models\Farmer $farmer
      * @param array $data
      * @return void
      */
-    protected function setAuth(Account $account, $data)
+    protected function setAuth(Farmer $farmer, $data)
     {
         /** Init Data */
         $initData = $data['initData'];
@@ -65,7 +65,7 @@ class FarmDreamcoin extends Command
         $initDataUnsafe = $data['initDataUnsafe'];
 
         /** Get Access Token */
-        $accessToken = $this->getBaseApi($account)
+        $accessToken = $this->getBaseApi($farmer)
             ->post(
                 'https://api.dreamcoin.ai/Auth/telegram',
                 [
@@ -82,14 +82,14 @@ class FarmDreamcoin extends Command
             ->json('token');
 
         /** Set Headers */
-        $account->setAuthorizationHeader('Bearer ' . $accessToken);
+        $farmer->setAuthorizationHeader('Bearer ' . $accessToken);
     }
 
-    protected function farmAccounts($accounts)
+    protected function farmFarmers($farmers)
     {
-        return $accounts->map(function ($item) {
+        return $farmers->map(function ($item) {
             try {
-                $account = $item['account'];
+                $farmer = $item['account'];
                 $energy = $item['energy'];
 
                 /** @var Collection */
@@ -106,7 +106,7 @@ class FarmDreamcoin extends Command
                 $energy -= $multiplier;
 
                 /** Spin Lottery */
-                $rewards = $this->getApi($account)
+                $rewards = $this->getApi($farmer)
                     ->post(
                         'https://api.dreamcoin.ai/Slot/spin',
                         ['multiplier' => $multiplier]
@@ -116,13 +116,13 @@ class FarmDreamcoin extends Command
                     switch ($reward['rewardType']) {
                         case 'FreeCase':
                             $freeCaseId = $reward['freeCase'];
-                            $this->getApi($account)->get('https://api.dreamcoin.ai/Cases/' . $freeCaseId);
-                            $this->getApi($account)->post('https://api.dreamcoin.ai/Cases/' . $freeCaseId . '/open');
+                            $this->getApi($farmer)->get('https://api.dreamcoin.ai/Cases/' . $freeCaseId);
+                            $this->getApi($farmer)->post('https://api.dreamcoin.ai/Cases/' . $freeCaseId . '/open');
                             break;
 
                         case 'Raid':
                             $rewardNumber = rand(1, 4);
-                            $this->getApi($account)->post('https://api.dreamcoin.ai/Raids/claim', [
+                            $this->getApi($farmer)->post('https://api.dreamcoin.ai/Raids/claim', [
                                 'RewardNumber' => $rewardNumber
                             ]);
                             break;
@@ -130,7 +130,7 @@ class FarmDreamcoin extends Command
                 }
 
 
-                /** Return Energy and Account */
+                /** Return Energy and Farmer */
                 if ($energy > 0) {
                     return compact(
                         'account',
@@ -145,14 +145,14 @@ class FarmDreamcoin extends Command
         })->filter();
     }
 
-    protected function retrieveAccounts()
+    protected function retrieveFarmers()
     {
-        return Account::farmer('dreamcoin')
+        return Farmer::farmer('dreamcoin')
             ->connected()
-            ->get()->map(function (Account $account) {
+            ->get()->map(function (Farmer $farmer) {
                 try {
                     /** Daily Check-In */
-                    $dailyTasks = $this->getApi($account)->get('https://api.dreamcoin.ai/DailyTasks/current')->json('dailyTasks');
+                    $dailyTasks = $this->getApi($farmer)->get('https://api.dreamcoin.ai/DailyTasks/current')->json('dailyTasks');
                     $today = now()->toDateString();
                     $day = collect($dailyTasks)->first(
                         fn($item) => $item['date'] === $today && $item['isClaimed'] === false
@@ -160,14 +160,14 @@ class FarmDreamcoin extends Command
 
                     /** Claim Daily-Reward */
                     if ($day) {
-                        $this->getApi($account)->post(
+                        $this->getApi($farmer)->post(
                             'https://api.dreamcoin.ai/DailyTasks/claim/' . $day['id']
                         );
                     }
 
 
                     /** Rewards */
-                    $rewardsList = $this->getApi($account)->get('https://api.dreamcoin.ai/FreeReward/current')->json();
+                    $rewardsList = $this->getApi($farmer)->get('https://api.dreamcoin.ai/FreeReward/current')->json();
                     $rewards = collect($rewardsList)->reduce(
                         fn($result, $tasks, $key) => $result->concat(
                             collect($tasks)->filter(
@@ -190,31 +190,31 @@ class FarmDreamcoin extends Command
 
                         if ($task['taskGroup'] === 'dailyFreeRewards') {
                             /** Task Group: dailyFreeRewards */
-                            $this->getApi($account)->post('https://api.dreamcoin.ai/FreeReward/claimDaily/' . $task['id']);
+                            $this->getApi($farmer)->post('https://api.dreamcoin.ai/FreeReward/claimDaily/' . $task['id']);
                         } else {
                             /** Task Group: freeRewards */
-                            $this->getApi($account)->post('https://api.dreamcoin.ai/FreeReward/claim/' . $task['id']);
+                            $this->getApi($farmer)->post('https://api.dreamcoin.ai/FreeReward/claim/' . $task['id']);
                         }
                     }
 
 
 
                     /** User */
-                    $user = $this->getApi($account)->get('https://api.dreamcoin.ai/Users/current')->json();
+                    $user = $this->getApi($farmer)->get('https://api.dreamcoin.ai/Users/current')->json();
                     $balance = $user['balance'];
 
                     /** Claim Free-Case */
                     $freeCaseId = $user['freeCaseId'];
                     if ($freeCaseId) {
-                        $this->getApi($account)->get('https://api.dreamcoin.ai/Cases/' . $freeCaseId);
-                        $this->getApi($account)->post('https://api.dreamcoin.ai/Cases/' . $freeCaseId . '/open');
+                        $this->getApi($farmer)->get('https://api.dreamcoin.ai/Cases/' . $freeCaseId);
+                        $this->getApi($farmer)->post('https://api.dreamcoin.ai/Cases/' . $freeCaseId . '/open');
                     }
 
 
                     /** Claim Clicks */
                     $currentClicks = $user['clickerLevel']['currentClicks'];
                     if ($currentClicks > 0) {
-                        $this->getApi($account)->post(
+                        $this->getApi($farmer)->post(
                             'https://api.dreamcoin.ai/Clicker/collect-reward',
                             ['amount' => $currentClicks]
                         );
@@ -223,7 +223,7 @@ class FarmDreamcoin extends Command
                     /** Upgrade Level */
                     $upgradePrice = $user['clickerLevel']['upgradePrice'];
                     if ($balance >= $upgradePrice) {
-                        $this->getApi($account)->post('https://api.dreamcoin.ai/Clicker/upgrade');
+                        $this->getApi($farmer)->post('https://api.dreamcoin.ai/Clicker/upgrade');
                     }
 
                     /** Energy */
@@ -232,7 +232,7 @@ class FarmDreamcoin extends Command
                         ->sort(fn($a, $b) => $b - $a)
                         ->values();
 
-                    /** Return Energy and Account */
+                    /** Return Energy and Farmer */
                     if ($energy > 0) {
                         return compact(
                             'account',
@@ -242,10 +242,10 @@ class FarmDreamcoin extends Command
                     }
                 } catch (\Throwable $e) {
                     /** Log Error */
-                    $this->logError($e, $account);
+                    $this->logError($e, $farmer);
 
-                    /** Refetch Auth or Disconnect Account */
-                    $this->refetchAuthOrDisconnect($account);
+                    /** Refetch Auth or Disconnect Farmer */
+                    $this->refetchAuthOrDisconnect($farmer);
                 }
             })->filter();
     }

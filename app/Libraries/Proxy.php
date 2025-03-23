@@ -3,6 +3,8 @@
 namespace App\Libraries;
 
 use App\Helpers;
+use App\Models\Account;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -34,12 +36,42 @@ class Proxy
         );
     }
 
+    /**
+     *  Get Random Unused
+     * @return string|null
+     */
+    public function getRandomUnused()
+    {
+        /** Get Proxies */
+        $proxies = Account::pluck('proxy');
+
+        /** Available Proxies */
+        $available = $this->getAvailable($proxies);
+
+        return $available->isNotEmpty() ? $available->random() : null;
+    }
+
+    /** Get Available Proxies */
+    public function getAvailable(Collection $proxies)
+    {
+        /** Get List */
+        $list = collect($this->list());
+
+        /** Available Proxies */
+        $available = $list->filter(fn($proxy) => $proxies->doesntContain($proxy));
+
+        return $available;
+    }
+
     /** Fetch List */
     public function fetchList()
     {
         try {
             $response = Http::throw()
-                ->withHeader('Authorization', 'Token ' . config('farmer.proxy.api_key'))
+                ->withHeader(
+                    'Authorization',
+                    'Token ' . config('farmer.proxy.api_key')
+                )
                 ->get('https://proxy.webshare.io/api/v2/proxy/list', [
                     'mode' => 'direct',
                     'valid' => true,

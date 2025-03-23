@@ -5,13 +5,13 @@ namespace App\Console\Commands\Traits;
 use App\Facades\Madeline;
 use App\Facades\Proxy;
 use App\Helpers;
-use App\Models\Account;
+use App\Models\Farmer;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Sleep;
 
-trait Farmer
+trait FarmerTrait
 {
     /**
      *  Execute farming
@@ -55,10 +55,10 @@ trait Farmer
     }
 
     /** Get Proxy Options */
-    protected function getProxyOptions(Account $account)
+    protected function getProxyOptions(Farmer $farmer)
     {
         if (config('farmer.proxy.enabled')) {
-            $proxy = Proxy::getUnique($account->user_id);
+            $proxy = $farmer->account->proxy;
             return $proxy ? ['proxy' => 'http://' . $proxy] : [];
         } else {
             return [];
@@ -66,35 +66,35 @@ trait Farmer
     }
 
     /**
-     * Get Account API
-     * @param \App\Models\Account $account
+     * Get Farmer API
+     * @param \App\Models\Farmer $farmer
      * @return \Illuminate\Http\Client\PendingRequest
      */
-    protected function getApi(Account $account)
+    protected function getApi(Farmer $farmer)
     {
 
-        return $this->getBaseApi($account)->withHeaders($account->headers);
+        return $this->getBaseApi($farmer)->withHeaders($farmer->headers);
     }
 
     /**
-     * Get Base Account API
-     * @param \App\Models\Account $account
+     * Get Base Farmer API
+     * @param \App\Models\Farmer $farmer
      * @return \Illuminate\Http\Client\PendingRequest
      */
-    protected function getBaseApi(Account $account)
+    protected function getBaseApi(Farmer $farmer)
     {
         /** Delay */
         $this->delayRequest();
 
         return Http::throw()
             ->withOptions(
-                $this->getProxyOptions($account)
+                $this->getProxyOptions($farmer)
             )
             ->withHeaders(
                 $this->getBaseHeaders()
             )
             ->withUserAgent(
-                $account->getUserAgent()
+                $farmer->getUserAgent()
             )
             ->timeout(30);
     }
@@ -103,10 +103,10 @@ trait Farmer
     /**
      * Log Farmer Error
      * @param \Throwable $e
-     * @param Account|null $account
+     * @param Farmer|null $farmer
      * @return void
      */
-    protected function logError(\Throwable $e, ?Account $account = null)
+    protected function logError(\Throwable $e, ?Farmer $farmer = null)
     {
         /** Farmer Title */
         $title = config('farmer.drops')[$this->getKey()]['title'];
@@ -114,8 +114,8 @@ trait Farmer
         /** Log Error */
         Log::error($title . ' Error', [
             'message' => $e->getMessage(),
-            'user_id' => $account->user_id ?? null,
-            'username' => $account->telegram_web_app['initDataUnsafe']['user']['username'] ?? null,
+            'user_id' => $farmer->user_id ?? null,
+            'username' => $farmer->telegram_web_app['initDataUnsafe']['user']['username'] ?? null,
             'file' => $e->getFile(),
             'line' => $e->getLine(),
         ]);
@@ -149,16 +149,16 @@ trait Farmer
      */
     protected function updateTelegramData()
     {
-        Account::with(['session'])
+        Farmer::with(['session'])
             ->farmer(
                 $this->getKey()
             )
             ->needsRefetch()
-            ->each(function (Account $account) {
-                if ($account->session) {
+            ->each(function (Farmer $farmer) {
+                if ($farmer->account->session_id) {
                     try {
                         $this->refetchAuth(
-                            $account,
+                            $farmer,
                             property_exists(
                                 $this,
                                 'setAuthOnlyOnError'
@@ -166,51 +166,51 @@ trait Farmer
                         );
                     } catch (\Throwable $e) {
                         /** Log Error */
-                        $this->logError($e, $account);
+                        $this->logError($e, $farmer);
                     }
                 }
             });
     }
 
     /** Refetch Auth or Disconnect */
-    protected function refetchAuthOrDisconnect(Account $account)
+    protected function refetchAuthOrDisconnect(Farmer $farmer)
     {
-        if ($account->session) {
+        if ($farmer->account->session_id) {
             try {
                 /** Refetch Auth using Session */
-                $this->refetchAuth($account, true);
+                $this->refetchAuth($farmer, true);
             } catch (\Throwable $e) {
                 /** Log Error */
-                $this->logError($e, $account);
+                $this->logError($e, $farmer);
 
                 /** Disconnect */
-                $account->disconnect();
+                $farmer->disconnect();
             }
         } else {
             /** Disconnect */
-            $account->disconnect();
+            $farmer->disconnect();
         }
     }
 
 
     /**
      * Refetch Auth
-     * @param \App\Models\Account $account
+     * @param \App\Models\Farmer $farmer
      * @param boolean $shouldSetAuth
      * @return void
      */
-    protected function refetchAuth(Account $account, $shouldSetAuth = true)
+    protected function refetchAuth(Farmer $farmer, $shouldSetAuth = true)
     {
         $api = Madeline::session(
-            $account->session->session_id
+            $farmer->account->session_id
         );
 
         try {
             $result = $this->getTelegramData($api);
 
             /** Update Telegram Web App */
-            $account->telegram_web_app = [
-                ...$account->telegram_web_app,
+            $farmer->telegram_web_app = [
+                ...$farmer->telegram_web_app,
                 'initData' => $result['initData'],
                 'initDataUnsafe' => $result['initDataUnsafe'],
             ];
@@ -218,8 +218,8 @@ trait Farmer
             /** Logout */
             $api->logout();
 
-            /** Delete Session */
-            $account->session->delete();
+            /** Remove Session */
+            $farmer->account->forceFill(['session_id' => null])->save();
 
             /** Throw Error */
             throw $e;
@@ -230,17 +230,17 @@ trait Farmer
             if (
                 $shouldSetAuth && method_exists($this, 'setAuth')
             ) {
-                $this->setAuth($account, $result);
+                $this->setAuth($farmer, $result);
             }
         } catch (\Throwable $e) {
-            $this->logError($e, $account);
+            $this->logError($e, $farmer);
         }
 
         /** Mark as connected */
-        $account->is_connected = true;
+        $farmer->is_connected = true;
 
-        /** Save the Account */
-        $account->save();
+        /** Save the Farmer */
+        $farmer->save();
     }
 
     /**

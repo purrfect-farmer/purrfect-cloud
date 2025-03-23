@@ -2,15 +2,15 @@
 
 namespace App\Console\Commands;
 
-use App\Console\Commands\Traits\Farmer;
+use App\Console\Commands\Traits\FarmerTrait;
 use App\Helpers;
-use App\Models\Account;
+use App\Models\Farmer;
 use Illuminate\Console\Command;
 use Illuminate\Support\Sleep;
 
 class FarmWonton extends Command
 {
-    use Farmer;
+    use FarmerTrait;
 
     /**
      * The name and signature of the console command.
@@ -48,26 +48,26 @@ class FarmWonton extends Command
     public function handle()
     {
         $this->farm(function () {
-            /** Retrieve Accounts */
-            $accounts = $this->retrieveAccounts();
+            /** Retrieve Farmers */
+            $farmers = $this->retrieveFarmers();
 
             /** Game */
-            if ($accounts->isNotEmpty()) {
-                $this->farmAccounts($accounts);
+            if ($farmers->isNotEmpty()) {
+                $this->farmFarmers($farmers);
             }
         });
     }
 
     /**
      *  Set Authorization
-     * @param \App\Models\Account $account
+     * @param \App\Models\Farmer $farmer
      * @param array $data
      * @return void
      */
-    protected function setAuth(Account $account, $data)
+    protected function setAuth(Farmer $farmer, $data)
     {
         /** Get Access Token */
-        $accessToken = $this->getBaseApi($account)
+        $accessToken = $this->getBaseApi($farmer)
             ->post('https://wonton.food/api/v1/user/auth', [
                 'initData' => $data['initData'],
                 'inviteCode' => '',
@@ -76,21 +76,21 @@ class FarmWonton extends Command
             ->json('tokens.accessToken');
 
         /** Set Headers */
-        $account->setAuthorizationHeader('bearer ' . $accessToken);
+        $farmer->setAuthorizationHeader('bearer ' . $accessToken);
     }
 
-    protected function farmAccounts($accounts)
+    protected function farmFarmers($farmers)
     {
-        $games = $accounts->map(function ($item) {
+        $games = $farmers->map(function ($item) {
             try {
-                $account = $item['account'];
+                $farmer = $item['account'];
                 $selectedSkin = $item['selectedSkin'];
                 $perItem = collect($selectedSkin['stats'])->map('intval')->max();
                 $points = intval(
                     Helpers::extraGamePoints(70) * $perItem
                 );
 
-                $bonusRound = $this->getApi($account)
+                $bonusRound = $this->getApi($farmer)
                     ->post(
                         'https://wonton.food/api/v1/user/start-game'
                     )->json('bonusRound');
@@ -111,11 +111,11 @@ class FarmWonton extends Command
 
         /** Claim Points */
         $games->each(function ($item) {
-            $account = $item['account'];
+            $farmer = $item['account'];
             $points = $item['points'];
             $bonusRound = $item['bonusRound'];
 
-            $this->getApi($account)
+            $this->getApi($farmer)
                 ->post(
                     'https://wonton.food/api/v1/user/finish-game',
                     [
@@ -126,37 +126,37 @@ class FarmWonton extends Command
         });
     }
 
-    protected function retrieveAccounts()
+    protected function retrieveFarmers()
     {
-        return Account::farmer('wonton')
+        return Farmer::farmer('wonton')
             ->connected()
-            ->get()->map(function (Account $account) {
+            ->get()->map(function (Farmer $farmer) {
                 try {
                     /** Daily Check-In */
-                    $this->getApi($account)->get('https://wonton.food/api/v1/checkin')->json();
+                    $this->getApi($farmer)->get('https://wonton.food/api/v1/checkin')->json();
 
                     /** Farming Status */
-                    $farming = $this->getApi($account)->get('https://wonton.food/api/v1/user/farming-status')->json();
+                    $farming = $this->getApi($farmer)->get('https://wonton.food/api/v1/user/farming-status')->json();
 
                     /** Should Start Farming? */
                     $shoudStartFarming = !isset($farming['finishAt']) || $farming['claimed'];
 
                     if ($shoudStartFarming) {
                         /** Start Farming */
-                        $this->getApi($account)->post('https://wonton.food/api/v1/user/start-farming')->json();
+                        $this->getApi($farmer)->post('https://wonton.food/api/v1/user/start-farming')->json();
                     }
                     /** Can Claim */
                     else if (now()->isAfter($farming['finishAt'])) {
                         /** Claim Previous Farming */
-                        $this->getApi($account)->post('https://wonton.food/api/v1/user/farming-claim')->json();
+                        $this->getApi($farmer)->post('https://wonton.food/api/v1/user/farming-claim')->json();
 
                         /** Start Farming */
-                        $this->getApi($account)->post('https://wonton.food/api/v1/user/start-farming')->json();
+                        $this->getApi($farmer)->post('https://wonton.food/api/v1/user/start-farming')->json();
                     }
 
                     /** Use Top Shop-Items */
                     $shopItems = collect(
-                        $this->getApi($account)
+                        $this->getApi($farmer)
                             ->get('https://wonton.food/api/v1/shop/list')
                             ->json('shopItems')
                     );
@@ -198,7 +198,7 @@ class FarmWonton extends Command
 
                     /** Use Top Skin */
                     if ($topSkin && $topSkin['inUse'] === false) {
-                        $this->getApi($account)
+                        $this->getApi($farmer)
                             ->post('https://wonton.food/api/v1/shop/use-item', [
                                 'itemId' => $topSkin['id']
                             ])->json();
@@ -208,7 +208,7 @@ class FarmWonton extends Command
 
                     /** Use Top Bowl */
                     if ($topBowl && $topBowl['bowlDisplay'] === false) {
-                        $this->getApi($account)
+                        $this->getApi($farmer)
                             ->post('https://wonton.food/api/v1/shop/use-item', [
                                 'itemId' => $topBowl['id']
                             ])->json();
@@ -218,7 +218,7 @@ class FarmWonton extends Command
 
 
                     /** Tasks */
-                    $tasksData = $this->getApi($account)
+                    $tasksData = $this->getApi($farmer)
                         ->get('https://wonton.food/api/v1/task/list')
                         ->json();
                     $taskProgress = $tasksData['taskProgress'];
@@ -231,7 +231,7 @@ class FarmWonton extends Command
 
                     /** Start a random Task */
                     if ($pendingTasks->isNotEmpty()) {
-                        $this->getApi($account)
+                        $this->getApi($farmer)
                             ->post('https://wonton.food/api/v1/task/verify', [
                                 'taskId' => $pendingTasks->random()['id']
                             ])->json();
@@ -239,7 +239,7 @@ class FarmWonton extends Command
 
                     /** Claim a random Task */
                     if ($unclaimedTasks->isNotEmpty()) {
-                        $this->getApi($account)
+                        $this->getApi($farmer)
                             ->post('https://wonton.food/api/v1/task/claim', [
                                 'taskId' => $unclaimedTasks->random()['id']
                             ])->json();
@@ -247,7 +247,7 @@ class FarmWonton extends Command
 
                     /** Claim Task Progress */
                     if ($taskProgress >= 3) {
-                        $this->getApi($account)
+                        $this->getApi($farmer)
                             ->get('https://wonton.food/api/v1/task/claim-progress')
                             ->json();
                     }
@@ -257,7 +257,7 @@ class FarmWonton extends Command
 
                     /** Tasks */
                     $badges = collect(
-                        $this->getApi($account)
+                        $this->getApi($farmer)
                             ->get('https://wonton.food/api/v1/badge/list')
                             ->json('badges')
                     )->values();
@@ -268,17 +268,17 @@ class FarmWonton extends Command
 
                     /** Claim Random Badge */
                     if ($unclaimedBadges->isNotEmpty()) {
-                        $this->getApi($account)
+                        $this->getApi($farmer)
                             ->post('https://wonton.food/api/v1/badge/claim', [
                                 'type' => $unclaimedBadges->random()['type']
                             ])->json();
                     }
 
 
-                    $user = $this->getApi($account)->get('https://wonton.food/api/v1/user')->json();
+                    $user = $this->getApi($farmer)->get('https://wonton.food/api/v1/user')->json();
                     $tickets = $user['ticketCount'];
 
-                    /** Return Tickets and Account */
+                    /** Return Tickets and Farmer */
                     if ($tickets > 0) {
                         return compact(
                             'account',
@@ -289,10 +289,10 @@ class FarmWonton extends Command
                     }
                 } catch (\Throwable $e) {
                     /** Log Error */
-                    $this->logError($e, $account);
+                    $this->logError($e, $farmer);
 
-                    /** Refetch Auth or Disconnect Account */
-                    $this->refetchAuthOrDisconnect($account);
+                    /** Refetch Auth or Disconnect Farmer */
+                    $this->refetchAuthOrDisconnect($farmer);
                 }
             })->filter();
     }

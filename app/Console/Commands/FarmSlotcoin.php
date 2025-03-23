@@ -2,13 +2,13 @@
 
 namespace App\Console\Commands;
 
-use App\Console\Commands\Traits\Farmer;
-use App\Models\Account;
+use App\Console\Commands\Traits\FarmerTrait;
+use App\Models\Farmer;
 use Illuminate\Console\Command;
 
 class FarmSlotcoin extends Command
 {
-    use Farmer;
+    use FarmerTrait;
 
     /**
      * The name and signature of the console command.
@@ -46,12 +46,12 @@ class FarmSlotcoin extends Command
     public function handle()
     {
         $this->farm(function () {
-            /** Retrieve Accounts */
-            $accounts = $this->retrieveAccounts();
+            /** Retrieve Farmers */
+            $farmers = $this->retrieveFarmers();
 
             /** Tap */
-            while ($accounts->isNotEmpty()) {
-                $accounts = $this->farmAccounts($accounts);
+            while ($farmers->isNotEmpty()) {
+                $farmers = $this->farmFarmers($farmers);
             }
         });
     }
@@ -59,14 +59,14 @@ class FarmSlotcoin extends Command
 
     /**
      *  Set Authorization
-     * @param \App\Models\Account $account
+     * @param \App\Models\Farmer $farmer
      * @param array $data
      * @return void
      */
-    protected function setAuth(Account $account, $data)
+    protected function setAuth(Farmer $farmer, $data)
     {
         /** Get Access Token */
-        $accessToken = $this->getBaseApi($account)
+        $accessToken = $this->getBaseApi($farmer)
             ->post('https://api.slotcoin.app/v1/clicker/auth', [
                 'initData' => $data['initData'],
                 'referralCode' => ''
@@ -74,14 +74,14 @@ class FarmSlotcoin extends Command
             ->json('accessToken');
 
         /** Set Headers */
-        $account->setAuthorizationHeader($accessToken);
+        $farmer->setAuthorizationHeader($accessToken);
     }
 
-    protected function farmAccounts($accounts)
+    protected function farmFarmers($farmers)
     {
-        return $accounts->map(function ($item) {
+        return $farmers->map(function ($item) {
             try {
-                $account = $item['account'];
+                $farmer = $item['account'];
                 $ticketsCount = $item['ticketsCount'];
                 $energy = $item['energy'];
                 $bid = $item['bid'];
@@ -92,19 +92,19 @@ class FarmSlotcoin extends Command
                     $ticketsCount -= 1;
 
                     /** Spin Ticket */
-                    $this->getApi($account)->post('https://api.slotcoin.app/v1/clicker/daily/spin');
+                    $this->getApi($farmer)->post('https://api.slotcoin.app/v1/clicker/daily/spin');
                 }
 
                 /** Deduct Energy */
                 $energy -= $bid;
 
                 /** Spin Lottery */
-                $this->getApi($account)
+                $this->getApi($farmer)
                     ->post(
                         'https://api.slotcoin.app/v1/clicker/api/spin',
                     );
 
-                /** Return Energy and Account */
+                /** Return Energy and Farmer */
                 if ($energy >= $bid || $ticketsCount > 0) {
                     return compact(
                         'account',
@@ -120,23 +120,23 @@ class FarmSlotcoin extends Command
         })->filter();
     }
 
-    protected function retrieveAccounts()
+    protected function retrieveFarmers()
     {
-        return Account::farmer('slotcoin')
+        return Farmer::farmer('slotcoin')
             ->connected()
-            ->get()->map(function (Account $account) {
+            ->get()->map(function (Farmer $farmer) {
                 try {
                     /** Daily Check-In */
-                    $dailyCheckIn = $this->getApi($account)->post('https://api.slotcoin.app/v1/clicker/check-in/info')->json();
+                    $dailyCheckIn = $this->getApi($farmer)->post('https://api.slotcoin.app/v1/clicker/check-in/info')->json();
                     $timeToClaim = intval($dailyCheckIn['time_to_claim']);
 
                     /** Claim Daily Check-In */
                     if ($timeToClaim <= 0) {
-                        $this->getApi($account)->post('https://api.slotcoin.app/v1/clicker/check-in/claim');
+                        $this->getApi($farmer)->post('https://api.slotcoin.app/v1/clicker/check-in/claim');
                     }
 
                     /** Get Info */
-                    $info = $this->getApi($account)->post('https://api.slotcoin.app/v1/clicker/api/info')->json();
+                    $info = $this->getApi($farmer)->post('https://api.slotcoin.app/v1/clicker/api/info')->json();
 
                     /** Tickets */
                     $ticketsCount = intval($info['user']['daily_roulette_count']);
@@ -145,7 +145,7 @@ class FarmSlotcoin extends Command
                     $energy = intval($info['user']['spins']);
                     $bid = intval($info['user']['bid']);
 
-                    /** Return Energy and Account */
+                    /** Return Energy and Farmer */
                     if ($energy >= $bid || $ticketsCount > 0) {
                         return compact(
                             'account',
@@ -156,10 +156,10 @@ class FarmSlotcoin extends Command
                     }
                 } catch (\Throwable $e) {
                     /** Log Error */
-                    $this->logError($e, $account);
+                    $this->logError($e, $farmer);
 
-                    /** Refetch Auth or Disconnect Account */
-                    $this->refetchAuthOrDisconnect($account);
+                    /** Refetch Auth or Disconnect Farmer */
+                    $this->refetchAuthOrDisconnect($farmer);
                 }
             })->filter();
     }

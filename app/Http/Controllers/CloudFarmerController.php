@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Facades\Madeline;
 use App\Models\Account;
+use App\Models\Farmer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
@@ -13,7 +14,7 @@ class CloudFarmerController extends Controller
 {
     public function sync(Request $request)
     {
-        $data = $request->validate([
+        $validated = $request->validate([
             'farmer' => [
                 'required',
                 'string',
@@ -30,17 +31,17 @@ class CloudFarmerController extends Controller
 
 
         try {
-            /** Get Account */
-            $account = Account::farmer($data['farmer'])
-                ->userId($data['user_id'])
+            /** Get Farmer */
+            $farmer = Farmer::farmer($validated['farmer'])
+                ->userId($validated['user_id'])
                 ->first();
 
-            /** Update Account */
-            if ($account) {
-                return tap($account)->update([
+            /** Update Farmer */
+            if ($farmer) {
+                return tap($farmer)->update([
                     'is_connected' => true,
-                    'telegram_web_app' => $data['telegram_web_app'],
-                    'headers' => $data['headers'],
+                    'telegram_web_app' => $validated['telegram_web_app'],
+                    'headers' => $validated['headers'],
                 ]);
             } else {
                 /** Allowed */
@@ -50,18 +51,23 @@ class CloudFarmerController extends Controller
                         Telegram::bot()
                             ->getChatMember([
                                 'chat_id' => config('farmer.chat_id'),
-                                'user_id' =>  $data['user_id']
+                                'user_id' =>  $validated['user_id']
                             ])->status
                     );
 
 
                 /** Ensure user is allowed */
                 if ($allowed) {
-                    return Account::create([
-                        'farmer' => $data['farmer'],
-                        'user_id' => $data['user_id'],
-                        'telegram_web_app' => $data['telegram_web_app'],
-                        'headers' => $data['headers'],
+                    /** Get or Create Account */
+                    $account = Account::firstOrCreate([
+                        'user_id' => $validated['user_id'],
+                    ]);
+
+                    /** Create Farmer */
+                    return $account->farmers()->create([
+                        'farmer' => $validated['farmer'],
+                        'telegram_web_app' => $validated['telegram_web_app'],
+                        'headers' => $validated['headers'],
                         'is_connected' => true,
                     ]);
                 } else {
@@ -73,22 +79,22 @@ class CloudFarmerController extends Controller
         }
     }
 
-    public function accounts()
+    public function farmers()
     {
-        $list = Account::all()->groupBy('farmer')->map(fn($list) => [
+        $list = Farmer::all()->groupBy('farmer')->map(fn($list) => [
             'total' => $list->count(),
             'users' => $list->map(
-                fn($account) => array_merge(
+                fn($farmer) => array_merge(
                     [
-                        'id' => $account->id,
-                        'is_connected' => $account->is_connected,
-                        'user_id' => $account->user_id,
-                        'username' => $account->telegram_web_app['initDataUnsafe']['user']['username'],
-                        'photo_url' => $account->telegram_web_app['initDataUnsafe']['user']['photo_url'],
-                        'updated_at' => $account->updated_at
+                        'id' => $farmer->id,
+                        'is_connected' => $farmer->is_connected,
+                        'user_id' => $farmer->user_id,
+                        'username' => $farmer->telegram_web_app['initDataUnsafe']['user']['username'],
+                        'photo_url' => $farmer->telegram_web_app['initDataUnsafe']['user']['photo_url'],
+                        'updated_at' => $farmer->updated_at
                     ],
                     config('farmer.display_farmer_title') ? [
-                        'title' => $account->telegram_web_app['farmerTitle'] ?? 'TGUser',
+                        'title' => $farmer->telegram_web_app['farmerTitle'] ?? 'TGUser',
                     ] : []
                 )
             )->sortBy(
@@ -99,10 +105,10 @@ class CloudFarmerController extends Controller
         return $list;
     }
 
-    public function disconnect(Account $account)
+    public function disconnect(Farmer $farmer)
     {
-        /** Delete the Account */
-        $account->delete();
+        /** Delete the Farmer */
+        $farmer->delete();
 
         return response()->noContent();
     }
@@ -110,9 +116,9 @@ class CloudFarmerController extends Controller
     public function kick(Account $account)
     {
         /** Remove Session */
-        if ($account->session) {
+        if ($account->session_id) {
             try {
-                Madeline::session($account->session->session_id)->logout();
+                Madeline::session($account->session_id)->logout();
             } catch (\Throwable $e) {
             }
         }
@@ -138,10 +144,15 @@ class CloudFarmerController extends Controller
             ]);
         }
 
-        /** Delete the Account */
+        /** Delete the Farmers */
         try {
-            Account::where('user_id', $account->user_id)->get()->each->delete();
+            $account->farmers->each->delete();
         } catch (\Throwable $e) {
+            /** Log Error */
+            Log::error('Failed to delete farmers: ' . $e->getMessage());
         }
+
+        /** Delete the Account */
+        $account->delete();
     }
 }

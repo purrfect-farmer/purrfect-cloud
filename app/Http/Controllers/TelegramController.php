@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Facades\Madeline;
-use App\Models\MadelineSession;
+use App\Models\Account;
 use App\Rules\ExistingMadelineSession;
 use Illuminate\Http\Request;
 use Propaganistas\LaravelPhone\Rules\Phone;
@@ -122,10 +122,16 @@ class TelegramController extends Controller
             $api = Madeline::session(
                 $validated['session']
             );
+
             $api->logout();
 
-            /** Delete Session */
-            MadelineSession::where('session_id', $validated['session'])->delete();
+            /** Get Account */
+            $account = Account::where('session_id', $validated['session'])->first();
+
+            /** Set Session to Null */
+            if ($account) {
+                $account->forceFill(['session_id' => null])->save();
+            }
         }
 
         return [
@@ -133,6 +139,7 @@ class TelegramController extends Controller
         ];
     }
 
+    /** Check if session exists */
     public function check(Request $request)
     {
         $validated = $request->validate([
@@ -144,6 +151,7 @@ class TelegramController extends Controller
         ];
     }
 
+    /** Check if user is allowed */
     protected function userIsAllowed($id)
     {
         return (
@@ -169,24 +177,26 @@ class TelegramController extends Controller
         $userId,
         $sessionId
     ) {
-        /** Get Existing Session */
-        $existing = MadelineSession::where('user_id', $userId)->first();
+        /** Get Account */
+        $account = Account::where('user_id', $userId)->first();
 
-        if ($existing) {
+        if ($account) {
             /** Save Previous Session Id */
-            $previousSessionId = $existing->session_id;
+            $previousSessionId = $account->session_id;
 
             /** Update Session Id */
-            $existing->forceFill(['session_id' => $sessionId])->save();
+            $account->forceFill(['session_id' => $sessionId])->save();
 
             /** Logout of Previous Session */
-            try {
-                Madeline::session($previousSessionId)->logout();
-            } catch (\Throwable $e) {
+            if ($previousSessionId) {
+                try {
+                    Madeline::session($previousSessionId)->logout();
+                } catch (\Throwable $e) {
+                }
             }
         } else {
-            /** Create a new Session */
-            MadelineSession::create(
+            /** Create a new Account */
+            Account::create(
                 [
                     'user_id' => $userId,
                     'session_id' => $sessionId

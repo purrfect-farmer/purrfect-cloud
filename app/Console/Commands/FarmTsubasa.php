@@ -2,14 +2,14 @@
 
 namespace App\Console\Commands;
 
-use App\Console\Commands\Traits\Farmer;
-use App\Models\Account;
+use App\Console\Commands\Traits\FarmerTrait;
+use App\Models\Farmer;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
 
 class FarmTsubasa extends Command
 {
-    use Farmer;
+    use FarmerTrait;
 
     /**
      * The name and signature of the console command.
@@ -39,23 +39,23 @@ class FarmTsubasa extends Command
     {
         $this->farm(function () {
             /** Start Farming */
-            Account::farmer('tsubasa')
+            Farmer::farmer('tsubasa')
                 ->connected()
                 ->get()
-                ->each(function (Account $account) {
+                ->each(function (Farmer $farmer) {
                     try {
 
                         /** Platform */
                         $platform = 'android';
 
                         /** Init Data */
-                        $initData = $account->telegram_web_app['initData'];
+                        $initData = $farmer->telegram_web_app['initData'];
 
                         /** Init Data Unsafe */
-                        $initDataUnsafe = $account->telegram_web_app['initDataUnsafe'];
+                        $initDataUnsafe = $farmer->telegram_web_app['initDataUnsafe'];
 
                         /** Auth */
-                        $auth = $this->getTsubasaApi($account)->post(
+                        $auth = $this->getTsubasaApi($farmer)->post(
                             'https://api.app.ton.tsubasa-rivals.com/api/start',
                             [
                                 'initData' => $initData,
@@ -76,7 +76,7 @@ class FarmTsubasa extends Command
                         $hasClaimedDailyReward = Carbon::createFromTimestamp($lastUpdate)->isToday();
 
                         if ($hasClaimedDailyReward === false) {
-                            $data = $this->getBaseApi($account)->post(
+                            $data = $this->getBaseApi($farmer)->post(
                                 'https://api.app.ton.tsubasa-rivals.com/api/daily_reward/claim',
                                 [
                                     'initData' => $initData,
@@ -142,7 +142,7 @@ class FarmTsubasa extends Command
 
                             /** Level Up */
                             $this->getTsubasaApi(
-                                $account,
+                                $farmer,
                                 $masterHash
                             )->post(
                                 'https://api.app.ton.tsubasa-rivals.com/api/card/levelup',
@@ -155,10 +155,10 @@ class FarmTsubasa extends Command
                         }
                     } catch (\Throwable $e) {
                         /** Log Error */
-                        $this->logError($e, $account);
+                        $this->logError($e, $farmer);
 
-                        /** Refetch Auth or Disconnect Account */
-                        $this->refetchAuthOrDisconnect($account);
+                        /** Refetch Auth or Disconnect Farmer */
+                        $this->refetchAuthOrDisconnect($farmer);
                     }
                 });
         });
@@ -214,15 +214,15 @@ class FarmTsubasa extends Command
 
     /**
      * Get Tsubasa API
-     * @param \App\Models\Account $account
+     * @param \App\Models\Farmer $farmer
      * @param string $hash
      * @return \Illuminate\Http\Client\PendingRequest
      */
-    protected function getTsubasaApi(Account $account, string $hash = '')
+    protected function getTsubasaApi(Farmer $farmer, string $hash = '')
     {
-        return $this->getBaseApi($account)->withHeaders([
+        return $this->getBaseApi($farmer)->withHeaders([
             'X-Masterhash' => $hash,
-            'X-Player-Id' => $account->user_id,
+            'X-Player-Id' => $farmer->user_id,
         ]);
     }
 }

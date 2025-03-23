@@ -2,7 +2,7 @@
 
 namespace App;
 
-use App\Models\Account;
+use App\Models\Farmer;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
@@ -149,8 +149,8 @@ class Helpers
     ) {
         $config = config('farmer.drops')[$farmer];
         $title = $config['title'];
-        $links = static::getCloudAccountLinks(
-            Account::farmer($farmer)->get()
+        $links = static::getCloudUserLinks(
+            Farmer::farmer($farmer)->get()
         );
         $key = $farmer . '.completed';
 
@@ -171,36 +171,36 @@ class Helpers
     /**
      * Send Message to User
      * @param string $key
-     * @param \App\Models\Account $account
+     * @param \App\Models\Farmer $farmer
      * @param array $message
      * @param bool $deletePreviousMessage
      * @return \Telegram\Bot\Objects\Message
      */
     public static function sendUserMessage(
         $key,
-        Account $account,
+        Farmer $farmer,
         $message,
         $deletePreviousMessage = true
     ) {
         /** Message Key */
         $key =  implode(':', [
-            $account->farmer,
-            $account->user_id,
+            $farmer->farmer,
+            $farmer->user_id,
             $key
         ]);
 
         /** Title */
-        $title = config('farmer.drops')[$account->farmer]['title'];
+        $title = config('farmer.drops')[$farmer->farmer]['title'];
 
 
         /** User ID */
-        $id = $account->user_id;
+        $id = $farmer->user_id;
 
         /** Username */
         $username =
             htmlspecialchars(
                 '@' . Str::limit(
-                    $account->telegram_web_app['initDataUnsafe']['user']['username'] ?? '' ?: $id,
+                    $farmer->telegram_web_app['initDataUnsafe']['user']['username'] ?? '' ?: $id,
                     15
                 )
             );
@@ -216,12 +216,12 @@ class Helpers
             $key,
             [
                 "<b>$title</b>",
-                "<b>👤 Account</b>: $link",
+                "<b>👤 User</b>: $link",
                 "<b>🗓️ Date</b>: $date",
                 ...$message
             ],
             [
-                'chat_id' => $account->user_id,
+                'chat_id' => $farmer->user_id,
                 'disable_notification' => false,
             ],
             $deletePreviousMessage
@@ -263,23 +263,23 @@ class Helpers
     }
 
     /**
-     * Get Account Links
-     * @param \Illuminate\Database\Eloquent\Collection $accounts
+     * Get User Links
+     * @param \Illuminate\Database\Eloquent\Collection $farmers
      * @return string
      */
-    public static function getCloudAccountLinks(Collection $accounts)
+    public static function getCloudUserLinks(Collection $farmers)
     {
 
-        $totalUsers = $accounts->count();
-        $list = $accounts->map(function (Account $account) {
-            $id = $account->user_id;
-            $status = $account->is_connected ? '✅' : '❌';
+        $totalUsers = $farmers->count();
+        $list = $farmers->map(function (Farmer $farmer) {
+            $id = $farmer->user_id;
+            $status = $farmer->is_connected ? '✅' : '❌';
 
             /** Username */
             $username = Str::padRight(
                 Str::lower(
                     Str::limit(
-                        $account->telegram_web_app['initDataUnsafe']['user']['username'] ?? ''
+                        $farmer->telegram_web_app['initDataUnsafe']['user']['username'] ?? ''
                             ?: $id,
                         12
                     )
@@ -291,7 +291,7 @@ class Helpers
             /** Farmer Title */
             $title = config('farmer.display_farmer_title') ? Str::upper(
                 Str::limit(
-                    $account->telegram_web_app['farmerTitle'] ?? 'TGUser',
+                    $farmer->telegram_web_app['farmerTitle'] ?? 'TGUser',
                     8
                 )
             ) : '';
@@ -319,7 +319,7 @@ class Helpers
             return "$status $title <a href=\"tg://user?id=$id\">$username</a>";
         })->implode("\n");
 
-        return "\n<blockquote><b>👤 Accounts</b>: $totalUsers\n$links</blockquote>\n";
+        return "\n<blockquote><b>👤 Users</b>: $totalUsers\n$links</blockquote>\n";
     }
 
     /** Fetch Content */

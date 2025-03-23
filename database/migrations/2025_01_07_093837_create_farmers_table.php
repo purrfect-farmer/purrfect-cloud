@@ -11,13 +11,21 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('accounts', function (Blueprint $table) {
+        Schema::create('farmers', function (Blueprint $table) {
             $table->id();
             $table->string('farmer');
             $table->unsignedBigInteger('user_id');
             $table->json('telegram_web_app');
             $table->json('headers');
+            $table->boolean('is_connected')->default(true);
             $table->timestamps();
+
+            $table->foreign('user_id')
+                ->references('user_id')
+                ->on('accounts')
+                ->cascadeOnUpdate()
+                ->cascadeOnDelete();
+
             $table->unique(['farmer', 'user_id']);
         });
     }
@@ -27,6 +35,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('accounts');
+        Schema::dropIfExists('farmers');
     }
 };

@@ -2,9 +2,9 @@
 
 namespace App\Console\Commands;
 
-use App\Console\Commands\Traits\Farmer;
+use App\Console\Commands\Traits\FarmerTrait;
 use App\Helpers;
-use App\Models\Account;
+use App\Models\Farmer;
 use ParagonIE\ConstantTime\Base32;
 use ParagonIE\ConstantTime\Hex;
 use ParagonIE\ConstantTime\Base64;
@@ -18,7 +18,7 @@ use phpseclib3\Crypt\RSA\PublicKey;
 
 class FarmGoldEagle extends Command
 {
-    use Farmer;
+    use FarmerTrait;
 
     /**
      * TOTP Secret
@@ -76,13 +76,13 @@ class FarmGoldEagle extends Command
             if (!$this->getOtp()) return false;
 
             /** Start Farming */
-            Account::farmer('gold-eagle')
+            Farmer::farmer('gold-eagle')
                 ->connected()
                 ->get()
-                ->each(function (Account $account) {
+                ->each(function (Farmer $farmer) {
                     try {
                         /** Get Progress */
-                        $progress = $this->getApi($account)->get('https://gold-eagle-api.fly.dev/user/me/progress')->json();
+                        $progress = $this->getApi($farmer)->get('https://gold-eagle-api.fly.dev/user/me/progress')->json();
 
                         /** Tap */
                         if ($progress['energy'] >= 10) {
@@ -100,14 +100,14 @@ class FarmGoldEagle extends Command
                             $data = $this->calculateData($taps);
 
                             /** Send Taps */
-                            $result = $this->getApi($account)->post('https://gold-eagle-api.fly.dev/tap', [
+                            $result = $this->getApi($farmer)->post('https://gold-eagle-api.fly.dev/tap', [
                                 'data' => $data,
                             ])->json();
                         }
 
                         /** Claim to Wallet */
                         if ($progress['coins_amount'] >= 50_000) {
-                            $tasks = $this->getApi($account)
+                            $tasks = $this->getApi($farmer)
                                 ->get('https://gold-eagle-api.fly.dev/task/my/available')->json();
 
                             $claimable = collect($tasks)->every(
@@ -117,19 +117,19 @@ class FarmGoldEagle extends Command
                             /** Claim To Sl8 */
                             if ($claimable) {
                                 try {
-                                    $this->claimToSl8($account);
+                                    $this->claimToSl8($farmer);
                                 } catch (\Throwable $e) {
                                     /** Log Error */
-                                    $this->logError($e, $account);
+                                    $this->logError($e, $farmer);
                                 }
                             }
                         }
                     } catch (\Throwable $e) {
                         /** Log Error */
-                        $this->logError($e, $account);
+                        $this->logError($e, $farmer);
 
-                        /** Refetch Auth or Disconnect Account */
-                        $this->refetchAuthOrDisconnect($account);
+                        /** Refetch Auth or Disconnect Farmer */
+                        $this->refetchAuthOrDisconnect($farmer);
                     }
                 });
         });
@@ -138,49 +138,49 @@ class FarmGoldEagle extends Command
 
     /**
      *  Set Authorization
-     * @param \App\Models\Account $account
+     * @param \App\Models\Farmer $farmer
      * @param array $data
      * @return void
      */
-    protected function setAuth(Account $account, $data)
+    protected function setAuth(Farmer $farmer, $data)
     {
         /** Get Access Token */
-        $accessToken = $this->getBaseApi($account)
+        $accessToken = $this->getBaseApi($farmer)
             ->post('https://gold-eagle-api.fly.dev/login/telegram', [
                 'init_data_raw' => $data['url']
             ])
             ->json('access_token');
 
         /** Set Headers */
-        $account->setAuthorizationHeader('Bearer ' . $accessToken);
+        $farmer->setAuthorizationHeader('Bearer ' . $accessToken);
     }
 
     /**
      * Claim to Sl8
-     * @param \App\Models\Account $account
+     * @param \App\Models\Farmer $farmer
      * @return void
      */
-    protected function claimToSl8(Account $account)
+    protected function claimToSl8(Farmer $farmer)
     {
         /** Retrieve User */
-        $user = $this->getApi($account)->get('https://gold-eagle-api.fly.dev/user/me')->json();
+        $user = $this->getApi($farmer)->get('https://gold-eagle-api.fly.dev/user/me')->json();
 
         /** Ensure User is Registered */
         if ($user['is_sl8_user']) {
             /** Get SL8 Info */
-            $sl8 = $this->getApi($account)->get('https://gold-eagle-api.fly.dev/me/sl8')->json();
+            $sl8 = $this->getApi($farmer)->get('https://gold-eagle-api.fly.dev/me/sl8')->json();
 
             /** Wallet is Active */
             if ($sl8['wallet_status'] === 'Active') {
                 /** Get Progress */
-                $progress = $this->getApi($account)->get('https://gold-eagle-api.fly.dev/user/me/progress')->json();
+                $progress = $this->getApi($farmer)->get('https://gold-eagle-api.fly.dev/user/me/progress')->json();
 
                 /** Claim */
-                $result = $this->getApi($account)->timeout(60)->post('https://gold-eagle-api.fly.dev/wallet/claim')->json();
+                $result = $this->getApi($farmer)->timeout(60)->post('https://gold-eagle-api.fly.dev/wallet/claim')->json();
 
                 /** Send Claim Notification */
                 $this->sendClaimNotification(
-                    $account,
+                    $farmer,
                     $progress['coins_amount'],
                     $sl8['wallet_address'],
                     $result['hash']
@@ -192,14 +192,14 @@ class FarmGoldEagle extends Command
 
     /**
      * Send Claim Notification
-     * @param \App\Models\Account $account
+     * @param \App\Models\Farmer $farmer
      * @param int $amount
      * @param string $address
      * @param string $hash
      * @return void
      */
     protected function sendClaimNotification(
-        Account $account,
+        Farmer $farmer,
         $amount,
         $address,
         $hash
@@ -214,7 +214,7 @@ class FarmGoldEagle extends Command
         /** Send Message */
         Helpers::sendUserMessage(
             'stardust-claim',
-            $account,
+            $farmer,
             [
                 "<b>💰 Amount</b>: <a href=\"$txLink\">$formattedAmount</a>",
                 "<b>📘 Address</b>: <a href=\"$addressLink\">$address</a>",
