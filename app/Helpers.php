@@ -274,7 +274,7 @@ class Helpers
         $list = $farmers->map(function (Farmer $farmer) {
             $id = $farmer->user_id;
             $status = $farmer->is_connected ? '✅' : '❌';
-            $session = $farmer->account->session_id ? '⚡' : '☁️';
+            $session = $farmer->account->session_id ? '⚡' : '⭐';
 
             /** Username */
             $username = Str::padRight(
@@ -306,10 +306,9 @@ class Helpers
             );
         });
 
-        /** Sort By Title */
-        if (config('farmer.display_farmer_title')) {
-            $list = $list->sortBy('title')->values();
-        }
+        /** Sort By Title or Username */
+        $list = $list->sortBy(config('farmer.display_farmer_title') ? 'title' : 'username')->values();
+
 
         /** Retrieve Links */
         $links = $list->map(function ($data) {
@@ -317,9 +316,9 @@ class Helpers
             $status = $data['status'];
             $session = $data['session'];
             $username = htmlspecialchars('@' . $data['username']);
-            $title = $data['title'] ? '<b>' . htmlspecialchars('(' . $data['title'] . ')') . '</b>' : '';
+            $title = $data['title'] ? '<b>' . htmlspecialchars(' (' . $data['title'] . ')') . '</b>' : '';
 
-            return $status . $session . " $title <a href=\"tg://user?id=$id\">$username</a>";
+            return $status . $session . "$title <a href=\"tg://user?id=$id\">$username</a>";
         })->implode("\n");
 
         return "\n<blockquote><b>👤 Users</b>: $totalUsers\n$links</blockquote>\n";
