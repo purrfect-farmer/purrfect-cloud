@@ -274,7 +274,7 @@ class Helpers
         $list = $farmers->map(function (Farmer $farmer) {
             $id = $farmer->user_id;
             $status = $farmer->is_connected ? '✅' : '❌';
-            $session = $farmer->account->session_id ? '🟨' : '🟦';
+            $session = $farmer->account->session_id ? '⚡' : '🔷';
 
             /** Username */
             $username = Str::padRight(
