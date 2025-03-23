@@ -149,16 +149,11 @@ trait Farmer
      */
     protected function updateTelegramData()
     {
-        Account::farmer(
-            $this->getKey()
-        )
-            ->with(['session'])
-            ->connected(false)
-            ->orWhere(
-                'updated_at',
-                '<',
-                now()->subMinutes(30)
+        Account::with(['session'])
+            ->farmer(
+                $this->getKey()
             )
+            ->needsRefetch()
             ->each(function (Account $account) {
                 if ($account->session) {
                     try {

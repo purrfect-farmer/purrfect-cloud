@@ -112,6 +112,18 @@ class Account extends Model
         return $builder->where('user_id', $id);
     }
 
+    /** Scope Needs Refetch */
+    public function scopeNeedsRefetch(Builder $builder)
+    {
+        return $builder
+            ->where('is_connected', false)
+            ->orWhere(
+                'updated_at',
+                '<',
+                now()->subMinutes(30)
+            );
+    }
+
     /** Connect */
     public function connect()
     {
