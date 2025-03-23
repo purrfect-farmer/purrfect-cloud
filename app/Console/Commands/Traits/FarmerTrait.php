@@ -95,6 +95,7 @@ trait FarmerTrait
                     Log::info($this->getTitle() . ' API Call', [
                         'user_id' => $farmer->user_id ?? null,
                         'username' => $farmer->telegram_web_app['initDataUnsafe']['user']['username'] ?? null,
+                        'method' => (string) $request->getMethod(),
                         'uri' => (string) $request->getUri(),
                         'body' => (string) $request->getBody(),
                     ]);
