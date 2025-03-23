@@ -187,6 +187,8 @@ class FarmDigger extends Command
                             ->json('result')
                     );
 
+
+
                     $pendingTasks = $tasks->filter(fn($item) => $item['status'] === 'progress');
                     $unclaimedTasks = $tasks->filter(fn($item) => $item['status'] === 'waiting_reward');
 
@@ -207,6 +209,8 @@ class FarmDigger extends Command
                             ])
                             ->json('result');
                     }
+
+
 
 
                     /** Get User */
@@ -249,6 +253,8 @@ class FarmDigger extends Command
                     }
 
 
+
+
                     /** Get Chest Status */
                     $chestStatus = collect(
                         $this->getApi($farmer)
@@ -274,6 +280,7 @@ class FarmDigger extends Command
                         ) : null;
 
 
+
                     /** Get Chests */
                     $chests = collect(
                         $this->getApi($farmer)
@@ -293,6 +300,8 @@ class FarmDigger extends Command
                     /** Energy */
                     $energy = $currentChest ?
                         $currentChest['open_tap_cnt'] - $currentChest['current_tap_cnt'] : 0;
+
+
 
                     /** Return Energy and Farmer */
                     if ($energy > 0 || $reward) {

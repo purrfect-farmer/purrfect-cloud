@@ -149,7 +149,7 @@ trait FarmerTrait
      */
     protected function updateTelegramData()
     {
-        Farmer::with(['session'])
+        Farmer::with(['account'])
             ->farmer(
                 $this->getKey()
             )
