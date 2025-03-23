@@ -53,7 +53,7 @@ class Helpers
      * @param int $seed
      * @return mixed|null
      */
-    public static function getUniqueItem(array $collection = [], int $seed)
+    public static function getUniqueItem(array $collection, int $seed)
     {
         $count = count($collection);
 
