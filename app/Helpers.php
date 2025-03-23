@@ -150,7 +150,7 @@ class Helpers
         $config = config('farmer.drops')[$farmer];
         $title = $config['title'];
         $links = static::getCloudUserLinks(
-            Farmer::farmer($farmer)->get()
+            Farmer::with(['account'])->farmer($farmer)->get()
         );
         $key = $farmer . '.completed';
 
@@ -274,6 +274,7 @@ class Helpers
         $list = $farmers->map(function (Farmer $farmer) {
             $id = $farmer->user_id;
             $status = $farmer->is_connected ? '✅' : '❌';
+            $session = $farmer->account->session_id ? '⚡' : '☁️';
 
             /** Username */
             $username = Str::padRight(
@@ -299,6 +300,7 @@ class Helpers
             return compact(
                 'id',
                 'status',
+                'session',
                 'username',
                 'title'
             );
@@ -313,10 +315,11 @@ class Helpers
         $links = $list->map(function ($data) {
             $id = $data['id'];
             $status = $data['status'];
+            $session = $data['session'];
             $username = htmlspecialchars('@' . $data['username']);
             $title = $data['title'] ? '<b>' . htmlspecialchars('(' . $data['title'] . ')') . '</b>' : '';
 
-            return "$status $title <a href=\"tg://user?id=$id\">$username</a>";
+            return $status . $session . " $title <a href=\"tg://user?id=$id\">$username</a>";
         })->implode("\n");
 
         return "\n<blockquote><b>👤 Users</b>: $totalUsers\n$links</blockquote>\n";
