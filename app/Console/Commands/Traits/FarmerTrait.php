@@ -90,11 +90,9 @@ trait FarmerTrait
             ->withRequestMiddleware(function (RequestInterface $request) {
                 /** Log API Call */
                 if (config('farmer.log_api_calls')) {
-                    /** Farmer Title */
-                    $title = config('farmer.drops')[$this->getKey()]['title'];
 
                     /** Log Info */
-                    Log::info($title . ' API Call', [
+                    Log::info($this->getTitle() . ' API Call', [
                         'user_id' => $farmer->user_id ?? null,
                         'username' => $farmer->telegram_web_app['initDataUnsafe']['user']['username'] ?? null,
                         'uri' => (string) $request->getUri(),
@@ -102,6 +100,7 @@ trait FarmerTrait
                     ]);
                 }
 
+                /** Return Request */
                 return $request;
             })
             ->withOptions(
@@ -125,11 +124,8 @@ trait FarmerTrait
      */
     protected function logError(\Throwable $e, ?Farmer $farmer = null)
     {
-        /** Farmer Title */
-        $title = config('farmer.drops')[$this->getKey()]['title'];
-
         /** Log Error */
-        Log::error($title . ' Error', [
+        Log::error($this->getTitle() . ' Error', [
             'user_id' => $farmer->user_id ?? null,
             'username' => $farmer->telegram_web_app['initDataUnsafe']['user']['username'] ?? null,
             'message' => $e->getMessage(),
@@ -145,6 +141,12 @@ trait FarmerTrait
     protected function getKey()
     {
         return explode(':', $this->signature)[1];
+    }
+
+    /** Get Title */
+    protected function getTitle()
+    {
+        return config('farmer.drops')[$this->getKey()]['title'];
     }
 
 
