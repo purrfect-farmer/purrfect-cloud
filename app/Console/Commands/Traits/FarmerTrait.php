@@ -3,13 +3,13 @@
 namespace App\Console\Commands\Traits;
 
 use App\Facades\Madeline;
-use App\Facades\Proxy;
 use App\Helpers;
 use App\Models\Farmer;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Sleep;
+use Psr\Http\Message\RequestInterface;
 
 trait FarmerTrait
 {
@@ -87,6 +87,23 @@ trait FarmerTrait
         $this->delayRequest();
 
         return Http::throw()
+            ->withRequestMiddleware(function (RequestInterface $request) {
+                /** Log API Call */
+                if (config('farmer.log_api_calls')) {
+                    /** Farmer Title */
+                    $title = config('farmer.drops')[$this->getKey()]['title'];
+
+                    /** Log Info */
+                    Log::info($title . ' API Call', [
+                        'user_id' => $farmer->user_id ?? null,
+                        'username' => $farmer->telegram_web_app['initDataUnsafe']['user']['username'] ?? null,
+                        'uri' => (string) $request->getUri(),
+                        'body' => (string) $request->getBody(),
+                    ]);
+                }
+
+                return $request;
+            })
             ->withOptions(
                 $this->getProxyOptions($farmer)
             )
@@ -113,9 +130,9 @@ trait FarmerTrait
 
         /** Log Error */
         Log::error($title . ' Error', [
-            'message' => $e->getMessage(),
             'user_id' => $farmer->user_id ?? null,
             'username' => $farmer->telegram_web_app['initDataUnsafe']['user']['username'] ?? null,
+            'message' => $e->getMessage(),
             'file' => $e->getFile(),
             'line' => $e->getLine(),
         ]);
