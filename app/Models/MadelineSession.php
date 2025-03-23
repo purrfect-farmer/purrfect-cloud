@@ -45,10 +45,10 @@ class MadelineSession extends Model
 
     /**
      * Send Status Message
-     * @param bool $status
+     * @param bool $loggedIn
      * @return void
      */
-    public function sendStatusMessage($status = true)
+    public function sendStatusMessage($loggedIn = true)
     {
         /** Message Key */
         $key =  implode(':', [
@@ -57,14 +57,14 @@ class MadelineSession extends Model
         ]);
 
         /** Status */
-        $status = $status ?
+        $status = $loggedIn ?
             '<b>✅ Status:</b> Logged In' :
             '<b>❌ Status:</b> Logged Out';
 
         /** Message */
-        $message = $status ?
-            'Telegram account has been logged in on Cloud.' :
-            'Telegram account has been logged out of Cloud.';
+        $message = $loggedIn ?
+            'Your Telegram account has been logged in on Cloud. Automatic refetch has been enabled.' :
+            'Your Telegram account was logged out of Cloud. Automatic refetch has been disabled.';
 
         /** Date */
         $date = now();
