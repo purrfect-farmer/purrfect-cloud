@@ -87,7 +87,7 @@ trait FarmerTrait
         $this->delayRequest();
 
         return Http::throw()
-            ->withRequestMiddleware(function (RequestInterface $request) {
+            ->withRequestMiddleware(function (RequestInterface $request) use ($farmer) {
                 /** Log API Call */
                 if (config('farmer.log_api_calls')) {
 
