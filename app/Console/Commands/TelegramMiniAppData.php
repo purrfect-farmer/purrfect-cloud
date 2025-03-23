@@ -40,71 +40,12 @@ class TelegramMiniAppData extends Command
             'https://t.me/purrfect_little_bot/app?startapp=purrfect'
         );
 
-
         $result = $parsed['short_name']  ?
-            $this->requestAppWebView($parsed) :
-            $this->requestMainWebView($parsed);
+            Madeline::requestAppWebView($this->api, $parsed) :
+            Madeline::requestMainWebView($this->api, $parsed);
 
         dump($parsed);
         dump($result);
-        dump($this->extractTgWebAppData($result['url']));
-    }
-
-    protected function getBotApp($parsed)
-    {
-        return $this->api->messages->getBotApp(
-            app: [
-                '_' => 'inputBotAppShortName',
-                'bot_id' => $parsed['bot'],
-                'short_name' => $parsed['short_name'],
-            ]
-        );
-    }
-
-    protected function startBot($parsed)
-    {
-        return $this->api->messages->startBot(
-            bot: $parsed['bot'],
-            start_param: $parsed['param'],
-        );
-    }
-
-    protected function requestMainWebView($parsed)
-    {
-        return $this->api->messages->requestMainWebView(
-            bot: $parsed['bot'],
-            start_param: $parsed['param'],
-            platform: 'android',
-        );
-    }
-
-    protected function requestAppWebView($parsed)
-    {
-        return $this->api->messages->requestAppWebView(
-            platform: 'android',
-            start_param: $parsed['param'],
-            app: [
-                '_' => 'inputBotAppShortName',
-                'bot_id' => $parsed['bot'],
-                'short_name' => $parsed['short_name'],
-            ],
-        );
-    }
-
-    protected function extractTgWebAppData($url)
-    {
-        $parsedUrl = parse_url($url);
-        $fragment = $parsedUrl['fragment'] ?? '';
-
-        parse_str($fragment, $data);
-        parse_str($data['tgWebAppData'], $initDataUnsafe);
-
-        return [
-            ...$data,
-            'initDataUnsafe' => [
-                ...$initDataUnsafe,
-                'user' => json_decode($initDataUnsafe['user'], true),
-            ],
-        ];
+        dump(Madeline::extractTgWebAppData($result['url']));
     }
 }

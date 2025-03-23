@@ -418,7 +418,7 @@ class Helpers
         return [
             'bot' => '@' . $paths[0],
             'short_name' => $paths[1] ?? '',
-            'param' =>   $query['start'] ?? $query['startapp'] ?? '',
+            'start_param' =>   $query['start'] ?? $query['startapp'] ?? '',
         ];
     }
 }

@@ -270,72 +270,9 @@ trait FarmerTrait
      */
     protected function getTelegramData($api)
     {
-        $parsed = Helpers::parseTelegramBotUrl(
+        return Madeline::getTelegramData(
+            $api,
             config('farmer.drops')[$this->getKey()]['telegram_link']
         );
-
-        $webview = $parsed['short_name']  ?
-            $this->requestAppWebView($api, $parsed) :
-            $this->requestMainWebView($api, $parsed);
-
-        return $this->extractTgWebAppData(
-            $webview['url']
-        );
-    }
-
-
-    /**
-     * Call requestMainWebView
-     * @param \danog\MadelineProto\API $api
-     * @param array $parsed
-     */
-    protected function requestMainWebView($api, $parsed)
-    {
-        return $api->messages->requestMainWebView(
-            bot: $parsed['bot'],
-            platform: 'android',
-        );
-    }
-
-    /**
-     * Call requestAppWebView
-     * @param \danog\MadelineProto\API $api
-     * @param array $parsed
-     */
-    protected function requestAppWebView($api, $parsed)
-    {
-        return $api->messages->requestAppWebView(
-            platform: 'android',
-            app: [
-                '_' => 'inputBotAppShortName',
-                'bot_id' => $parsed['bot'],
-                'short_name' => $parsed['short_name'],
-            ],
-        );
-    }
-
-    /**
-     * Extract tgWebAppData
-     * @param string $url
-     * @return array
-     */
-    protected function extractTgWebAppData($url)
-    {
-        $parsedUrl = parse_url($url);
-        $fragment = $parsedUrl['fragment'] ?? '';
-
-        parse_str($fragment, $data);
-        parse_str($data['tgWebAppData'], $initDataUnsafe);
-
-        return [
-            'url' => $url,
-            'platform' => $data['tgWebAppPlatform'],
-            'version' => $data['tgWebAppVersion'],
-            'initData' => $data['tgWebAppData'],
-            'initDataUnsafe' => [
-                ...$initDataUnsafe,
-                'user' => json_decode($initDataUnsafe['user'], true),
-            ],
-        ];
     }
 }

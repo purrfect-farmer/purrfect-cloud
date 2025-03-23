@@ -2,7 +2,7 @@
 
 namespace App\Libraries;
 
-
+use App\Helpers;
 use danog\MadelineProto\API;
 use danog\MadelineProto\Settings;
 use danog\MadelineProto\Settings\AppInfo as AppInfoSettings;
@@ -141,5 +141,87 @@ class Madeline
                 }
             }
         );
+    }
+
+
+    /**
+     * Get TelegramData
+     * @param \danog\MadelineProto\API $api
+     * @param string $url
+     * @return array
+     */
+    public function getTelegramData($api, $url)
+    {
+        $parsed = Helpers::parseTelegramBotUrl(
+            $url
+        );
+
+        $webview = $parsed['short_name']  ?
+            $this->requestAppWebView($api, $parsed) :
+            $this->requestMainWebView($api, $parsed);
+
+        return $this->extractTgWebAppData(
+            $webview['url']
+        );
+    }
+
+
+    /**
+     * Call requestMainWebView
+     * @param \danog\MadelineProto\API $api
+     * @param array $parsed
+     */
+    public function requestMainWebView($api, $parsed)
+    {
+        return $api->messages->requestMainWebView(
+            start_param: $parsed['start_param'],
+            peer: $parsed['bot'],
+            bot: $parsed['bot'],
+            platform: 'android',
+        );
+    }
+
+    /**
+     * Call requestAppWebView
+     * @param \danog\MadelineProto\API $api
+     * @param array $parsed
+     */
+    public function requestAppWebView($api, $parsed)
+    {
+        return $api->messages->requestAppWebView(
+            platform: 'android',
+            peer: $parsed['bot'],
+            start_param: $parsed['start_param'],
+            app: [
+                '_' => 'inputBotAppShortName',
+                'bot_id' => $parsed['bot'],
+                'short_name' => $parsed['short_name'],
+            ],
+        );
+    }
+
+    /**
+     * Extract tgWebAppData
+     * @param string $url
+     * @return array
+     */
+    public function extractTgWebAppData($url)
+    {
+        $parsedUrl = parse_url($url);
+        $fragment = $parsedUrl['fragment'] ?? '';
+
+        parse_str($fragment, $data);
+        parse_str($data['tgWebAppData'], $initDataUnsafe);
+
+        return [
+            'url' => $url,
+            'platform' => $data['tgWebAppPlatform'],
+            'version' => $data['tgWebAppVersion'],
+            'initData' => $data['tgWebAppData'],
+            'initDataUnsafe' => [
+                ...$initDataUnsafe,
+                'user' => json_decode($initDataUnsafe['user'], true),
+            ],
+        ];
     }
 }
