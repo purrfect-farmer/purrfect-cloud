@@ -150,8 +150,9 @@ class Helpers
         $config = config('farmer.drops')[$farmer];
         $title = $config['title'];
         $links = static::getCloudUserLinks(
-            Farmer::with(['account'])->farmer($farmer)->get()
+            Farmer::with(['account'])->farmer($farmer)->subscribed()->get()
         );
+
         $key = $farmer . '.completed';
 
         return static::sendCloudFarmerMessage(

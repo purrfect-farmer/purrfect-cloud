@@ -35,7 +35,7 @@ class UpdateProxies extends Command
             $list = collect(Proxy::list());
 
             /** Get Accounts */
-            $accounts = Account::all();
+            $accounts = Account::subscribed()->get();
 
             /** Used Proxies */
             $proxies = $accounts->pluck('proxy')->filter();

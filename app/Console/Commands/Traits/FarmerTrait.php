@@ -164,6 +164,18 @@ trait FarmerTrait
     }
 
     /**
+     * Get Farmers
+     * @return \Illuminate\Database\Eloquent\Collection<int, Farmer>
+     */
+    protected function getFarmers()
+    {
+        return Farmer::farmer($this->getKey())
+            ->subscribed()
+            ->connected()
+            ->get();
+    }
+
+    /**
      * Update Telegram Data
      * @return void
      */
@@ -173,6 +185,7 @@ trait FarmerTrait
             ->farmer(
                 $this->getKey()
             )
+            ->subscribed()
             ->needsRefetch()
             ->each(function (Farmer $farmer) {
                 if ($farmer->account->session_id) {

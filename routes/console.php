@@ -9,6 +9,9 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote')->hourly();
 
 
+/** Expire Subscriptions */
+Schedule::command('farmer:expire-subscriptions')->daily();
+
 /** Update Proxies */
 Schedule::command('farmer:update-proxies')->hourly();
 

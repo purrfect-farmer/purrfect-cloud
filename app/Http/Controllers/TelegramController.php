@@ -7,10 +7,10 @@ use App\Models\Account;
 use App\Rules\ExistingMadelineSession;
 use Illuminate\Http\Request;
 use Propaganistas\LaravelPhone\Rules\Phone;
-use Telegram\Bot\Laravel\Facades\Telegram;
 
 class TelegramController extends Controller
 {
+    /** Get Login */
     public function login(Request $request)
     {
         $validated = $request->validate(
@@ -34,6 +34,7 @@ class TelegramController extends Controller
         ];
     }
 
+    /** Get Code */
     public function code(Request $request)
     {
         $validated = $request->validate([
@@ -54,27 +55,16 @@ class TelegramController extends Controller
                 'status' => $result['_'],
                 'hint' => $result['hint'],
             ];
-        } else if (
-            !$this->userIsAllowed(
-                $result['user']['id']
-            )
-        ) {
-            $api->logout();
-            abort(400, 'Not allowed!');
         } else {
-            /** Save Session */
-            $this->saveSession(
-                $result['user']['id'],
-                $validated['session']
+            return $this->saveSession(
+                $api,
+                $validated['session'],
+                $result
             );
-
-            return [
-                'status' => $result['_'],
-                'user' => $result['user']
-            ];
         }
     }
 
+    /** Password */
     public function password(Request $request)
     {
         $validated = $request->validate([
@@ -89,29 +79,14 @@ class TelegramController extends Controller
             $validated['password']
         );
 
-        if (
-            !$this->userIsAllowed(
-                $result['user']['id']
-            )
-        ) {
-            $api->logout();
-            abort(400, 'Not allowed!');
-        } else {
-            /** Save Session */
-            $this->saveSession(
-                $result['user']['id'],
-                $validated['session']
-            );
-
-            return [
-                'status' => $result['_'],
-                'user' => $result['user']
-            ];
-        }
+        return $this->saveSession(
+            $api,
+            $validated['session'],
+            $result
+        );
     }
 
-
-
+    /** Logout */
     public function logout(Request $request)
     {
         $validated = $request->validate([
@@ -151,57 +126,45 @@ class TelegramController extends Controller
         ];
     }
 
-    /** Check if user is allowed */
-    protected function userIsAllowed($id)
-    {
-        return (
-            config('farmer.access_require_membership') === false ||
-            collect(['creator', 'administrator', 'member'])
-            ->contains(
-                Telegram::bot()
-                    ->getChatMember([
-                        'chat_id' => config('farmer.chat_id'),
-                        'user_id' =>  $id
-                    ])->status
-            )
-        );
-    }
-
     /**
      * Save session
-     * @param string $userId
-     * @param string $sessionId
-     * @return void
+     * @param \danog\MadelineProto\API $api
+     * @param string $session
+     * @param array $result
+     * @return array
      */
-    protected function saveSession(
-        $userId,
-        $sessionId
-    ) {
+    protected function saveSession($api, $session, $result)
+    {
         /** Get Account */
-        $account = Account::where('user_id', $userId)->first();
+        $account = Account::subscribed()->where(
+            'user_id',
+            $result['user']['id']
+        )->first();
 
-        if ($account) {
-            /** Save Previous Session Id */
-            $previousSessionId = $account->session_id;
 
-            /** Update Session Id */
-            $account->forceFill(['session_id' => $sessionId])->save();
-
-            /** Logout of Previous Session */
-            if ($previousSessionId) {
-                try {
-                    Madeline::session($previousSessionId)->logout();
-                } catch (\Throwable $e) {
-                }
-            }
-        } else {
-            /** Create a new Account */
-            Account::create(
-                [
-                    'user_id' => $userId,
-                    'session_id' => $sessionId
-                ]
-            );
+        /** Ensure Account Exists */
+        if (!$account) {
+            $api->logout();
+            abort(400, 'Not allowed!');
         }
+
+        /** Save Previous Session Id */
+        $previousSessionId = $account->session_id;
+
+        /** Update Session Id */
+        $account->forceFill(['session_id' => $session])->save();
+
+        /** Logout of Previous Session */
+        if ($previousSessionId) {
+            try {
+                Madeline::session($previousSessionId)->logout();
+            } catch (\Throwable $e) {
+            }
+        }
+
+        return [
+            'status' => $result['_'],
+            'user' => $result['user']
+        ];
     }
 }

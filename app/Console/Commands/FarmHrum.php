@@ -39,9 +39,7 @@ class FarmHrum extends Command
     {
         $this->farm(function () {
             /** Start Farming */
-            Farmer::farmer('hrum')
-                ->connected()
-                ->get()
+            $this->getFarmers()
                 ->each(function (Farmer $farmer) {
                     try {
 

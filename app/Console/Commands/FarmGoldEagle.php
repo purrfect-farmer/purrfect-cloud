@@ -76,9 +76,7 @@ class FarmGoldEagle extends Command
             if (!$this->getOtp()) return false;
 
             /** Start Farming */
-            Farmer::farmer('gold-eagle')
-                ->connected()
-                ->get()
+            $this->getFarmers()
                 ->each(function (Farmer $farmer) {
                     try {
                         /** Get Progress */

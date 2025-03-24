@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CloudFarmerController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\TelegramController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -19,6 +20,14 @@ Route::get('server', function () {
 
 /** Sync */
 Route::post('sync', [CloudFarmerController::class, 'sync']);
+
+
+/** Payment */
+Route::prefix('payments')->group(function () {
+    Route::post('initialize', [PaymentController::class, 'initialize']);
+    Route::post('verify', [PaymentController::class, 'verify']);
+});
+
 
 /** Telegram */
 Route::middleware('feature:farmer.enable_telegram_sessions')->prefix('telegram')->group(function () {

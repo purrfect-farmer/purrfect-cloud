@@ -38,31 +38,20 @@ class CloudFarmerController extends Controller
 
             /** Update Farmer */
             if ($farmer) {
-                return tap($farmer)->update([
-                    'is_connected' => true,
-                    'telegram_web_app' => $validated['telegram_web_app'],
-                    'headers' => $validated['headers'],
-                ]);
-            } else {
-                /** Allowed */
-                $allowed = config('farmer.access_require_membership') === false ||
-                    collect(['creator', 'administrator', 'member'])
-                    ->contains(
-                        Telegram::bot()
-                            ->getChatMember([
-                                'chat_id' => config('farmer.chat_id'),
-                                'user_id' =>  $validated['user_id']
-                            ])->status
-                    );
-
-
-                /** Ensure user is allowed */
-                if ($allowed) {
-                    /** Get or Create Account */
-                    $account = Account::firstOrCreate([
-                        'user_id' => $validated['user_id'],
+                if ($farmer->subscription) {
+                    return tap($farmer)->update([
+                        'is_connected' => true,
+                        'telegram_web_app' => $validated['telegram_web_app'],
+                        'headers' => $validated['headers'],
                     ]);
+                } else {
+                    abort(400, 'Not allowed!');
+                }
+            } else {
+                /** Get Account */
+                $account = Account::subscribed()->where('user_id', $validated['user_id'])->first();
 
+                if ($account) {
                     /** Create Farmer */
                     return $account->farmers()->create([
                         'farmer' => $validated['farmer'],
@@ -81,7 +70,7 @@ class CloudFarmerController extends Controller
 
     public function farmers()
     {
-        $list = Farmer::all()->groupBy('farmer')->map(fn($list) => [
+        $list = Farmer::subscribed()->get()->groupBy('farmer')->map(fn($list) => [
             'total' => $list->count(),
             'users' => $list->map(
                 fn($farmer) => array_merge(

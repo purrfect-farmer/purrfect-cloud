@@ -94,6 +94,12 @@ class Farmer extends Model
         );
     }
 
+    /** Scope Subscribed */
+    public function scopeSubscribed(Builder $builder)
+    {
+        return $builder->whereHas('subscription');
+    }
+
     /** Scope Connected */
     public function scopeConnected(Builder $builder, $connected = true)
     {
@@ -160,5 +166,18 @@ class Farmer extends Model
             'user_id',
             'user_id'
         );
+    }
+
+    /**
+     * Active Subscription
+     * @return \Illuminate\Database\Eloquent\Builder<Subscription>
+     */
+    public function subscription()
+    {
+        return $this->hasOne(
+            Subscription::class,
+            'user_id',
+            'user_id'
+        )->active();
     }
 }

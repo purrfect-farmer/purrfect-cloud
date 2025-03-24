@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Libraries\Madeline;
 use App\Libraries\Proxy;
+use App\Payment\Paystack;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Support\ServiceProvider;
 
@@ -16,6 +17,14 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->singleton('madeline', Madeline::class);
         $this->app->singleton('proxy', Proxy::class);
+        $this->app->singleton('paystack', function () {
+            $config = config('services.paystack');
+
+            return new Paystack(
+                publicKey: $config['public_key'],
+                secretKey: $config['secret_key'],
+            );
+        });
     }
 
     /**

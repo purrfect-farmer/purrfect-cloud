@@ -109,113 +109,111 @@ class FarmFunatic extends Command
 
     protected function retrieveFarmers()
     {
-        return Farmer::farmer('funatic')
-            ->connected()
-            ->get()->map(function (Farmer $farmer) {
-                try {
-                    /** Daily Bonus */
-                    $dailyBonus = $this->getApi($farmer)->get('https://api2.funtico.com/api/lucky-funatic/daily-bonus/config')->json('data');
+        return $this->getFarmers()->map(function (Farmer $farmer) {
+            try {
+                /** Daily Bonus */
+                $dailyBonus = $this->getApi($farmer)->get('https://api2.funtico.com/api/lucky-funatic/daily-bonus/config')->json('data');
 
-                    /** Claim Daily-Bonus */
-                    if ($dailyBonus['cooldown'] === 0) {
-                        $this->getApi($farmer)->withBody('')->post(
-                            'https://api2.funtico.com/api/lucky-funatic/daily-bonus/claim'
-                        );
-                    }
-
-                    /** Get Boosters */
-                    $boosters = $this->getApi($farmer)->get('https://clicker.api.funtico.com/boosters')->json('data');
-                    $availableBoosters = collect($boosters)->filter(
-                        fn($item) => (
-                            $item['price'] === 0 &&
-                            $item['isActive'] === false &&
-                            $item['cooldownLeft'] === 0 &&
-                            $item['usagesLeft'] !== 0
-                        )
+                /** Claim Daily-Bonus */
+                if ($dailyBonus['cooldown'] === 0) {
+                    $this->getApi($farmer)->withBody('')->post(
+                        'https://api2.funtico.com/api/lucky-funatic/daily-bonus/claim'
                     );
+                }
 
-                    /** Purchase Booster */
-                    if ($availableBoosters->isNotEmpty()) {
-                        $availableBoosters->each(function ($booster) use ($farmer) {
-                            /** Activate Booster */
-                            $this->getApi($farmer)->post(
-                                'https://clicker.api.funtico.com/boosters/activate',
-                                [
-                                    'boosterType' => $booster['type']
-                                ]
-                            );
-                        });
-                    }
+                /** Get Boosters */
+                $boosters = $this->getApi($farmer)->get('https://clicker.api.funtico.com/boosters')->json('data');
+                $availableBoosters = collect($boosters)->filter(
+                    fn($item) => (
+                        $item['price'] === 0 &&
+                        $item['isActive'] === false &&
+                        $item['cooldownLeft'] === 0 &&
+                        $item['usagesLeft'] !== 0
+                    )
+                );
 
-
-                    /** Get Game */
-                    $game = $this->getApi($farmer)->get('https://clicker.api.funtico.com/game')->json('data');
-
-                    /** Balance */
-                    $balance = $game['funz']['currentFunzBalance'];
-
-                    /** Cards */
-                    $cards = $this->getApi($farmer)->get('https://api2.funtico.com/api/lucky-funatic/cards')->json('data');
-
-                    /** Upgradeable Cards */
-                    $upgradableCards = collect($cards)->filter(
-                        fn($item) => (
-                            $item['buyOrUpgradeCost'] <= $balance &&
-                            $item['isMaxLevelReached'] === false &&
-                            $item['isComingSoon'] === false &&
-                            collect(
-                                $item['buyOrUpgradeRequirements']
-                            )
-                            ->every(
-                                fn($dep) => $dep['isMissing'] === false
-                            )
-                        )
-                    );
-
-                    /** Level Zero Cards */
-                    $levelZeroCards = $upgradableCards->filter(
-                        fn($card) => $card['level'] === null
-                    );
-
-                    /** Collection */
-                    $collection = $levelZeroCards->isNotEmpty()
-                        ? $levelZeroCards
-                        : $upgradableCards;
-
-                    /** Random Card */
-                    $card = $collection->isNotEmpty() ? $collection->random() : null;
-
-                    if ($card) {
-                        $isUpgrade = $card['level'] !== null;
-
-                        /** Buy or Upgrade Card */
+                /** Purchase Booster */
+                if ($availableBoosters->isNotEmpty()) {
+                    $availableBoosters->each(function ($booster) use ($farmer) {
+                        /** Activate Booster */
                         $this->getApi($farmer)->post(
-                            $isUpgrade ?
-                                'https://api2.funtico.com/api/lucky-funatic/upgrade-card' :
-                                'https://api2.funtico.com/api/lucky-funatic/buy-card',
+                            'https://clicker.api.funtico.com/boosters/activate',
                             [
-                                'cardId' => $card['id']
+                                'boosterType' => $booster['type']
                             ]
                         );
-                    }
-
-                    /** Energy */
-                    $energy = $game['energy']['currentEnergyBalance'];
-
-                    /** Return Energy and Farmer */
-                    if ($energy > 0) {
-                        return compact(
-                            'farmer',
-                            'energy'
-                        );
-                    }
-                } catch (\Throwable $e) {
-                    /** Log Error */
-                    $this->logError($e, $farmer);
-
-                    /** Refetch Auth or Disconnect Farmer */
-                    $this->refetchAuthOrDisconnect($farmer);
+                    });
                 }
-            })->filter();
+
+
+                /** Get Game */
+                $game = $this->getApi($farmer)->get('https://clicker.api.funtico.com/game')->json('data');
+
+                /** Balance */
+                $balance = $game['funz']['currentFunzBalance'];
+
+                /** Cards */
+                $cards = $this->getApi($farmer)->get('https://api2.funtico.com/api/lucky-funatic/cards')->json('data');
+
+                /** Upgradeable Cards */
+                $upgradableCards = collect($cards)->filter(
+                    fn($item) => (
+                        $item['buyOrUpgradeCost'] <= $balance &&
+                        $item['isMaxLevelReached'] === false &&
+                        $item['isComingSoon'] === false &&
+                        collect(
+                            $item['buyOrUpgradeRequirements']
+                        )
+                        ->every(
+                            fn($dep) => $dep['isMissing'] === false
+                        )
+                    )
+                );
+
+                /** Level Zero Cards */
+                $levelZeroCards = $upgradableCards->filter(
+                    fn($card) => $card['level'] === null
+                );
+
+                /** Collection */
+                $collection = $levelZeroCards->isNotEmpty()
+                    ? $levelZeroCards
+                    : $upgradableCards;
+
+                /** Random Card */
+                $card = $collection->isNotEmpty() ? $collection->random() : null;
+
+                if ($card) {
+                    $isUpgrade = $card['level'] !== null;
+
+                    /** Buy or Upgrade Card */
+                    $this->getApi($farmer)->post(
+                        $isUpgrade ?
+                            'https://api2.funtico.com/api/lucky-funatic/upgrade-card' :
+                            'https://api2.funtico.com/api/lucky-funatic/buy-card',
+                        [
+                            'cardId' => $card['id']
+                        ]
+                    );
+                }
+
+                /** Energy */
+                $energy = $game['energy']['currentEnergyBalance'];
+
+                /** Return Energy and Farmer */
+                if ($energy > 0) {
+                    return compact(
+                        'farmer',
+                        'energy'
+                    );
+                }
+            } catch (\Throwable $e) {
+                /** Log Error */
+                $this->logError($e, $farmer);
+
+                /** Refetch Auth or Disconnect Farmer */
+                $this->refetchAuthOrDisconnect($farmer);
+            }
+        })->filter();
     }
 }

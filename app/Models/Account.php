@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Facades\Proxy;
 use App\Helpers;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class Account extends Model
@@ -89,6 +90,44 @@ class Account extends Model
         );
     }
 
+    public function scopeSubscribed(Builder $builder)
+    {
+        return $builder->whereHas('activeSubscription');
+    }
+
+    /**
+     * Active Subscription
+     * @return \Illuminate\Database\Eloquent\Builder<Subscription>
+     */
+    public function activeSubscription()
+    {
+        return $this->hasOne(
+            Subscription::class,
+            'user_id',
+            'user_id'
+        )->active();
+    }
+
+
+    /** Subscriptions */
+    public function subscriptions()
+    {
+        return $this->hasMany(
+            Subscription::class,
+            'user_id',
+            'user_id'
+        );
+    }
+
+    /** Payments */
+    public function payments()
+    {
+        return $this->hasMany(
+            Payment::class,
+            'user_id',
+            'user_id'
+        );
+    }
 
     /** Farmers */
     public function farmers()

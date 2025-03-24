@@ -122,45 +122,43 @@ class FarmSlotcoin extends Command
 
     protected function retrieveFarmers()
     {
-        return Farmer::farmer('slotcoin')
-            ->connected()
-            ->get()->map(function (Farmer $farmer) {
-                try {
-                    /** Daily Check-In */
-                    $dailyCheckIn = $this->getApi($farmer)->post('https://api.slotcoin.app/v1/clicker/check-in/info')->json();
-                    $timeToClaim = intval($dailyCheckIn['time_to_claim']);
+        return $this->getFarmers()->map(function (Farmer $farmer) {
+            try {
+                /** Daily Check-In */
+                $dailyCheckIn = $this->getApi($farmer)->post('https://api.slotcoin.app/v1/clicker/check-in/info')->json();
+                $timeToClaim = intval($dailyCheckIn['time_to_claim']);
 
-                    /** Claim Daily Check-In */
-                    if ($timeToClaim <= 0) {
-                        $this->getApi($farmer)->post('https://api.slotcoin.app/v1/clicker/check-in/claim');
-                    }
-
-                    /** Get Info */
-                    $info = $this->getApi($farmer)->post('https://api.slotcoin.app/v1/clicker/api/info')->json();
-
-                    /** Tickets */
-                    $ticketsCount = intval($info['user']['daily_roulette_count']);
-
-                    /** Energy */
-                    $energy = intval($info['user']['spins']);
-                    $bid = intval($info['user']['bid']);
-
-                    /** Return Energy and Farmer */
-                    if ($energy >= $bid || $ticketsCount > 0) {
-                        return compact(
-                            'farmer',
-                            'ticketsCount',
-                            'energy',
-                            'bid',
-                        );
-                    }
-                } catch (\Throwable $e) {
-                    /** Log Error */
-                    $this->logError($e, $farmer);
-
-                    /** Refetch Auth or Disconnect Farmer */
-                    $this->refetchAuthOrDisconnect($farmer);
+                /** Claim Daily Check-In */
+                if ($timeToClaim <= 0) {
+                    $this->getApi($farmer)->post('https://api.slotcoin.app/v1/clicker/check-in/claim');
                 }
-            })->filter();
+
+                /** Get Info */
+                $info = $this->getApi($farmer)->post('https://api.slotcoin.app/v1/clicker/api/info')->json();
+
+                /** Tickets */
+                $ticketsCount = intval($info['user']['daily_roulette_count']);
+
+                /** Energy */
+                $energy = intval($info['user']['spins']);
+                $bid = intval($info['user']['bid']);
+
+                /** Return Energy and Farmer */
+                if ($energy >= $bid || $ticketsCount > 0) {
+                    return compact(
+                        'farmer',
+                        'ticketsCount',
+                        'energy',
+                        'bid',
+                    );
+                }
+            } catch (\Throwable $e) {
+                /** Log Error */
+                $this->logError($e, $farmer);
+
+                /** Refetch Auth or Disconnect Farmer */
+                $this->refetchAuthOrDisconnect($farmer);
+            }
+        })->filter();
     }
 }

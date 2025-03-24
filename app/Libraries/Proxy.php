@@ -43,7 +43,7 @@ class Proxy
     public function getRandomUnused()
     {
         /** Get Proxies */
-        $proxies = Account::pluck('proxy');
+        $proxies = Account::subscribed()->pluck('proxy');
 
         /** Available Proxies */
         $available = $this->getAvailable($proxies);
