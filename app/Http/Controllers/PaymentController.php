@@ -8,6 +8,8 @@ use App\Models\Account;
 use App\Models\Payment;
 use App\Rules\ValidWebAppData;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Telegram\Bot\Laravel\Facades\Telegram;
 
 class PaymentController extends Controller
 {
@@ -69,8 +71,6 @@ class PaymentController extends Controller
                         'ends_at' => $subscription->ends_at->addMonth()
                     ]
                 )->save();
-
-                return $payment;
             } else {
                 /** Create Subscription */
                 $account->subscriptions()->create([
@@ -78,10 +78,23 @@ class PaymentController extends Controller
                     'starts_at' => now(),
                     'ends_at' => now()->addMonth(),
                 ]);
-
-                /** Return Payment */
-                return $payment;
             }
+
+            /** Add Member to Group */
+            try {
+                if (!Helpers::isGroupMember($account->user_id)) {
+                    Helpers::sendInviteLink($account->user_id);
+                }
+            } catch (\Throwable $e) {
+                /** Log Error */
+                Log::error('Add Member to Group', [
+                    'account' => $account,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+
+            /** Return Payment */
+            return $payment;
         }
     }
 }

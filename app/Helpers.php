@@ -488,4 +488,51 @@ class Helpers
             'only_if_banned' => true,
         ]);
     }
+
+    /**
+     * Is Group Member
+     * @param int|string $id
+     * @return bool
+     */
+    public static function isGroupMember($id)
+    {
+        return collect(['creator', 'administrator', 'member'])
+            ->contains(
+                Telegram::bot()
+                    ->getChatMember([
+                        'chat_id' => config('farmer.chat_id'),
+                        'user_id' =>  $id
+                    ])->status
+            );
+    }
+
+
+    /**
+     * Create Invite Link
+     * @param int|string $id
+     * @return \Telegram\Bot\Objects\ChatInviteLink
+     */
+    public static function createInviteLink($id)
+    {
+        return Telegram::bot()->createChatInviteLink([
+            'chat_id' => config('farmer.chat_id'),
+            'name' =>  'user-' . $id,
+            'member_limit' => 1
+        ]);
+    }
+
+
+    /**
+     * Send Invite Link
+     * @param int|string $id
+     */
+    public static function sendInviteLink($id)
+    {
+        $result = static::createInviteLink($id);
+
+        Telegram::bot()->sendMessage([
+            'chat_id' => $id,
+            'text' => $result->invite_link
+        ]);
+    }
 }
