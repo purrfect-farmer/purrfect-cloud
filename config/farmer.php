@@ -33,6 +33,12 @@ return [
             'thread_id' => env('FARMER_DIGGER_THREAD_ID', ''),
             'telegram_link' => 'https://t.me/diggerton_bot/dig?startapp=bro1147265290'
         ],
+        'match-quest' => [
+            'title' => '🌾 MatchQuest Farmer',
+            'enabled' => env('FARMER_MATCH_QUEST_ENABLED', true),
+            'thread_id' => env('FARMER_MATCH_QUEST_THREAD_ID', ''),
+            'telegram_link' => 'https://t.me/MatchQuestBot/start?startapp=775f1cc48a46ce5221f1d9476233dc33'
+        ],
         'hrum' => [
             'title' => '🥠 Hrum Farmer',
             'enabled' => env('FARMER_HRUM_ENABLED', true),
