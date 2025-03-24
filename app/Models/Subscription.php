@@ -77,7 +77,7 @@ class Subscription extends Model
 
         /** Message */
         $message = $active ?
-            'Cloud Subscription has been activated, you can now use all available Cloud Services. <b>(Subscription Ends: ' . $this->ends_at . ')</b>' :
+            'Cloud Subscription has been activated, you can now use all available Cloud Services. <b>(Subscription Ends: ' . $this->ends_at->format('l - jS M, Y') . ')</b>' :
             'Cloud Subscription has expired, all services has been suspended. Kindly make payment to resume.';
 
         /** Date */

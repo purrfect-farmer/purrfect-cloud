@@ -18,14 +18,14 @@ class CloudFarmerController extends Controller
      * Get Subscription
      * @param \Illuminate\Http\Request $request
      */
-    protected function subscription(Request $request)
+    public function subscription(Request $request)
     {
         $validated = $request->validate([
             'auth' => ['required', 'string', new ValidWebAppData],
         ]);
 
         $data = Helpers::getWebAppData($validated['auth']);
-        $account = Account::where(
+        $account = Account::with('activeSubscription')->where(
             'user_id',
             $data['user']['id']
         )->first();
