@@ -130,13 +130,19 @@ trait FarmerTrait
     protected function logError(\Throwable $e, ?Farmer $farmer = null)
     {
         /** Log Error */
-        Log::error($this->getTitle() . ' Error', [
-            'user_id' => $farmer->user_id ?? null,
-            'username' => $farmer->telegram_web_app['initDataUnsafe']['user']['username'] ?? null,
-            'message' => $e->getMessage(),
-            'file' => $e->getFile(),
-            'line' => $e->getLine(),
-        ]);
+        Log::error($this->getTitle() . ' Error', array_merge(
+            $farmer ?
+                [
+                    'user_id' => $farmer->user_id ?? null,
+                    'username' => $farmer->telegram_web_app['initDataUnsafe']['user']['username'] ?? null,
+                ] : [],
+            [
+
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]
+        ));
     }
 
     /**
