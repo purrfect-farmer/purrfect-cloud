@@ -422,4 +422,49 @@ class Helpers
             'start_param' =>   $query['start'] ?? $query['startapp'] ?? '',
         ];
     }
+
+    /**
+     * Check if is valid WebAppData
+     * @param string $webAppData
+     * @return bool
+     */
+    public static function isValidWebAppData(string $webAppData)
+    {
+        /** Calculate Secret */
+        $secret = hash_hmac(
+            "sha256",
+            env('TELEGRAM_BOT_TOKEN', ''),
+            "WebAppData",
+            true
+        );
+
+        parse_str($webAppData, $data);
+
+        $hash = $data["hash"];
+        $check = collect($data)
+            ->except('hash')
+            ->sortKeys()
+            ->map(fn($v, $k) => $k . '=' . $v)
+            ->implode("\n");
+        $compare = hash_hmac('sha256', $check, $secret);
+
+        return hash_equals($hash, $compare);
+    }
+
+
+    /**
+     * Get WebAppData
+     * @param string $webAppData
+     * @return array
+     */
+    public static function getWebAppData(string $webAppData)
+    {
+        /** Parse Data */
+        parse_str($webAppData, $data);
+
+        return [
+            ...$data,
+            'user' => json_decode($data['user'], true),
+        ];
+    }
 }

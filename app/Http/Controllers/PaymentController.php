@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Facades\Paystack;
+use App\Helpers;
 use App\Models\Account;
 use App\Models\Payment;
+use App\Rules\ValidWebAppData;
 use Illuminate\Http\Request;
 
 class PaymentController extends Controller
@@ -12,15 +14,17 @@ class PaymentController extends Controller
     public function initialize(Request $request)
     {
         $validated = $request->validate([
-            'user_id' => ['required', 'integer'],
+            'auth' => ['required', 'string', new ValidWebAppData],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255'],
         ]);
+
+        $data = Helpers::getWebAppData($validated['auth']);
 
         return Paystack::initialize([
             'amount' => config('farmer.subscription_amount'),
             'email' => $validated['email'],
             'metadata' => [
-                'user_id' => $validated['user_id'],
+                'user_id' => $data['user']['id'],
             ]
         ]);
     }

@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Facades\Madeline;
+use App\Helpers;
 use App\Models\Account;
 use App\Rules\ExistingMadelineSession;
+use App\Rules\ValidWebAppData;
 use Illuminate\Http\Request;
 use Propaganistas\LaravelPhone\Rules\Phone;
 
@@ -118,11 +120,14 @@ class TelegramController extends Controller
     public function check(Request $request)
     {
         $validated = $request->validate([
-            'session' => ['required', 'string', 'alpha_num:ascii', 'size:16'],
+            'auth' => ['required', 'string', new ValidWebAppData],
         ]);
 
+        $data = Helpers::getWebAppData($validated['auth']);
+        $account = Account::subscribed()->where('user_id', $data['user']['id'])->first();
+
         return [
-            'status' => Madeline::sessionExists($validated['session']),
+            'session' => $account->session_id ?? null,
         ];
     }
 
