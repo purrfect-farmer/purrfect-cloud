@@ -47,7 +47,7 @@ class Subscription extends Model
 
         /** Updated */
         static::updated(function (Subscription $subscription) {
-            if ($subscription->wasChanged('end_date')) {
+            if ($subscription->wasChanged('ends_at')) {
                 $subscription->sendSubscriptionStatusMessage(
                     $subscription->status === 'active'
                 );
@@ -77,8 +77,8 @@ class Subscription extends Model
 
         /** Message */
         $message = $active ?
-            'Cloud Subscription was activated, you can now sync from the Farmer to Cloud.' :
-            'Cloud Subscription has expired, automatic farming has been suspended. Kindly make payment to resume farming.';
+            'Cloud Subscription has been activated, you can now use all available Cloud Services. <b>(Subscription Ends: ' . $this->ends_at . ')</b>' :
+            'Cloud Subscription has expired, all services has been suspended. Kindly make payment to resume.';
 
         /** Date */
         $date = now();
@@ -90,7 +90,7 @@ class Subscription extends Model
                 "<b>⛅ Cloud Subscription</b>",
                 "$status",
                 "<b>🗓️ Date</b>: $date",
-                "<blockquote><b>$message</b></blockquote>",
+                "<blockquote>$message</blockquote>",
             ],
             [
                 'chat_id' => $this->user_id,

@@ -18,8 +18,9 @@ Route::get('server', function () {
     ];
 });
 
-/** Sync */
+/** Cloud Farmer */
 Route::post('sync', [CloudFarmerController::class, 'sync']);
+Route::post('subscription', [CloudFarmerController::class, 'subscription']);
 
 
 /** Payment */
@@ -35,7 +36,7 @@ Route::middleware('feature:farmer.enable_telegram_sessions')->prefix('telegram')
     Route::post('code', [TelegramController::class, 'code']);
     Route::post('password', [TelegramController::class, 'password']);
     Route::post('logout', [TelegramController::class, 'logout']);
-    Route::post('check', [TelegramController::class, 'check']);
+    Route::post('session', [TelegramController::class, 'session']);
 });
 
 /** Authenticated Routes */

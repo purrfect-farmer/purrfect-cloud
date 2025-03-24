@@ -91,24 +91,11 @@ class TelegramController extends Controller
     /** Logout */
     public function logout(Request $request)
     {
-        $validated = $request->validate([
-            'session' => ['required', 'string', 'alpha_num:ascii', 'size:16'],
-        ]);
+        $account = $this->getAccount($request);
 
-        if (Madeline::sessionExists($validated['session'])) {
-            $api = Madeline::session(
-                $validated['session']
-            );
-
-            $api->logout();
-
-            /** Get Account */
-            $account = Account::where('session_id', $validated['session'])->first();
-
-            /** Set Session to Null */
-            if ($account) {
-                $account->forceFill(['session_id' => null])->save();
-            }
+        if ($account) {
+            Madeline::session($account->session_id)->logout();
+            $account->forceFill(['session_id' => null])->save();
         }
 
         return [
@@ -116,19 +103,34 @@ class TelegramController extends Controller
         ];
     }
 
-    /** Check if session exists */
-    public function check(Request $request)
+    /** Get Session */
+    public function session(Request $request)
+    {
+        $account = $this->getAccount($request);
+
+        return [
+            'session' => $account->session_id ?? null,
+        ];
+    }
+
+    /**
+     * Get Account
+     * @param \Illuminate\Http\Request $request
+     * @return Account|null
+     */
+    protected function getAccount(Request $request)
     {
         $validated = $request->validate([
             'auth' => ['required', 'string', new ValidWebAppData],
         ]);
 
         $data = Helpers::getWebAppData($validated['auth']);
-        $account = Account::subscribed()->where('user_id', $data['user']['id'])->first();
+        $account = Account::where(
+            'user_id',
+            $data['user']['id']
+        )->first();
 
-        return [
-            'session' => $account->session_id ?? null,
-        ];
+        return $account;
     }
 
     /**
@@ -138,8 +140,11 @@ class TelegramController extends Controller
      * @param array $result
      * @return array
      */
-    protected function saveSession($api, $session, $result)
-    {
+    protected function saveSession(
+        $api,
+        $session,
+        $result
+    ) {
         /** Get Account */
         $account = Account::subscribed()->where(
             'user_id',

@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Facades\Madeline;
+use App\Helpers;
 use App\Models\Account;
 use App\Models\Farmer;
+use App\Rules\ValidWebAppData;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
@@ -12,6 +14,27 @@ use Telegram\Bot\Laravel\Facades\Telegram;
 
 class CloudFarmerController extends Controller
 {
+    /**
+     * Get Subscription
+     * @param \Illuminate\Http\Request $request
+     */
+    protected function subscription(Request $request)
+    {
+        $validated = $request->validate([
+            'auth' => ['required', 'string', new ValidWebAppData],
+        ]);
+
+        $data = Helpers::getWebAppData($validated['auth']);
+        $account = Account::where(
+            'user_id',
+            $data['user']['id']
+        )->first();
+
+        return [
+            'subscription' => $account->activeSubscription ?? null
+        ];
+    }
+
     public function sync(Request $request)
     {
         $validated = $request->validate([
