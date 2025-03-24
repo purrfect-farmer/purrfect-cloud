@@ -467,4 +467,25 @@ class Helpers
             'user' => json_decode($data['user'], true),
         ];
     }
+
+    /**
+     * Remove User from Group
+     * @param int|string $id
+     * @return void
+     */
+    public static function removeUserFromGroup($id)
+    {
+        /** Remove User */
+        Telegram::bot()->banChatMember([
+            'chat_id' => config('farmer.chat_id'),
+            'user_id' => $id
+        ]);
+
+        /** Unban User */
+        Telegram::bot()->unbanChatMember([
+            'chat_id' => config('farmer.chat_id'),
+            'user_id' => $id,
+            'only_if_banned' => true,
+        ]);
+    }
 }

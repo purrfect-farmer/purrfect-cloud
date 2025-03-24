@@ -55,7 +55,7 @@ class CloudFarmerController extends Controller
 
         try {
             /** Get Farmer */
-            $farmer = Farmer::farmer($validated['farmer'])
+            $farmer = Farmer::with('subscription')->farmer($validated['farmer'])
                 ->userId($validated['user_id'])
                 ->first();
 
@@ -140,18 +140,9 @@ class CloudFarmerController extends Controller
         }
 
         try {
-            /** Remove User */
-            Telegram::bot()->banChatMember([
-                'chat_id' => config('farmer.chat_id'),
-                'user_id' => $account->user_id
-            ]);
-
-            /** Unban User */
-            Telegram::bot()->unbanChatMember([
-                'chat_id' => config('farmer.chat_id'),
-                'user_id' => $account->user_id,
-                'only_if_banned' => true,
-            ]);
+            Helpers::removeUserFromGroup(
+                $account->user_id
+            );
         } catch (\Throwable $e) {
             /** Log Error */
             Log::error('Kick Member', [
