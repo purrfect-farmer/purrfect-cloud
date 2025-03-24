@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Helpers;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
@@ -33,6 +34,73 @@ class Subscription extends Model
         ];
     }
 
+
+    /**
+     * The "booted" method of the model.
+     */
+    protected static function booted(): void
+    {
+        /** Created */
+        static::created(function (Subscription $subscription) {
+            $subscription->sendSubscriptionStatusMessage(true);
+        });
+
+        /** Updated */
+        static::updated(function (Subscription $subscription) {
+            if ($subscription->wasChanged('end_date')) {
+                $subscription->sendSubscriptionStatusMessage(
+                    $subscription->status === 'active'
+                );
+            }
+        });
+    }
+
+
+
+    /**
+     * Send Status Message
+     * @param bool $active
+     * @return void
+     */
+    public function sendSubscriptionStatusMessage($active = true)
+    {
+        /** Message Key */
+        $key =  implode(':', [
+            'cloud-subscription',
+            $this->user_id
+        ]);
+
+        /** Status */
+        $status = $active ?
+            '<b>✅ Status:</b> Activated' :
+            '<b>❌ Status:</b> Expired';
+
+        /** Message */
+        $message = $active ?
+            'Cloud Subscription was activated, you can now sync from the Farmer to Cloud.' :
+            'Cloud Subscription has expired, automatic farming has been suspended. Kindly make payment to resume farming.';
+
+        /** Date */
+        $date = now();
+
+        /** Send Message */
+        Helpers::sendCloudFarmerMessage(
+            $key,
+            [
+                "<b>⛅ Cloud Subscription</b>",
+                "$status",
+                "<b>🗓️ Date</b>: $date",
+                "<blockquote><b>$message</b></blockquote>",
+            ],
+            [
+                'chat_id' => $this->user_id,
+                'disable_notification' => false,
+            ],
+            false
+        );
+    }
+
+    /** Scope Active */
     public function scopeActive(Builder $builder)
     {
         return $builder->where('status', 'active')
