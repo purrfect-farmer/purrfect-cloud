@@ -18,7 +18,7 @@ class FarmMatchQuest extends Command
      *
      * @var string
      */
-    protected $signature = 'farm:match-quest';
+    protected $signature = 'farm:matchquest';
 
     /**
      * The console command description.
