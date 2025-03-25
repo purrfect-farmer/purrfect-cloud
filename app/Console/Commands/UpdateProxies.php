@@ -13,7 +13,7 @@ class UpdateProxies extends Command
      *
      * @var string
      */
-    protected $signature = 'farmer:update-proxies';
+    protected $signature = 'app:update-proxies';
 
     /**
      * The console command description.

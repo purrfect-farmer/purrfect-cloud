@@ -10,10 +10,10 @@ Artisan::command('inspire', function () {
 
 
 /** Expire Subscriptions */
-Schedule::command('farmer:expire-subscriptions')->daily();
+Schedule::command('app:expire-subscriptions')->daily();
 
 /** Update Proxies */
-Schedule::command('farmer:update-proxies')->hourly();
+Schedule::command('app:update-proxies')->hourly();
 
 /** Farm enabled drops every 10 minutes */
 collect(config('farmer.drops'))

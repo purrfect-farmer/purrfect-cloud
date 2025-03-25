@@ -15,7 +15,7 @@ class ExpireSubscriptions extends Command
      *
      * @var string
      */
-    protected $signature = 'farmer:expire-subscriptions';
+    protected $signature = 'app:expire-subscriptions';
 
     /**
      * The console command description.
