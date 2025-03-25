@@ -14,6 +14,7 @@ Route::get('server', function () {
         'farmers' => collect(config('farmer.drops'))
             ->filter(fn($drop) => $drop['enabled'])
             ->keys(),
+        'is_payments_enabled' => config('farmer.enable_payments'),
         'is_telegram_sessions_enabled' => config('farmer.enable_telegram_sessions')
     ];
 });
