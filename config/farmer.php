@@ -12,6 +12,7 @@ return [
 
     'log_api_calls' => env('FARMER_LOG_API_CALLS', true),
 
+    'enable_subscriptions' => env('FARMER_ENABLE_SUBSCRIPTIONS', true),
     'subscription_amount' => env('FARMER_SUBSCRIPTION_AMOUNT', 1550),
 
     'proxy' => [

@@ -24,7 +24,7 @@ Route::post('subscription', [CloudFarmerController::class, 'subscription']);
 
 
 /** Payment */
-Route::prefix('payments')->group(function () {
+Route::middleware('feature:farmer.enable_subscriptions')->prefix('payments')->group(function () {
     Route::post('initialize', [PaymentController::class, 'initialize'])->name('api.payments.initialize');
     Route::post('verify', [PaymentController::class, 'verify'])->name('api.payments.verify');
 });
