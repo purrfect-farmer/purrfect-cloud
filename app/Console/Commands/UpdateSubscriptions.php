@@ -42,7 +42,7 @@ class UpdateSubscriptions extends Command
             }
         });
 
-        $this->info('Subscriptions successfully created!');
+        $this->info('Subscriptions successfully updated!');
         $this->info($date);
     }
 }
