@@ -100,6 +100,7 @@ class CloudFarmerController extends Controller
      */
     public function farmers()
     {
+        $displayTitle = config('farmer.display_farmer_title');
         $list = Farmer::with('account')
             ->subscribed()
             ->get()
@@ -117,12 +118,12 @@ class CloudFarmerController extends Controller
                             'photo_url' => $farmer->telegram_web_app['initDataUnsafe']['user']['photo_url'] ?? null,
                             'updated_at' => $farmer->updated_at
                         ],
-                        config('farmer.display_farmer_title') ? [
+                        $displayTitle ? [
                             'title' => $farmer->telegram_web_app['farmerTitle'] ?? 'TGUser',
                         ] : []
                     )
                 )->sortBy(
-                    config('farmer.display_farmer_title') ? 'title' : 'id'
+                    $displayTitle ? 'title' : 'username'
                 )->values()
             ]);
 
