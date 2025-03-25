@@ -10,7 +10,6 @@ use App\Rules\ValidWebAppData;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
-use Telegram\Bot\Laravel\Facades\Telegram;
 
 class CloudFarmerController extends Controller
 {
@@ -35,6 +34,11 @@ class CloudFarmerController extends Controller
         ];
     }
 
+    /**
+     *  Sync to Cloud
+     * @param \Illuminate\Http\Request $request
+     * @return bool|Farmer|mixed
+     */
     public function sync(Request $request)
     {
         $validated = $request->validate([
@@ -91,32 +95,45 @@ class CloudFarmerController extends Controller
         }
     }
 
+    /**
+     * Get Farmers
+     */
     public function farmers()
     {
-        $list = Farmer::subscribed()->get()->groupBy('farmer')->map(fn($list) => [
-            'total' => $list->count(),
-            'users' => $list->map(
-                fn($farmer) => array_merge(
-                    [
-                        'id' => $farmer->id,
-                        'is_connected' => $farmer->is_connected,
-                        'user_id' => $farmer->user_id,
-                        'username' => $farmer->telegram_web_app['initDataUnsafe']['user']['username'] ?? $farmer->user_id,
-                        'photo_url' => $farmer->telegram_web_app['initDataUnsafe']['user']['photo_url'] ?? null,
-                        'updated_at' => $farmer->updated_at
-                    ],
-                    config('farmer.display_farmer_title') ? [
-                        'title' => $farmer->telegram_web_app['farmerTitle'] ?? 'TGUser',
-                    ] : []
-                )
-            )->sortBy(
-                config('farmer.display_farmer_title') ? 'title' : 'id'
-            )->values()
-        ]);
+        $list = Farmer::with('account')
+            ->subscribed()
+            ->get()
+            ->groupBy('farmer')
+            ->map(fn($list) => [
+                'total' => $list->count(),
+                'users' => $list->map(
+                    fn($farmer) => array_merge(
+                        [
+                            'id' => $farmer->id,
+                            'is_connected' => $farmer->is_connected,
+                            'session_id' => $farmer->account->session_id,
+                            'user_id' => $farmer->user_id,
+                            'username' => $farmer->telegram_web_app['initDataUnsafe']['user']['username'] ?? $farmer->user_id,
+                            'photo_url' => $farmer->telegram_web_app['initDataUnsafe']['user']['photo_url'] ?? null,
+                            'updated_at' => $farmer->updated_at
+                        ],
+                        config('farmer.display_farmer_title') ? [
+                            'title' => $farmer->telegram_web_app['farmerTitle'] ?? 'TGUser',
+                        ] : []
+                    )
+                )->sortBy(
+                    config('farmer.display_farmer_title') ? 'title' : 'id'
+                )->values()
+            ]);
 
         return $list;
     }
 
+    /**
+     *  Disconnect Farmer
+     * @param \App\Models\Farmer $farmer
+     * @return mixed|\Illuminate\Http\Response
+     */
     public function disconnect(Farmer $farmer)
     {
         /** Delete the Farmer */
@@ -139,6 +156,7 @@ class CloudFarmerController extends Controller
             }
         }
 
+        /** Remove User */
         try {
             Helpers::removeUserFromGroup(
                 $account->user_id
