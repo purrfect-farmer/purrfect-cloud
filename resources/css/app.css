@@ -1,0 +1,9 @@
+@import "@fontsource/turret-road/400";
+@import "@fontsource/turret-road/700";
+
+@import "tailwindcss";
+@source "../views";
+
+@theme {
+    --font-turret-road: Turret Road;
+}

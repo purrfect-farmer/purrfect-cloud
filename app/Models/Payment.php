@@ -17,6 +17,15 @@ class Payment extends Model
         'data',
     ];
 
+    /**
+     * The attributes that should be hidden for serialization.
+     *
+     * @var list<string>
+     */
+    protected $hidden = [
+        'data',
+    ];
+
 
     /**
      * Get the attributes that should be cast.
