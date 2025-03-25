@@ -20,7 +20,7 @@ class UpdateAccountSubscription extends Command
      *
      * @var string
      */
-    protected $description = 'Update Subscriptions';
+    protected $description = 'Update Account Subscription';
 
     /**
      * Execute the console command.
@@ -31,10 +31,35 @@ class UpdateAccountSubscription extends Command
         $date = Carbon::createFromDate($this->argument('date'));
 
         /** Account */
-        $account = Account::with('activeSubscription')->where('user_id', $this->argument('user_id'))->firstOrFail();
+        $account = Account::with('activeSubscription')->where(
+            'user_id',
+            $this->argument('user_id')
+        )->first();
+
+        if (!$account) {
+            /** Get Choice */
+            $choice = $this->choice(
+                'Account does not exist! Would you like to create it?',
+                ['Yes', 'No'],
+                0
+            );
+
+            /** Create Account */
+            if ($choice === 'Yes') {
+                /** Create */
+                $account = Account::create(
+                    ['user_id' => $this->argument('user_id')]
+                );
+
+                /** Show Info */
+                $this->info('Account was successfully created!');
+            } else {
+                return $this->warn('Nothing to do!');
+            }
+        }
 
         /** Update Subscription */
-        if ($account->activeSubscription) {
+        if ($account->wasRecentlyCreated === false && $account->activeSubscription) {
             $account->activeSubscription->forceFill(['ends_at' => $date])->save();
         } else {
             $account->subscriptions()->create([
