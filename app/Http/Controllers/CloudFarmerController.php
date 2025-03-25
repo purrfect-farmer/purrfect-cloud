@@ -114,7 +114,7 @@ class CloudFarmerController extends Controller
                             'is_connected' => $farmer->is_connected,
                             'session_id' => $farmer->account->session_id,
                             'user_id' => $farmer->user_id,
-                            'username' => (string) $farmer->telegram_web_app['initDataUnsafe']['user']['username'] ?? $farmer->user_id,
+                            'username' => strval($farmer->telegram_web_app['initDataUnsafe']['user']['username'] ?? $farmer->user_id),
                             'photo_url' => $farmer->telegram_web_app['initDataUnsafe']['user']['photo_url'] ?? null,
                             'updated_at' => $farmer->updated_at
                         ],
