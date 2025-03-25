@@ -4,7 +4,6 @@ namespace App\Console\Commands;
 
 use App\Models\Account;
 use Illuminate\Console\Command;
-use Illuminate\Support\Carbon;
 
 class UpdateSubscriptions extends Command
 {
@@ -27,7 +26,8 @@ class UpdateSubscriptions extends Command
      */
     public function handle()
     {
-        $date = Carbon::createFromDate($this->argument('date'));
+        /** Date */
+        $date = now()->setDateFrom($this->argument('date'))->startOfDay();
 
         /** Create Subscriptions */
         Account::with('activeSubscription')->get()->each(function ($account) use ($date) {
