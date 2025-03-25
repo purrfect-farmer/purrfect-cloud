@@ -49,7 +49,7 @@ class PaymentController extends Controller
 
             /** Compare Result */
             if ($result['status'] !== 'success') {
-                abort(403, 'Payment not found');
+                return response($result)->setStatusCode(403, 'Payment not found / successful');
             }
 
             /** Find or Create Account */
