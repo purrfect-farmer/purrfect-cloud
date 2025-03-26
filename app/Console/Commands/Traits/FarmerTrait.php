@@ -157,8 +157,21 @@ trait FarmerTrait
     /** Get Title */
     protected function getTitle()
     {
-        return config('farmer.drops')[$this->getKey()]['title'];
+        return $this->getConfig()['title'];
     }
+
+    /** Get Option */
+    protected function getOption($option)
+    {
+        return $this->getConfig()['options'][$option];
+    }
+
+    /** Get Config */
+    protected function getConfig()
+    {
+        return config('farmer.drops')[$this->getKey()];
+    }
+
 
 
     /**

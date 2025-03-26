@@ -104,7 +104,10 @@ class FarmGoldEagle extends Command
                         }
 
                         /** Claim to Wallet */
-                        if ($progress['coins_amount'] >= 50_000) {
+                        if (
+                            $this->getOption('automatic_claim') &&
+                            $progress['coins_amount'] >= 50_000
+                        ) {
                             $tasks = $this->getApi($farmer)
                                 ->get('https://gold-eagle-api.fly.dev/task/my/available')->json();
 
