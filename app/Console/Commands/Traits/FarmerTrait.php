@@ -5,7 +5,6 @@ namespace App\Console\Commands\Traits;
 use App\Facades\Madeline;
 use App\Helpers;
 use App\Models\Farmer;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Sleep;
@@ -20,32 +19,30 @@ trait FarmerTrait
      */
     public function farm($callback)
     {
-        Cache::lock($this->signature)->get(function () use ($callback) {
-            try {
-                /** Start Date */
-                $startDate = now();
+        try {
+            /** Start Date */
+            $startDate = now();
 
-                /** Run Callback */
-                $result = call_user_func($callback);
+            /** Run Callback */
+            $result = call_user_func($callback);
 
-                if ($result !== false) {
-                    /** Update Telegram Data */
-                    $this->updateTelegramData();
+            if ($result !== false) {
+                /** Update Telegram Data */
+                $this->updateTelegramData();
 
-                    /** End Date */
-                    $endDate = now();
+                /** End Date */
+                $endDate = now();
 
-                    /** Send Message */
-                    Helpers::sendFarmingCompletedMessage(
-                        $this->getKey(),
-                        $startDate,
-                        $endDate
-                    );
-                }
-            } catch (\Throwable $e) {
-                $this->logError($e);
+                /** Send Message */
+                Helpers::sendFarmingCompletedMessage(
+                    $this->getKey(),
+                    $startDate,
+                    $endDate
+                );
             }
-        });
+        } catch (\Throwable $e) {
+            $this->logError($e);
+        }
     }
 
     /** Get Base Headers */

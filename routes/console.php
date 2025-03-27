@@ -19,4 +19,9 @@ Schedule::command('app:update-proxies')->hourly();
 collect(config('farmer.drops'))
     ->filter(fn($drop) => $drop['enabled'])
     ->keys()
-    ->each(fn($key) => Schedule::command('farm:' . $key)->everyTenMinutes());
+    ->each(
+        fn($key) => Schedule::command('farm:' . $key)
+            ->everyTenMinutes()
+            ->withoutOverlapping()
+            ->runInBackground()
+    );
