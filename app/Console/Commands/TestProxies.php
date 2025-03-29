@@ -13,7 +13,7 @@ class TestProxies extends Command
      *
      * @var string
      */
-    protected $signature = 'farmer:test-proxies';
+    protected $signature = 'app:test-proxies';
 
     /**
      * The console command description.
