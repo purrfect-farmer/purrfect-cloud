@@ -12,9 +12,6 @@ Artisan::command('inspire', function () {
 /** Expire Subscriptions */
 Schedule::command('app:expire-subscriptions')->daily();
 
-/** Cleanup Sessions */
-Schedule::command('telegram:cleanup-sessions')->daily();
-
 /** Update Proxies */
 Schedule::command('app:update-proxies')->hourly();
 
