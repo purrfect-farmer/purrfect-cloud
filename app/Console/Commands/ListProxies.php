@@ -12,7 +12,7 @@ class ListProxies extends Command
      *
      * @var string
      */
-    protected $signature = 'farmer:list-proxies';
+    protected $signature = 'app:list-proxies';
 
     /**
      * The console command description.

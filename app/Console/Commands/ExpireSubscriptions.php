@@ -34,11 +34,11 @@ class ExpireSubscriptions extends Command
             ->where('status', 'active')
             ->get()
             ->each(function (Subscription $subscription) {
-                /** Get Account */
-                $account = $subscription->account;
-
                 /** Update The Subscription */
                 $subscription->forceFill(['status' => 'expired'])->save();
+
+                /** Get Account */
+                $account = $subscription->account;
 
                 /** Logout the Telegram Session */
                 if ($account->session_id) {
@@ -50,12 +50,15 @@ class ExpireSubscriptions extends Command
                             'account' => $account,
                             'error' => $e->getMessage(),
                         ]);
+                    } finally {
+                        /** Remove Session */
+                        $account->forceFill(['session_id' => null])->save();
                     }
                 }
 
                 /** Remove User From Group */
                 try {
-                    Helpers::removeUserFromGroup($subscription->user_id);
+                    Helpers::removeUserFromGroup($account->user_id);
                 } catch (\Throwable $e) {
                     /** Log Error */
                     Log::error('Kick Member', [
