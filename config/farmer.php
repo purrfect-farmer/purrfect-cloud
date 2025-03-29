@@ -50,7 +50,6 @@ return [
             'thread_id' => env('FARMER_MATCHQUEST_THREAD_ID', ''),
             'telegram_link' => 'https://t.me/MatchQuestBot/start?startapp=775f1cc48a46ce5221f1d9476233dc33'
         ],
-
         'wonton' => [
             'title' => '👨‍🍳 Wonton Farmer',
             'enabled' => env('FARMER_WONTON_ENABLED', true),
