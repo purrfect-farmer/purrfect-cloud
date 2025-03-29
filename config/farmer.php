@@ -32,18 +32,6 @@ return [
                 'automatic_claim' => env('FARMER_GOLD_EAGLE_AUTOMATIC_CLAIM', false)
             ]
         ],
-        'digger' => [
-            'title' => '🏴‍☠️ Digger Farmer',
-            'enabled' => env('FARMER_DIGGER_ENABLED', true),
-            'thread_id' => env('FARMER_DIGGER_THREAD_ID', ''),
-            'telegram_link' => 'https://t.me/diggerton_bot/dig?startapp=bro1147265290'
-        ],
-        'matchquest' => [
-            'title' => '🌾 MatchQuest Farmer',
-            'enabled' => env('FARMER_MATCHQUEST_ENABLED', true),
-            'thread_id' => env('FARMER_MATCHQUEST_THREAD_ID', ''),
-            'telegram_link' => 'https://t.me/MatchQuestBot/start?startapp=775f1cc48a46ce5221f1d9476233dc33'
-        ],
         'hrum' => [
             'title' => '🥠 Hrum Farmer',
             'enabled' => env('FARMER_HRUM_ENABLED', true),
@@ -56,6 +44,13 @@ return [
             'thread_id' => env('FARMER_TSUBASA_THREAD_ID', ''),
             'telegram_link' => 'https://t.me/TsubasaRivalsBot/start?startapp=inviter_id-1147265290'
         ],
+        'matchquest' => [
+            'title' => '🌾 MatchQuest Farmer',
+            'enabled' => env('FARMER_MATCHQUEST_ENABLED', true),
+            'thread_id' => env('FARMER_MATCHQUEST_THREAD_ID', ''),
+            'telegram_link' => 'https://t.me/MatchQuestBot/start?startapp=775f1cc48a46ce5221f1d9476233dc33'
+        ],
+
         'wonton' => [
             'title' => '👨‍🍳 Wonton Farmer',
             'enabled' => env('FARMER_WONTON_ENABLED', true),
@@ -67,6 +62,12 @@ return [
             'enabled' => env('FARMER_FUNATIC_ENABLED', true),
             'thread_id' => env('FARMER_FUNATIC_THREAD_ID', ''),
             'telegram_link' => 'https://t.me/LuckyFunaticBot/lucky_funatic?startapp=1147265290'
+        ],
+        'digger' => [
+            'title' => '🏴‍☠️ Digger Farmer',
+            'enabled' => env('FARMER_DIGGER_ENABLED', true),
+            'thread_id' => env('FARMER_DIGGER_THREAD_ID', ''),
+            'telegram_link' => 'https://t.me/diggerton_bot/dig?startapp=bro1147265290'
         ],
         'slotcoin' => [
             'title' => '🎰 Slotcoin Farmer',
