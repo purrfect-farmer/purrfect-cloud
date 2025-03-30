@@ -85,7 +85,7 @@ class FarmMatchQuest extends Command
                 );
 
                 $game = $this->getApi($farmer)
-                    ->post(
+                    ->get(
                         'https://tgapp-api.matchain.io/api/tgapp/v1/game/play'
                     )->json('data');
 
