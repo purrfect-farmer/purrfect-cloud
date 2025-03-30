@@ -22,5 +22,6 @@ collect(config('farmer.drops'))
     ->each(
         fn($key) => Schedule::command('farm:' . $key)
             ->withoutOverlapping()
+            ->runInBackground()
             ->everyTenMinutes()
     );
