@@ -95,12 +95,10 @@ class FarmDreamcoin extends Command
                 /** @var Collection */
                 $availableMultipliers = $item['availableMultipliers']->filter(
                     fn($item) => $item <= $energy
-                );
+                )->values();
 
                 /** Get Multiplier */
-                $multiplier = $availableMultipliers->get(
-                    $availableMultipliers->count() > 3 ? 2 : 0
-                ) ?? 1;
+                $multiplier = $availableMultipliers->get(0) ?? 1;
 
                 /** Deduct Energy */
                 $energy -= $multiplier;
