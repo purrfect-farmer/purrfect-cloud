@@ -35,7 +35,7 @@ class UpdateProxies extends Command
             $results = Proxy::getWorkingProxies();
 
             /** Get List */
-            $list = $results->sortBy('duration')->values();
+            $list = $results->sortBy('duration')->values()->pluck('proxy');
 
             /** Get Accounts */
             $accounts = Account::subscribed()->get();
