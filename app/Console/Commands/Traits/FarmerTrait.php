@@ -185,13 +185,23 @@ trait FarmerTrait
     }
 
     /**
+     * Get Base Farmers
+     * @return \Illuminate\Database\Eloquent\Builder<Farmer>
+     */
+    protected function getBaseFarmers()
+    {
+        return Farmer::with(['account'])
+            ->farmer($this->getKey())
+            ->subscribed();
+    }
+
+    /**
      * Get Farmers
      * @return \Illuminate\Database\Eloquent\Collection<int, Farmer>
      */
     protected function getFarmers()
     {
-        return Farmer::farmer($this->getKey())
-            ->subscribed()
+        return $this->getBaseFarmers()
             ->connected()
             ->get();
     }
@@ -203,11 +213,7 @@ trait FarmerTrait
     protected function updateTelegramData()
     {
         $this->runConcurrently(
-            Farmer::with(['account'])
-                ->farmer(
-                    $this->getKey()
-                )
-                ->subscribed()
+            $this->getBaseFarmers()
                 ->needsRefetch()
                 ->get()
                 ->mapForConcurrency(function (Farmer $farmer) {
