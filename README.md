@@ -128,10 +128,10 @@ php artisan app:update-account-subscription 87654321 2030-01-01
 A telegram session will be used to refetch webAppData and prevent disconnections. Enable Telegram Sessions inside .env 
 
 ### Proxy (Optional)
-To use proxy, you need to obtain your API Key from WebShare and save it inside .env
+To use proxy, you need to enable it in .env, obtain your API Key from WebShare and save it inside .env
 
 ### Payments (Optional)
-Payments work with Paystack, get your public and secret key then save it inside .env
+Payments work with Paystack, enable payments in .env, get your Paystack public and secret key then save it inside .env
 
 
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
