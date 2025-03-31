@@ -115,7 +115,7 @@ Append the following (edit path):
 
 
 ### Adding a User
-To add a user, you need to add a subscription, you will be prompted to create the user if it doesn't exist. Get the user's Telegram Id
+If payments are disabled, you will need to add the user manually. To add a user, you need to add a subscription, you will be prompted to create the user if it doesn't exist. Get the user's Telegram Id
 
 ```bash
 php artisan app:update-account-subscription {user_id} {date}
