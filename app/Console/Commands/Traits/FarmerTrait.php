@@ -114,8 +114,7 @@ trait FarmerTrait
             )
             ->withUserAgent(
                 $farmer->getUserAgent()
-            )
-            ->timeout(30);
+            );
     }
 
 
