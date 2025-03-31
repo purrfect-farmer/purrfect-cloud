@@ -5,6 +5,7 @@ namespace App\Console\Commands\Traits;
 use App\Facades\Madeline;
 use App\Helpers;
 use App\Models\Farmer;
+use Illuminate\Support\Facades\Concurrency;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Sleep;
@@ -201,28 +202,31 @@ trait FarmerTrait
      */
     protected function updateTelegramData()
     {
-        Farmer::with(['account'])
-            ->farmer(
-                $this->getKey()
-            )
-            ->subscribed()
-            ->needsRefetch()
-            ->each(function (Farmer $farmer) {
-                if ($farmer->account->session_id) {
-                    try {
-                        $this->refetchAuth(
-                            $farmer,
-                            property_exists(
-                                $this,
-                                'setAuthOnlyOnError'
-                            ) ? $this->setAuthOnlyOnError === false : true
-                        );
-                    } catch (\Throwable $e) {
-                        /** Log Error */
-                        $this->logError($e, $farmer);
+        $this->runConcurrently(
+            Farmer::with(['account'])
+                ->farmer(
+                    $this->getKey()
+                )
+                ->subscribed()
+                ->needsRefetch()
+                ->get()
+                ->mapForConcurrency(function (Farmer $farmer) {
+                    if ($farmer->account->session_id) {
+                        try {
+                            $this->refetchAuth(
+                                $farmer,
+                                property_exists(
+                                    $this,
+                                    'setAuthOnlyOnError'
+                                ) ? $this->setAuthOnlyOnError === false : true
+                            );
+                        } catch (\Throwable $e) {
+                            /** Log Error */
+                            $this->logError($e, $farmer);
+                        }
                     }
-                }
-            });
+                })
+        );
     }
 
     /** Refetch Auth or Disconnect */
@@ -306,6 +310,20 @@ trait FarmerTrait
         return Madeline::getTelegramData(
             $api,
             config('farmer.drops')[$this->getKey()]['telegram_link']
+        );
+    }
+
+    /**
+     * Run Concurrently
+     * @param Closure|array $tasks
+     * @return \Illuminate\Support\Collection
+     */
+    protected function runConcurrently($tasks)
+    {
+        return collect(
+            Concurrency::driver('fork')->run(
+                $tasks
+            )
         );
     }
 }

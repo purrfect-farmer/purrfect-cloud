@@ -6,6 +6,7 @@ use App\Libraries\Madeline;
 use App\Libraries\Proxy;
 use App\Payment\Paystack;
 use Illuminate\Auth\Notifications\ResetPassword;
+use Illuminate\Support\Collection;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -32,6 +33,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Collection::macro('mapForConcurrency', function ($callback) {
+            /** @var Collection $this */
+            return $this->map(fn($value, $key) => fn() => $callback($value, $key))->all();
+        });
+
         ResetPassword::createUrlUsing(function (object $notifiable, string $token) {
             return config('app.frontend_url') . "/password-reset/$token?email={$notifiable->getEmailForPasswordReset()}";
         });

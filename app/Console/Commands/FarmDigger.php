@@ -105,218 +105,224 @@ class FarmDigger extends Command
         Sleep::for(10)->seconds();
 
         /** Claim Reward */
-        $farmers->each(function ($item) {
-            try {
-                $farmer = $item['farmer'];
-                $reward = $item['reward'];
+        $this->runConcurrently(
+            $farmers->mapForConcurrency(function ($item) {
+                try {
+                    $farmer = $item['farmer'];
+                    $reward = $item['reward'];
 
-                /** Claim Reward */
-                $this->getApi($farmer)
-                    ->post(
-                        'https://api.diggergame.app/api/content/update',
-                        [
-                            'status' => 'reward',
-                            'uid' => $reward,
-                        ]
-                    );
-            } catch (\Throwable $e) {
-                /** Log Error */
-                $this->logError($e, $item['farmer']);
-            }
-        });
+                    /** Claim Reward */
+                    $this->getApi($farmer)
+                        ->post(
+                            'https://api.diggergame.app/api/content/update',
+                            [
+                                'status' => 'reward',
+                                'uid' => $reward,
+                            ]
+                        );
+                } catch (\Throwable $e) {
+                    /** Log Error */
+                    $this->logError($e, $item['farmer']);
+                }
+            })
+        );
     }
 
     /** Farm Farmers */
     protected function farmFarmers($farmers)
     {
-        return $farmers->map(function ($item) {
-            try {
-                $farmer = $item['farmer'];
-                $energy = $item['energy'];
-                $uid = $item['uid'];
+        return $this->runConcurrently(
+            $farmers->mapForConcurrency(function ($item) {
+                try {
+                    $farmer = $item['farmer'];
+                    $energy = $item['energy'];
+                    $uid = $item['uid'];
 
-                $taps = min($energy, 10);
-                $energy -= $taps;
+                    $taps = min($energy, 10);
+                    $energy -= $taps;
 
-                /** Tap */
-                $this->getApi($farmer)
-                    ->post(
-                        'https://api.diggergame.app/api/play/tap',
-                        [
-                            'uid' => $uid,
-                            'cnt' => $taps
-                        ]
-                    );
+                    /** Tap */
+                    $this->getApi($farmer)
+                        ->post(
+                            'https://api.diggergame.app/api/play/tap',
+                            [
+                                'uid' => $uid,
+                                'cnt' => $taps
+                            ]
+                        );
 
-                /** Return Energy and Farmer */
-                if ($energy > 0) {
-                    return compact(
-                        'farmer',
-                        'energy',
-                        'uid',
-                    );
+                    /** Return Energy and Farmer */
+                    if ($energy > 0) {
+                        return compact(
+                            'farmer',
+                            'energy',
+                            'uid',
+                        );
+                    }
+                } catch (\Throwable $e) {
+                    /** Log Error */
+                    $this->logError($e, $item['farmer']);
                 }
-            } catch (\Throwable $e) {
-                /** Log Error */
-                $this->logError($e, $item['farmer']);
-            }
-        })->filter();
+            })
+        )->filter();
     }
 
     protected function retrieveFarmers()
     {
-        return $this->getFarmers()->map(function (Farmer $farmer) {
-            try {
-                /** Dig */
+        return $this->runConcurrently(
+            $this->getFarmers()->mapForConcurrency(function (Farmer $farmer) {
                 try {
-                    $this->getApi($farmer)
-                        ->post('https://api.diggergame.app/api/play/dig', [
-                            'init_data' => $farmer->telegram_web_app['initData'],
-                            'platform' => 'android'
-                        ]);
-                } catch (\Throwable $e) {
-                    $this->logError($e, $farmer);
-                }
-
-                /** Get Tasks */
-                $tasks = collect(
-                    $this->getApi($farmer)
-                        ->get('https://api.diggergame.app/api/user-task/list')
-                        ->json('result')
-                );
-
-
-
-                $pendingTasks = $tasks->filter(fn($item) => $item['status'] === 'progress');
-                $unclaimedTasks = $tasks->filter(fn($item) => $item['status'] === 'waiting_reward');
-
-                /** Start a random Task */
-                if ($pendingTasks->isNotEmpty()) {
-                    $this->getApi($farmer)
-                        ->post('https://api.diggergame.app/api/user-task/update', [
-                            'type' => $pendingTasks->random()['type']
-                        ])
-                        ->json('result');
-                }
-
-                /** Claim a random Task */
-                if ($unclaimedTasks->isNotEmpty()) {
-                    $this->getApi($farmer)
-                        ->post('https://api.diggergame.app/api/user-task/check', [
-                            'type' => $unclaimedTasks->random()['type']
-                        ])
-                        ->json('result');
-                }
-
-
-
-
-                /** Get User */
-                $user = $this->getApi($farmer)
-                    ->get('https://api.diggergame.app/api/me')
-                    ->json('result');
-
-                /** Balance */
-                $balance = $user['coin_cnt'];
-
-                /** Cards */
-                $cards = $this->getApi($farmer)
-                    ->get('https://api.diggergame.app/api/user/card/list')
-                    ->json('result');
-
-                /** Upgradable Cards */
-                $upgradableCards = collect($cards)->filter(
-                    fn($item) => isset($item['next_level']) && $item['next_level']['price'] <= $balance
-                );
-
-                /** Level Zero Cards */
-                $levelZeroCards = $upgradableCards->filter(
-                    fn($item) => !isset($item['cur_level'])
-                );
-
-                /** Collection */
-                $collection = $levelZeroCards->isNotEmpty()
-                    ? $levelZeroCards
-                    : $upgradableCards;
-
-                /** Random Card */
-                $selectedCard = $collection->isNotEmpty() ? $collection->random() : null;
-
-                if ($selectedCard) {
-                    /** Buy or Upgrade Card */
-                    $this->getApi($farmer)->post(
-                        'https://api.diggergame.app/api/user/card/buy',
-                        ['card_id' => $selectedCard['card']['id']]
-                    );
-                }
-
-
-
-
-                /** Get Chest Status */
-                $chestStatus = collect(
-                    $this->getApi($farmer)
-                        ->get('https://api.diggergame.app/api/content/chest/status')
-                        ->json('result.chest_statuses')
-                );
-
-                $viewableChests = $chestStatus->filter(
-                    fn($item) => (
-                        $item['remaining_cooldown_sec'] === 0 &&
-                        $item['ads_watched'] < $item['ads_required']
-                    )
-                );
-
-                $reward = $viewableChests->isNotEmpty() ?
-                    (
+                    /** Dig */
+                    try {
                         $this->getApi($farmer)
-                        ->post('https://api.diggergame.app/api/content/intent', [
-                            'platform' => '2',
-                            'type' => static::CHEST_TYPES[$viewableChests->random()['chest_id']],
-                        ])
-                        ->json('result.uid')
-                    ) : null;
+                            ->post('https://api.diggergame.app/api/play/dig', [
+                                'init_data' => $farmer->telegram_web_app['initData'],
+                                'platform' => 'android'
+                            ]);
+                    } catch (\Throwable $e) {
+                        $this->logError($e, $farmer);
+                    }
 
-
-
-                /** Get Chests */
-                $chests = collect(
-                    $this->getApi($farmer)
-                        ->get('https://api.diggergame.app/api/user-chest/list')
-                        ->json('result')
-                )
-                    ->filter(fn($item) => $item['status'] === 'progress')
-                    ->sort(fn($a, $b) => $b['chest']['id'] - $a['chest']['id']);
-
-
-                /** Current Chest */
-                $currentChest = $chests->isNotEmpty() ? $chests->first() : null;
-
-                /** UID */
-                $uid = $currentChest ? $currentChest['uid'] : null;
-
-                /** Energy */
-                $energy = $currentChest ?
-                    $currentChest['open_tap_cnt'] - $currentChest['current_tap_cnt'] : 0;
-
-
-
-                /** Return Energy and Farmer */
-                if ($energy > 0 || $reward) {
-                    return compact(
-                        'farmer',
-                        'uid',
-                        'energy',
-                        'reward'
+                    /** Get Tasks */
+                    $tasks = collect(
+                        $this->getApi($farmer)
+                            ->get('https://api.diggergame.app/api/user-task/list')
+                            ->json('result')
                     );
-                }
-            } catch (\Throwable $e) {
-                /** Log Error */
-                $this->logError($e, $farmer);
 
-                /** Refetch Auth or Disconnect Farmer */
-                $this->refetchAuthOrDisconnect($farmer);
-            }
-        })->filter();
+
+
+                    $pendingTasks = $tasks->filter(fn($item) => $item['status'] === 'progress');
+                    $unclaimedTasks = $tasks->filter(fn($item) => $item['status'] === 'waiting_reward');
+
+                    /** Start a random Task */
+                    if ($pendingTasks->isNotEmpty()) {
+                        $this->getApi($farmer)
+                            ->post('https://api.diggergame.app/api/user-task/update', [
+                                'type' => $pendingTasks->random()['type']
+                            ])
+                            ->json('result');
+                    }
+
+                    /** Claim a random Task */
+                    if ($unclaimedTasks->isNotEmpty()) {
+                        $this->getApi($farmer)
+                            ->post('https://api.diggergame.app/api/user-task/check', [
+                                'type' => $unclaimedTasks->random()['type']
+                            ])
+                            ->json('result');
+                    }
+
+
+
+
+                    /** Get User */
+                    $user = $this->getApi($farmer)
+                        ->get('https://api.diggergame.app/api/me')
+                        ->json('result');
+
+                    /** Balance */
+                    $balance = $user['coin_cnt'];
+
+                    /** Cards */
+                    $cards = $this->getApi($farmer)
+                        ->get('https://api.diggergame.app/api/user/card/list')
+                        ->json('result');
+
+                    /** Upgradable Cards */
+                    $upgradableCards = collect($cards)->filter(
+                        fn($item) => isset($item['next_level']) && $item['next_level']['price'] <= $balance
+                    );
+
+                    /** Level Zero Cards */
+                    $levelZeroCards = $upgradableCards->filter(
+                        fn($item) => !isset($item['cur_level'])
+                    );
+
+                    /** Collection */
+                    $collection = $levelZeroCards->isNotEmpty()
+                        ? $levelZeroCards
+                        : $upgradableCards;
+
+                    /** Random Card */
+                    $selectedCard = $collection->isNotEmpty() ? $collection->random() : null;
+
+                    if ($selectedCard) {
+                        /** Buy or Upgrade Card */
+                        $this->getApi($farmer)->post(
+                            'https://api.diggergame.app/api/user/card/buy',
+                            ['card_id' => $selectedCard['card']['id']]
+                        );
+                    }
+
+
+
+
+                    /** Get Chest Status */
+                    $chestStatus = collect(
+                        $this->getApi($farmer)
+                            ->get('https://api.diggergame.app/api/content/chest/status')
+                            ->json('result.chest_statuses')
+                    );
+
+                    $viewableChests = $chestStatus->filter(
+                        fn($item) => (
+                            $item['remaining_cooldown_sec'] === 0 &&
+                            $item['ads_watched'] < $item['ads_required']
+                        )
+                    );
+
+                    $reward = $viewableChests->isNotEmpty() ?
+                        (
+                            $this->getApi($farmer)
+                            ->post('https://api.diggergame.app/api/content/intent', [
+                                'platform' => '2',
+                                'type' => static::CHEST_TYPES[$viewableChests->random()['chest_id']],
+                            ])
+                            ->json('result.uid')
+                        ) : null;
+
+
+
+                    /** Get Chests */
+                    $chests = collect(
+                        $this->getApi($farmer)
+                            ->get('https://api.diggergame.app/api/user-chest/list')
+                            ->json('result')
+                    )
+                        ->filter(fn($item) => $item['status'] === 'progress')
+                        ->sort(fn($a, $b) => $b['chest']['id'] - $a['chest']['id']);
+
+
+                    /** Current Chest */
+                    $currentChest = $chests->isNotEmpty() ? $chests->first() : null;
+
+                    /** UID */
+                    $uid = $currentChest ? $currentChest['uid'] : null;
+
+                    /** Energy */
+                    $energy = $currentChest ?
+                        $currentChest['open_tap_cnt'] - $currentChest['current_tap_cnt'] : 0;
+
+
+
+                    /** Return Energy and Farmer */
+                    if ($energy > 0 || $reward) {
+                        return compact(
+                            'farmer',
+                            'uid',
+                            'energy',
+                            'reward'
+                        );
+                    }
+                } catch (\Throwable $e) {
+                    /** Log Error */
+                    $this->logError($e, $farmer);
+
+                    /** Refetch Auth or Disconnect Farmer */
+                    $this->refetchAuthOrDisconnect($farmer);
+                }
+            })
+        )->filter();
     }
 }
