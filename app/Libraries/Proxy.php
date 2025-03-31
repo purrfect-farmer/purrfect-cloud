@@ -6,6 +6,7 @@ use App\Helpers;
 use App\Models\Account;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Concurrency;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -102,5 +103,50 @@ class Proxy
     public function updateList()
     {
         Cache::put('proxies', $this->fetchList(), now()->addHour());
+    }
+
+
+
+    /**
+     * Test Proxies
+     * @return Collection<int, array>
+     */
+    public function testProxies()
+    {
+        return collect(
+            Concurrency::driver('fork')->run(
+                collect($this->list())->mapForConcurrency(function ($proxy) {
+                    $status = true;
+                    $start = microtime(true);
+
+                    try {
+                        Http::throw()->timeout(3)
+                            ->withOptions(['proxy' => 'http://' . $proxy])
+                            ->head('https://www.google.com');
+                    } catch (\Throwable $e) {
+                        $status = false;
+                    }
+
+                    $duration = microtime(true) - $start;
+
+                    return  compact(
+                        'status',
+                        'proxy',
+                        'start',
+                        'duration',
+                    );
+                })
+            )
+        );
+    }
+
+
+    /**
+     * Get Working Proxies
+     * @return Collection<int, array>
+     */
+    public function getWorkingProxies()
+    {
+        return $this->testProxies()->filter(fn($item) => $item['status'])->values();
     }
 }

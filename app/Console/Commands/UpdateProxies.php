@@ -31,8 +31,11 @@ class UpdateProxies extends Command
             /** Update List */
             Proxy::updateList();
 
+            /** Test Proxies */
+            $results = Proxy::getWorkingProxies();
+
             /** Get List */
-            $list = collect(Proxy::list());
+            $list = $results->sortBy('duration')->values();
 
             /** Get Accounts */
             $accounts = Account::subscribed()->get();
@@ -48,7 +51,9 @@ class UpdateProxies extends Command
             /** Check if there are accounts to update */
             if ($invalidAccounts->isNotEmpty()) {
                 /** Available Proxies */
-                $available = Proxy::getAvailable($proxies);
+                $available = $list->filter(
+                    fn($proxy) => $proxies->doesntContain($proxy)
+                )->values();
 
                 /** Update Proxy */
                 $invalidAccounts
