@@ -96,7 +96,7 @@ trait FarmerTrait
                     /** Log Info */
                     Log::info($this->getTitle() . ' API Call', [
                         'user_id' => $farmer->user_id ?? null,
-                        'username' => $farmer->telegram_web_app['initDataUnsafe']['user']['username'] ?? null,
+                        'username' => $farmer->getInitDataUnsafe()['user']['username'] ?? null,
                         'method' => (string) $request->getMethod(),
                         'uri' => (string) $request->getUri(),
                         'body' => (string) $request->getBody(),
@@ -132,7 +132,7 @@ trait FarmerTrait
             $farmer ?
                 [
                     'user_id' => $farmer->user_id ?? null,
-                    'username' => $farmer->telegram_web_app['initDataUnsafe']['user']['username'] ?? null,
+                    'username' => $farmer->getInitDataUnsafe()['user']['username'] ?? null,
                 ] : [],
             [
 
@@ -275,7 +275,6 @@ trait FarmerTrait
             $farmer->telegram_web_app = [
                 ...$farmer->telegram_web_app,
                 'initData' => $result['initData'],
-                'initDataUnsafe' => $result['initDataUnsafe'],
             ];
         } catch (\Throwable $e) {
             /** Logout */

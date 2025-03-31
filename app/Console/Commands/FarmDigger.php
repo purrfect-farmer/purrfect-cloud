@@ -176,7 +176,7 @@ class FarmDigger extends Command
                     try {
                         $this->getApi($farmer)
                             ->post('https://api.diggergame.app/api/play/dig', [
-                                'init_data' => $farmer->telegram_web_app['initData'],
+                                'init_data' => $farmer->getInitData(),
                                 'platform' => 'android'
                             ]);
                     } catch (\Throwable $e) {

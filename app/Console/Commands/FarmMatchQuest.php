@@ -139,7 +139,7 @@ class FarmMatchQuest extends Command
             $this->getFarmers()->mapForConcurrency(function (Farmer $farmer) {
                 try {
                     /** UID */
-                    $uid = $farmer->telegram_web_app['initDataUnsafe']['user']['id'];
+                    $uid = $farmer->getInitDataUnsafe()['user']['id'];
 
                     /** Rewards */
                     $rewards = $this->getApi($farmer)->post(

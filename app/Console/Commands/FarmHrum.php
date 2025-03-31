@@ -48,10 +48,10 @@ class FarmHrum extends Command
                             $platform = 'android';
 
                             /** Init Data */
-                            $initData = $farmer->telegram_web_app['initData'];
+                            $initData = $farmer->getInitData();
 
                             /** Init Data Unsafe */
-                            $initDataUnsafe = $farmer->telegram_web_app['initDataUnsafe'];
+                            $initDataUnsafe = $farmer->getInitDataUnsafe();
 
                             /** Api-Key */
                             $key = $initDataUnsafe['hash'];

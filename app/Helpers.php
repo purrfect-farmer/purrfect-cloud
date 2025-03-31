@@ -201,7 +201,7 @@ class Helpers
         $username =
             htmlspecialchars(
                 '@' . Str::limit(
-                    $farmer->telegram_web_app['initDataUnsafe']['user']['username'] ?? '' ?: $id,
+                    $farmer->getInitDataUnsafe()['user']['username'] ?? '' ?: $id,
                     15
                 )
             );
@@ -281,7 +281,7 @@ class Helpers
             $username = Str::padRight(
                 Str::lower(
                     Str::limit(
-                        $farmer->telegram_web_app['initDataUnsafe']['user']['username'] ?? ''
+                        $farmer->getInitDataUnsafe()['user']['username'] ?? ''
                             ?: $id,
                         12
                     )
@@ -293,7 +293,7 @@ class Helpers
             /** Farmer Title */
             $title = config('farmer.display_farmer_title') ? Str::upper(
                 Str::limit(
-                    $farmer->telegram_web_app['farmerTitle'] ?? 'TGUser',
+                    $farmer->getFarmerTitle(),
                     8
                 )
             ) : '';

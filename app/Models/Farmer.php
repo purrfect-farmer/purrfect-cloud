@@ -180,4 +180,36 @@ class Farmer extends Model
             'user_id'
         )->active();
     }
+
+    /**
+     * Get Farmer Title
+     * @return string
+     */
+    public function getFarmerTitle()
+    {
+        return $this->telegram_web_app['farmerTitle'] ?? 'TGUser';
+    }
+
+    /**
+     * Get Init Data
+     * @return string
+     */
+    public function getInitData()
+    {
+        return $this->telegram_web_app['initData'];
+    }
+
+    /**
+     * Get Init Data Unsafe
+     * @return array
+     */
+    public function getInitDataUnsafe()
+    {
+        parse_str($this->getInitData(), $initDataUnsafe);
+
+        return [
+            ...$initDataUnsafe,
+            'user' => json_decode($initDataUnsafe['user'], true),
+        ];
+    }
 }
