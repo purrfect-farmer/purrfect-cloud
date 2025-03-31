@@ -93,18 +93,15 @@ Set the appropriate Topic Id for any key that ends with `_THREAD_ID` e.g `TELEGR
 crontab -e
 ```
 
-Append the following (edit path):
+Append the following to crontab (edit path):
 
 ```bash
 * * * * * cd /home/ubuntu/purrfect-cloud && php artisan schedule:run >> /dev/null 2>&1
 ```
 
 ##### (Optional) Start the Server and Send the IP on Server Reboots
-```bash
-crontab -e
-```
 
-Append the following (edit path):
+Append the following to crontab (edit path):
 ```bash
 # Start Server
 @reboot cd /home/ubuntu/purrfect-cloud && screen -dmS server php artisan serve --host 0.0.0.0
