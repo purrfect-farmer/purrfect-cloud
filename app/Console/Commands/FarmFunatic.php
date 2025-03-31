@@ -39,6 +39,12 @@ class FarmFunatic extends Command
     protected $origin = 'https://clicker.funtico.com';
 
     /**
+     * Set Auth only on error
+     * @var boolean
+     */
+    protected $setAuthOnlyOnError = true;
+
+    /**
      * Execute the console command.
      */
     public function handle()
