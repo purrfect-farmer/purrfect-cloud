@@ -95,13 +95,28 @@ class FarmGoldEagle extends Command
                                     $claim / $weight
                                 );
 
-                                /** Calculate Data */
-                                $data = $this->calculateData($taps);
+                                /** Initialize Status and Retries */
+                                $status = false;
+                                $retries = 0;
 
-                                /** Send Taps */
-                                $result = $this->getApi($farmer)->post('https://gold-eagle-api.fly.dev/tap', [
-                                    'data' => $data,
-                                ])->json();
+                                while ($status === false && ++$retries < 3) {
+                                    try {
+                                        /** Calculate Data */
+                                        $data = $this->calculateData($taps);
+
+                                        /** Send Taps */
+                                        $this->getApi($farmer)
+                                            ->post('https://gold-eagle-api.fly.dev/tap', [
+                                                'data' => $data,
+                                            ]);
+
+                                        /** Set Status */
+                                        $status = true;
+                                    } catch (\Throwable $e) {
+                                        /** Log Error */
+                                        $this->logError($e, $farmer);
+                                    }
+                                }
                             }
 
                             /** Claim to Wallet */
