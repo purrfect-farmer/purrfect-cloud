@@ -13,7 +13,7 @@ sudo apt-get update
 sudo apt-get install software-properties-common -y
 sudo LC_ALL=C.UTF-8 add-apt-repository -y ppa:ondrej/php
 sudo apt-get update
-sudo apt-get install php8.3 php8.3-dev php8.3-xml php8.3-zip php8.3-gmp php8.3-cli php8.3-mbstring php8.3-ffi php8.3-iconv php8.3-sqlite3 php8.3-curl php8.3-intl php8.3-mysql php-pear libuv1-dev nghttp2 micro -y
+sudo apt-get install php8.3 php8.3-dev php8.3-xml php8.3-zip php8.3-gmp php8.3-cli php8.3-mbstring php8.3-ffi php8.3-iconv php8.3-sqlite3 php8.3-curl php8.3-intl php8.3-mysql php-pear libuv1-dev nghttp2 composer micro -y
 sudo pecl install uv-beta
 echo extension=uv.so | sudo tee $(php --ini | sed '/additional .ini/!d;s/.*: //g')/uv.ini
 echo ffi.enable=1 | sudo tee $(php --ini | sed '/additional .ini/!d;s/.*: //g')/ffi.ini
