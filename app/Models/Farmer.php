@@ -126,7 +126,7 @@ class Farmer extends Model
             ->orWhere(
                 'updated_at',
                 '<',
-                now()->subMinutes(30)
+                now()->subMinutes(20)
             );
     }
 
