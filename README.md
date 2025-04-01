@@ -1,4 +1,7 @@
-# Purrfect Cloud
+<p align="center"><a href="https://t.me/purrfect_community" target="_blank"><img src="resources/images/icon.png" width="192" alt="Purrfect Logo"></a></p>
+
+<h1 style="text-align:center">Purrfect Cloud</h1>
+
 ### Requirements
 - Telegram Bot Token
 - Telegram Group with Topics
@@ -32,7 +35,7 @@ git clone https://github.com/danog/PrimeModule-ext
 cd PrimeModule-ext && make -j$(nproc) && sudo make install
 ```
 
-##### Change Working Directory to Home
+##### Change Working Directory to Home or Desired Path
 ```bash
 cd ~
 ```
@@ -67,24 +70,41 @@ php artisan key:generate
 php artisan migrate --seed --force
 ```
 
-##### Extract Group ID and Topics ID
-Before proceeding, obtain your Telegram Group ID and Topics ID. Send a message to a topic in your group and copy the message link.
+##### Extracting Group ID and Topic ID
+Before proceeding, obtain your Telegram Group ID and Topic ID by sending a message to a topic in your group and copy the message link.
 
-Extract the Group Id and Topic Id from the link:
+Then you can extract the Group ID and Topic ID from the link:
 `https://t.me/c/{group_id}/{topic_id}/{message_id}`
 
 An example: `https://t.me/c/2322054671/10837/34926`
 
-The group id is always the same but the topic id changes.
+The Group ID is always the same but the Topic ID changes.
 
-##### Update .env: When using Micro, press (`Ctrl+S` then `Ctrl+Q`) to save.
+##### Update .env
+For Micro: press (`Ctrl+S` then `Ctrl+Q`) to save.
+For Nano: press (`Ctrl+S` then `Ctrl+X`) to save.
+
 ```bash
 micro .env
 ```
 
 Note: When setting the `TELEGRAM_CHAT_ID`, it should always start with `-100` like `-100{group_id}` e.g `-1002322054671`.
 
-Set the appropriate Topic Id for any key that ends with `_THREAD_ID` e.g `TELEGRAM_CHAT_ANNOUNCEMENT_THREAD_ID`
+Set the appropriate Topic ID for any key that ends with `_THREAD_ID` e.g `TELEGRAM_CHAT_ANNOUNCEMENT_THREAD_ID`
+
+##### Important Entries
+Entry | Description
+--- | ---
+`TELEGRAM_BOT_TOKEN` | Your Telegram Bot Token
+`TELEGRAM_CHAT_ID` | Group ID e.g `-100{group_id}`
+`TELEGRAM_CHAT_ANNOUNCEMENT_THREAD_ID` | Announcement Topic ID
+`TELEGRAM_CHAT_ERROR_THREAD_ID` | Error Topic ID
+
+##### Additional Entries for Farmers
+Entry | Description
+--- | ---
+`FARMER_EXAMPLE_ENABLED` | Farmer is Enabled
+`FARMER_EXAMPLE_THREAD_ID` | Farmer Topic ID
 
 ### Cron Job
 ##### Register a Cron Job for Scheduled Tasks
@@ -99,7 +119,7 @@ Append the following to crontab (edit path):
 * * * * * cd /home/ubuntu/purrfect-cloud && php artisan schedule:run >> /dev/null 2>&1
 ```
 
-##### (Optional) Start the Server and Send the IP on Server Reboots
+##### (Optional) Start the Server and Send the IP on reboots
 
 Append the following to crontab (edit path):
 ```bash
@@ -121,15 +141,44 @@ e.g
 ```bash
 php artisan app:update-account-subscription 87654321 2030-01-01
 ```
+
+### Updating
+Simply run the following commands to update the application.
+
+##### Change Working Directory (edit path)
+```bash
+cd ~/purrfect-cloud
+```
+
+##### Pull Changes and Update
+```bash
+git pull && composer i && php artisan migrate --seed --force
+```
+
 ### Cloud Telegram Session (Optional)
-A telegram session will be used to refetch webAppData and prevent disconnections. Enable Telegram Sessions inside .env 
+A telegram session will be used to refetch webAppData and prevent disconnections. Enable Telegram Sessions inside .env
+
+Entry | Description
+--- | ---
+`ENABLE_TELEGRAM_SESSIONS` | Telegram Sessions are Enabled
 
 ### Proxy (Optional)
 To use proxy, you need to enable it in .env, obtain your API Key from WebShare and save it inside .env
 
+Entry | Description
+--- | ---
+`FARMER_PROXY_ENABLED` | Proxy is enabled
+`FARMER_PROXY_API_KEY` | WebShare Proxy API Key
+
 ### Payments (Optional)
 Payments work with Paystack, enable payments in .env, get your Paystack public and secret key then save it inside .env
 
+Entry | Description
+--- | ---
+`FARMER_ENABLE_PAYMENTS` | Payments are enabled
+`FARMER_SUBSCRIPTION_AMOUNT` | Subscription Amount
+`PAYSTACK_PUBLIC_KEY` | Paystack Public Key
+`PAYSTACK_SECRET_KEY` | Paystack Secret Key
 
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
