@@ -95,10 +95,13 @@ Set the appropriate Topic ID for any key that ends with `_THREAD_ID` e.g `TELEGR
 ##### Important Entries
 Entry | Description
 --- | ---
+`APP_NAME` | Server Name
 `TELEGRAM_BOT_TOKEN` | Your Telegram Bot Token
 `TELEGRAM_CHAT_ID` | Group ID e.g `-100{group_id}`
 `TELEGRAM_CHAT_ANNOUNCEMENT_THREAD_ID` | Announcement Topic ID
 `TELEGRAM_CHAT_ERROR_THREAD_ID` | Error Topic ID
+`DISPLAY_FARMER_TITLE` | Displays Farmer Title
+
 
 ##### Additional Entries for Farmers
 Entry | Description
