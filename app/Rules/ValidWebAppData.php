@@ -15,7 +15,7 @@ class ValidWebAppData implements ValidationRule
      */
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        if (!Helpers::isValidWebAppData($value)) {
+        if (!Helpers::isValidEd25519WebAppData($value)) {
             $fail("Invalid Data");
         }
     }

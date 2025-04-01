@@ -3,16 +3,17 @@
 namespace App;
 
 use App\Models\Farmer;
+use Base64Url\Base64Url;
+use Elliptic\EdDSA;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Str;
 use League\Uri\Uri;
-use Telegram\Bot\Laravel\Facades\Telegram;
 use PHPHtmlParser\Dom;
+use Telegram\Bot\Laravel\Facades\Telegram;
 
 class Helpers
 {
@@ -30,7 +31,7 @@ class Helpers
         "Mozilla/5.0 (Linux; Android 13; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.6667.81 Mobile Safari/537.36 Telegram-Android/11.6.1 (Samsung SM-X906B; Android 13; SDK 33; HIGH)",
         "Mozilla/5.0 (Linux; Android 12; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.6635.90 Mobile Safari/537.36 Telegram-Android/11.6.1 (Pixel 6 Pro; Android 12; SDK 32; HIGH)",
         "Mozilla/5.0 (Linux; Android 14; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.6778.135 Mobile Safari/537.36 Telegram-Android/11.6.1 (Samsung SM-S911U; Android 14; SDK 34; HIGH)",
-        "Mozilla/5.0 (Linux; Android 13; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.6667.121 Mobile Safari/537.36 Telegram-Android/11.6.1 (Pixel 8; Android 13; SDK 33; HIGH)"
+        "Mozilla/5.0 (Linux; Android 13; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.6667.121 Mobile Safari/537.36 Telegram-Android/11.6.1 (Pixel 8; Android 13; SDK 33; HIGH)",
     ];
 
     /**
@@ -45,7 +46,6 @@ class Helpers
             $seed
         );
     }
-
 
     /**
      * Get Unique Item from an Array Based on Seed
@@ -88,7 +88,9 @@ class Helpers
         $deletePreviousMessage = true
     ) {
         /** Disable Messages */
-        if (config('farmer.disable_telegram_messages')) return;
+        if (config('farmer.disable_telegram_messages')) {
+            return;
+        }
 
         /** Configure Params */
         $params = [
@@ -96,7 +98,7 @@ class Helpers
             'disable_notification' => true,
             'parse_mode' => 'HTML',
             'text' => is_array($text) ? implode("\n", $text) : $text,
-            ...$options
+            ...$options,
         ];
 
         try {
@@ -112,7 +114,7 @@ class Helpers
                     try {
                         Telegram::bot()->deleteMessage([
                             'chat_id' => $params['chat_id'],
-                            'message_id' => $previousMessageId
+                            'message_id' => $previousMessageId,
                         ]);
                     } catch (\Throwable $e) {
                     }
@@ -125,12 +127,11 @@ class Helpers
                 );
             }
 
-
             return $message;
         } catch (\Throwable $e) {
             Log::error('Telegram Message', [
                 'message' => $e->getMessage(),
-                'params' => $params
+                'params' => $params,
             ]);
         }
     }
@@ -162,12 +163,11 @@ class Helpers
                 "<i>✅ Status: Completed</i>",
                 $links,
                 "<b>🗓️ Start Date</b>: $startDate",
-                "<b>🗓️ End Date</b>: $endDate"
+                "<b>🗓️ End Date</b>: $endDate",
             ],
             ['message_thread_id' => $config['thread_id']]
         );
     }
-
 
     /**
      * Send Message to User
@@ -184,15 +184,14 @@ class Helpers
         $deletePreviousMessage = true
     ) {
         /** Message Key */
-        $key =  implode(':', [
+        $key = implode(':', [
             $farmer->farmer,
             $farmer->user_id,
-            $key
+            $key,
         ]);
 
         /** Title */
         $title = config('farmer.drops')[$farmer->farmer]['title'];
-
 
         /** User ID */
         $id = $farmer->user_id;
@@ -219,7 +218,7 @@ class Helpers
                 "<b>$title</b>",
                 "<b>👤 User</b>: $link",
                 "<b>🗓️ Date</b>: $date",
-                ...$message
+                ...$message,
             ],
             [
                 'chat_id' => $farmer->user_id,
@@ -240,7 +239,7 @@ class Helpers
         $params = [
             'chat_id' => config('farmer.chat_id'),
             'message_id' => $id,
-            ...$options
+            ...$options,
         ];
 
         return Telegram::bot()->pinChatMessage($params);
@@ -257,7 +256,7 @@ class Helpers
         $params = [
             'chat_id' => config('farmer.chat_id'),
             'message_id' => $id,
-            ...$options
+            ...$options,
         ];
 
         return Telegram::bot()->unpinChatMessage($params);
@@ -270,7 +269,6 @@ class Helpers
      */
     public static function getCloudUserLinks(Collection $farmers)
     {
-
         $totalUsers = $farmers->count();
         $list = $farmers->map(function (Farmer $farmer) {
             $id = $farmer->user_id;
@@ -282,7 +280,7 @@ class Helpers
                 Str::lower(
                     Str::limit(
                         $farmer->getInitDataUnsafe()['user']['username'] ?? ''
-                            ?: $id,
+                        ?: $id,
                         12
                     )
                 ),
@@ -309,7 +307,6 @@ class Helpers
 
         /** Sort By Title or Username */
         $list = $list->sortBy(config('farmer.display_farmer_title') ? 'title' : 'username')->values();
-
 
         /** Retrieve Links */
         $links = $list->map(function ($data) {
@@ -357,12 +354,13 @@ class Helpers
         return $indexScript;
     }
 
-
     public static function getDropMainScript($url, $name = "index")
     {
         $indexScript = static::findDropMainScript($url, $name);
 
-        if (!$indexScript) return;
+        if (!$indexScript) {
+            return;
+        }
 
         $scriptUrl = Uri::fromBaseUri($indexScript->getAttribute("src"), $url);
         $scriptResponse = static::fetchContent($scriptUrl);
@@ -419,7 +417,7 @@ class Helpers
         return [
             'bot' => '@' . $paths[0],
             'short_name' => $paths[1] ?? '',
-            'start_param' =>   $query['start'] ?? $query['startapp'] ?? '',
+            'start_param' => $query['start'] ?? $query['startapp'] ?? '',
         ];
     }
 
@@ -451,6 +449,32 @@ class Helpers
         return hash_equals($hash, $compare);
     }
 
+    /**
+     * Check if is valid Ed25519 WebAppData
+     * @param string $webAppData
+     * @return bool
+     */
+    public static function isValidEd25519WebAppData(string $webAppData)
+    {
+        parse_str($webAppData, $data);
+
+        $prefix = config('farmer.farmer_bot_id') . ":WebAppData\n";
+        $check = collect($data)
+            ->except(['hash', 'signature'])
+            ->sortKeys()
+            ->map(fn($v, $k) => $k . '=' . $v)
+            ->implode("\n");
+
+        $message = bin2hex($prefix . $check);
+        $signature = bin2hex(Base64Url::decode($data["signature"]));
+
+        $ec = new EdDSA('ed25519');
+        $key = $ec->keyFromPublic(
+            config('farmer.telegram_public_key')
+        );
+
+        return $key->verify($message, $signature);
+    }
 
     /**
      * Get WebAppData
@@ -478,7 +502,7 @@ class Helpers
         /** Remove User */
         Telegram::bot()->banChatMember([
             'chat_id' => config('farmer.chat_id'),
-            'user_id' => $id
+            'user_id' => $id,
         ]);
 
         /** Unban User */
@@ -501,11 +525,10 @@ class Helpers
                 Telegram::bot()
                     ->getChatMember([
                         'chat_id' => config('farmer.chat_id'),
-                        'user_id' =>  $id
+                        'user_id' => $id,
                     ])->status
             );
     }
-
 
     /**
      * Create Invite Link
@@ -516,11 +539,10 @@ class Helpers
     {
         return Telegram::bot()->createChatInviteLink([
             'chat_id' => config('farmer.chat_id'),
-            'name' =>  'user-' . $id,
-            'member_limit' => 1
+            'name' => 'user-' . $id,
+            'member_limit' => 1,
         ]);
     }
-
 
     /**
      * Send Invite Link
@@ -532,7 +554,7 @@ class Helpers
 
         Telegram::bot()->sendMessage([
             'chat_id' => $id,
-            'text' => $result->invite_link
+            'text' => $result->invite_link,
         ]);
     }
 }
