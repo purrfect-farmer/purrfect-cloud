@@ -407,6 +407,11 @@ class Helpers
         );
     }
 
+    /**
+     * Parse Telegram Direct Link
+     * @param string $url
+     * @return array{bot: string, short_name: string, start_param: mixed}
+     */
     public static function parseTelegramBotUrl(string $url)
     {
         $parsed = parse_url($url);
