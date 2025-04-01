@@ -1,6 +1,6 @@
-<a href="https://t.me/purrfect_community" target="_blank"><img src="resources/images/icon.png" width="192" alt="Purrfect Logo"></a>
+<p align="center"><a href="https://t.me/purrfect_community" target="_blank"><img src="resources/images/icon.png" width="192" alt="Purrfect Logo"></a></p>
 
-# Purrfect Cloud
+<h1 align="center">Purrfect Cloud</h1>
 
 ### Requirements
 - Telegram Bot Token
