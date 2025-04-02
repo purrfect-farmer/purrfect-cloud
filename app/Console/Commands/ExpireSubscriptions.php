@@ -50,11 +50,14 @@ class ExpireSubscriptions extends Command
                             'account' => $account,
                             'error' => $e->getMessage(),
                         ]);
-                    } finally {
-                        /** Remove Session */
-                        $account->forceFill(['session_id' => null])->save();
                     }
                 }
+
+                /** Unset Session and Proxy */
+                $account->forceFill([
+                    'proxy' => null,
+                    'session_id' => null
+                ])->save();
 
                 /** Remove User From Group */
                 try {
