@@ -173,15 +173,12 @@ class FarmDigger extends Command
             $this->getFarmers()->mapForConcurrency(function (Farmer $farmer) {
                 try {
                     /** Dig */
-                    try {
-                        $this->getApi($farmer)
-                            ->post('https://api.diggergame.app/api/play/dig', [
-                                'init_data' => $farmer->getInitData(),
-                                'platform' => 'android'
-                            ]);
-                    } catch (\Throwable $e) {
-                        $this->logError($e, $farmer);
-                    }
+                    $this->getApi($farmer)
+                        ->post('https://api.diggergame.app/api/play/dig', [
+                            'init_data' => $farmer->getInitData(),
+                            'platform' => 'android'
+                        ]);
+
 
                     /** Get Tasks */
                     $tasks = collect(
@@ -275,11 +272,11 @@ class FarmDigger extends Command
                     $reward = $viewableChests->isNotEmpty() ?
                         (
                             $this->getApi($farmer)
-                            ->post('https://api.diggergame.app/api/content/intent', [
-                                'platform' => '2',
-                                'type' => static::CHEST_TYPES[$viewableChests->random()['chest_id']],
-                            ])
-                            ->json('result.uid')
+                                ->post('https://api.diggergame.app/api/content/intent', [
+                                    'platform' => '2',
+                                    'type' => static::CHEST_TYPES[$viewableChests->random()['chest_id']],
+                                ])
+                                ->json('result.uid')
                         ) : null;
 
 
