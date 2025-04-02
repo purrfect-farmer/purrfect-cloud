@@ -2,9 +2,11 @@
 
 namespace App\Console\Commands;
 
+use App\Helpers;
 use App\Models\Account;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class UpdateAccountSubscription extends Command
 {
@@ -62,11 +64,25 @@ class UpdateAccountSubscription extends Command
         if ($account->wasRecentlyCreated === false && $account->activeSubscription) {
             $account->activeSubscription->forceFill(['ends_at' => $date])->save();
         } else {
+            /** Create Subscription */
             $account->subscriptions()->create([
                 'status' => 'active',
                 'starts_at' => now(),
                 'ends_at' => $date,
             ]);
+
+            /** Add Member to Group */
+            try {
+                if (!Helpers::isGroupMember($account->user_id)) {
+                    Helpers::sendInviteLink($account->user_id);
+                }
+            } catch (\Throwable $e) {
+                /** Log Error */
+                Log::error('Add Member to Group', [
+                    'account' => $account,
+                    'error' => $e->getMessage(),
+                ]);
+            }
         }
 
         $this->info('Subscription was successfully updated!');
