@@ -69,7 +69,7 @@ class FarmSlotcoin extends Command
         $accessToken = $this->getBaseApi($farmer)
             ->post('https://api.slotcoin.app/v1/clicker/auth', [
                 'initData' => $data['initData'],
-                'referralCode' => ''
+                'referralCode' => 'a2dd-60f7'
             ])
             ->json('accessToken');
 

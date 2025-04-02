@@ -70,7 +70,7 @@ class FarmWonton extends Command
         $accessToken = $this->getBaseApi($farmer)
             ->post('https://wonton.food/api/v1/user/auth', [
                 'initData' => $data['initData'],
-                'inviteCode' => '',
+                'inviteCode' => 'K45JQRG7',
                 'newUserPromoteCode' => ''
             ])
             ->json('tokens.accessToken');
@@ -154,8 +154,7 @@ class FarmWonton extends Command
                         /** Start Farming */
                         $this->getApi($farmer)->post('https://wonton.food/api/v1/user/start-farming')->json();
                     }
-                    /** Can Claim */
-                    else if (now()->isAfter($farming['finishAt'])) {
+                    /** Can Claim */ else if (now()->isAfter($farming['finishAt'])) {
                         /** Claim Previous Farming */
                         $this->getApi($farmer)->post('https://wonton.food/api/v1/user/farming-claim')->json();
 
@@ -184,10 +183,10 @@ class FarmWonton extends Command
                         $skins->isNotEmpty()
                         ? $skins->reduce(
                             fn($result, $current) =>
-                            collect($current['stats'])->map('intval')->max()  >
-                                collect($result['stats'])->map('intval')->max()
-                                ? $current
-                                : $result,
+                            collect($current['stats'])->map('intval')->max() >
+                            collect($result['stats'])->map('intval')->max()
+                            ? $current
+                            : $result,
                             $skins[0]
                         )
                         : null;
@@ -198,8 +197,8 @@ class FarmWonton extends Command
                         ? $bowls->reduce(
                             fn($result, $current) =>
                             intval($current['value']) > intval($result['value'])
-                                ? $current
-                                : $result,
+                            ? $current
+                            : $result,
                             $bowls[0]
                         )
                         : null;

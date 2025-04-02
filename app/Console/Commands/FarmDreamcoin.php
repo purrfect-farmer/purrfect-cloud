@@ -72,10 +72,10 @@ class FarmDreamcoin extends Command
                     'auth_date' => $initDataUnsafe['auth_date'],
                     'hash' => $initDataUnsafe['hash'],
                     'id' => $initDataUnsafe['user']['id'],
-                    'first_name' => $initDataUnsafe['user']['first_name'],
-                    'last_name' => $initDataUnsafe['user']['last_name'],
-                    'username' => $initDataUnsafe['user']['username'],
-                    'photo_url' => $initDataUnsafe['user']['photo_url'],
+                    'first_name' => $initDataUnsafe['user']['first_name'] ?? '',
+                    'last_name' => $initDataUnsafe['user']['last_name'] ?? '',
+                    'username' => $initDataUnsafe['user']['username'] ?? '',
+                    'photo_url' => $initDataUnsafe['user']['photo_url'] ?? '',
                     'raw_init_data' => $initData
                 ]
             )
@@ -172,9 +172,9 @@ class FarmDreamcoin extends Command
                             collect($tasks)->filter(
                                 fn($task) => !Helpers::isTelegramLink($task['actionUrl'])
                             )->map(fn($item) => [
-                                ...$item,
-                                'taskGroup' => $key
-                            ])
+                                    ...$item,
+                                    'taskGroup' => $key
+                                ])
                         ),
                         collect([])
                     );
