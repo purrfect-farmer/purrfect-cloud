@@ -56,7 +56,7 @@ class Account extends Model
     public function sendSessionStatusMessage($loggedIn = true)
     {
         /** Message Key */
-        $key =  implode(':', [
+        $key = implode(':', [
             'cloud-telegram-session',
             $this->user_id
         ]);
@@ -90,9 +90,16 @@ class Account extends Model
         );
     }
 
+    /** Scope Subscribed */
     public function scopeSubscribed(Builder $builder)
     {
         return $builder->whereHas('activeSubscription');
+    }
+
+    /** Scope Unsubscribed */
+    public function scopeUnsubscribed(Builder $builder)
+    {
+        return $builder->whereDoesntHave('activeSubscription');
     }
 
     /**

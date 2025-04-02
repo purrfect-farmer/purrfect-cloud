@@ -37,6 +37,9 @@ class UpdateProxies extends Command
             /** Get List */
             $list = $results->sortBy('duration')->values()->pluck('proxy');
 
+            /** Unset Proxy for Unsubscribed Accounts */
+            Account::unsubscribed()->whereNotNull('proxy')->update(['proxy' => null]);
+
             /** Get Accounts */
             $accounts = Account::subscribed()->get();
 
