@@ -167,7 +167,6 @@ trait FarmerTrait
     }
 
 
-
     /**
      * Delay Request
      * @return void
