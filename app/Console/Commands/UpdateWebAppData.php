@@ -43,6 +43,9 @@ class UpdateWebAppData extends Command
                             'initData' => $data['initData']
                         ];
 
+                        /** Mark as connected */
+                        $farmer->is_connected = true;
+
                         /** Save */
                         $farmer->save();
                     } catch (\Throwable $e) {
