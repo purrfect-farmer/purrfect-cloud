@@ -35,6 +35,18 @@ git clone https://github.com/danog/PrimeModule-ext
 cd PrimeModule-ext && make -j$(nproc) && sudo make install
 ```
 
+##### Setup Node.js
+```bash
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.2/install.sh | bash
+
+\. "$HOME/.nvm/nvm.sh":
+
+nvm install --lts
+
+npm i -g npm
+npm i -g pnpm
+```
+
 ##### Change Working Directory to Home or Desired Path
 ```bash
 cd ~
@@ -53,6 +65,16 @@ cd purrfect-cloud
 ##### Install Composer Packages
 ```bash
 composer i
+```
+
+##### Install Node.js Packages
+```bash
+pnpm install
+```
+
+##### Build Front-End
+```bash
+pnpm run build
 ```
 
 ##### Setup .env
@@ -155,7 +177,7 @@ cd ~/purrfect-cloud
 
 ##### Pull Changes and Update
 ```bash
-git pull && composer i && php artisan migrate --seed --force
+git pull && composer i && pnpm i && pnpm run build && php artisan migrate --seed --force
 ```
 
 ### Cloud Telegram Session (Optional)
