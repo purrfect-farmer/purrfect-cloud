@@ -233,7 +233,11 @@ trait FarmerTrait
         if ($farmer->account->session_id) {
             try {
                 if (method_exists($this, 'setAuth')) {
+                    /** Update Auth */
                     $this->setAuth($farmer);
+
+                    /** Save */
+                    $farmer->save();
                 }
             } catch (\Throwable $e) {
                 /** Log Error */
