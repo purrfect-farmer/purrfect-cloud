@@ -39,143 +39,142 @@ class FarmHrum extends Command
     {
         $this->farm(function () {
             /** Start Farming */
-            $this->runConcurrently(
-                $this->getFarmers()
-                    ->mapForConcurrency(function (Farmer $farmer) {
-                        try {
+            $this->getFarmers()
+                ->mapConcurrently(function (Farmer $farmer) {
+                    try {
 
-                            /** Platform */
-                            $platform = 'android';
+                        /** Platform */
+                        $platform = 'android';
 
-                            /** Init Data */
-                            $initData = $farmer->getInitData();
+                        /** Init Data */
+                        $initData = $farmer->getInitData();
 
-                            /** Init Data Unsafe */
-                            $initDataUnsafe = $farmer->getInitDataUnsafe();
+                        /** Init Data Unsafe */
+                        $initDataUnsafe = $farmer->getInitDataUnsafe();
 
-                            /** Api-Key */
-                            $key = $initDataUnsafe['hash'];
+                        /** Api-Key */
+                        $key = $initDataUnsafe['hash'];
 
-                            /** Auth */
+                        /** Auth */
+                        $this->makeHrumRequest(
+                            null,
+                            $farmer,
+                            [
+                                'platform' => $platform,
+                                'initData' => $initData,
+                                'startParam' => $initDataUnsafe['start_param'] ?? '',
+                                'photoUrl' => $initDataUnsafe['user']['photo_url'] ?? '',
+                                'chatId' => $initDataUnsafe['chat']['id'] ?? '',
+                                'chatType' => $initDataUnsafe['chat_type'] ?? '',
+                                'chatInstance' => $initDataUnsafe['chat_instance'] ?? ''
+                            ],
+                            'https://api.hrum.me/telegram/auth'
+                        );
+
+
+                        /** All Data */
+                        $allData = $this->makeHrumRequest(
+                            $key,
+                            $farmer,
+                            [],
+                            'https://api.hrum.me/user/data/all',
+                            JSON_FORCE_OBJECT
+                        );
+
+                        /** After Data */
+                        $afterData =
                             $this->makeHrumRequest(
-                                null,
+                                $key,
                                 $farmer,
                                 [
-                                    'platform' => $platform,
-                                    'initData' => $initData,
-                                    'startParam' => $initDataUnsafe['start_param'] ?? '',
-                                    'photoUrl' => $initDataUnsafe['user']['photo_url'] ?? '',
-                                    'chatId' => $initDataUnsafe['chat']['id'] ?? '',
-                                    'chatType' => $initDataUnsafe['chat_type'] ?? '',
-                                    'chatInstance' => $initDataUnsafe['chat_instance'] ?? ''
+                                    'lang' => 'en'
                                 ],
-                                'https://api.hrum.me/telegram/auth'
+                                'https://api.hrum.me/user/data/after'
                             );
 
 
-                            /** All Data */
-                            $allData = $this->makeHrumRequest(
+
+
+
+                        /** Daily Check-In */
+                        $dailyRewards = $this->makeHrumRequest(
+                            $key,
+                            $farmer,
+                            [],
+                            'https://api.hrum.me/quests/daily',
+                            JSON_FORCE_OBJECT
+                        );
+
+                        $day = collect($dailyRewards)->flip()->get('canTake');
+
+                        if ($day) {
+                            /** Get Result */
+                            $result = $this->makeHrumRequest(
                                 $key,
                                 $farmer,
-                                [],
-                                'https://api.hrum.me/user/data/all',
-                                JSON_FORCE_OBJECT
+                                $day,
+                                'https://api.hrum.me/quests/daily/claim'
                             );
 
-                            /** After Data */
-                            $afterData =
-                                $this->makeHrumRequest(
-                                    $key,
-                                    $farmer,
-                                    [
-                                        'lang' => 'en'
-                                    ],
-                                    'https://api.hrum.me/user/data/after'
-                                );
+
+                            /** Update Data */
+                            $dailyRewards = $result['dailyRewards'];
+                            $allData['hero'] = $result['hero'];
+                        }
+
+                        /** Riddle */
+                        $riddle = collect($allData['dbData']['dbQuests'])->first(
+                            fn($quest) =>
+                            Str::startsWith($quest['key'], 'riddle_')
+                        );
+
+                        /** Riddle Completion */
+                        $riddleCompletion = collect($afterData['quests'])
+                            ->first(
+                                fn($quest) => $quest['key'] === $riddle['key']
+                            );
+
+                        /** Can Claim Riddle */
+                        $canClaimRiddle = $riddle && !$riddleCompletion;
 
 
-
-
-
-                            /** Daily Check-In */
-                            $dailyRewards = $this->makeHrumRequest(
+                        /** Claim Riddle */
+                        if ($canClaimRiddle) {
+                            /** Check */
+                            $check = $this->makeHrumRequest(
                                 $key,
                                 $farmer,
-                                [],
-                                'https://api.hrum.me/quests/daily',
-                                JSON_FORCE_OBJECT
+                                [
+                                    $riddle['key'],
+                                    $riddle['checkData']
+                                ],
+                                'https://api.hrum.me/quests/check'
                             );
 
-                            $day = collect($dailyRewards)->flip()->get('canTake');
 
-                            if ($day) {
-                                /** Get Result */
-                                $result = $this->makeHrumRequest(
-                                    $key,
-                                    $farmer,
-                                    $day,
-                                    'https://api.hrum.me/quests/daily/claim'
-                                );
-
-
-                                /** Update Data */
-                                $dailyRewards = $result['dailyRewards'];
-                                $allData['hero'] = $result['hero'];
-                            }
-
-                            /** Riddle */
-                            $riddle = collect($allData['dbData']['dbQuests'])->first(
-                                fn($quest) =>
-                                Str::startsWith($quest['key'], 'riddle_')
+                            /** Get Result */
+                            $result = $this->makeHrumRequest(
+                                $key,
+                                $farmer,
+                                [
+                                    $riddle['key'],
+                                    $riddle['checkData']
+                                ],
+                                'https://api.hrum.me/quests/claim'
                             );
 
-                            /** Riddle Completion */
-                            $riddleCompletion = collect($afterData['quests'])
-                                ->first(
-                                    fn($quest) => $quest['key'] === $riddle['key']
-                                );
 
-                            /** Can Claim Riddle */
-                            $canClaimRiddle = $riddle && !$riddleCompletion;
+                            /** Update Data */
+                            $allData['hero'] = $result['hero'];
+                            $afterData['quests'] = $result['quests'];
+                        }
 
 
-                            /** Claim Riddle */
-                            if ($canClaimRiddle) {
-                                /** Check */
-                                $check = $this->makeHrumRequest(
-                                    $key,
-                                    $farmer,
-                                    [
-                                        $riddle['key'],
-                                        $riddle['checkData']
-                                    ],
-                                    'https://api.hrum.me/quests/check'
-                                );
-
-
-                                /** Get Result */
-                                $result =  $this->makeHrumRequest(
-                                    $key,
-                                    $farmer,
-                                    [
-                                        $riddle['key'],
-                                        $riddle['checkData']
-                                    ],
-                                    'https://api.hrum.me/quests/claim'
-                                );
-
-
-                                /** Update Data */
-                                $allData['hero'] = $result['hero'];
-                                $afterData['quests'] = $result['quests'];
-                            }
-
-
-                            /** Fake Check Tasks */
-                            $completedQuests = collect($afterData['quests']);
-                            $tasks = collect(
-                                $allData['dbData']['dbQuests']
-                            )->filter(
+                        /** Fake Check Tasks */
+                        $completedQuests = collect($afterData['quests']);
+                        $tasks = collect(
+                            $allData['dbData']['dbQuests']
+                        )->filter(
                                 fn($item) => $item['checkType'] === 'fakeCheck'
 
                             )->filter(
@@ -185,45 +184,45 @@ class FarmHrum extends Command
                             );
 
 
-                            /** Claim Tasks */
-                            foreach ($tasks as $task) {
-                                /** Get Result */
-                                $result =  $this->makeHrumRequest(
-                                    $key,
-                                    $farmer,
-                                    [
-                                        $task['key'],
-                                        null
-                                    ],
-                                    'https://api.hrum.me/quests/claim'
-                                );
+                        /** Claim Tasks */
+                        foreach ($tasks as $task) {
+                            /** Get Result */
+                            $result = $this->makeHrumRequest(
+                                $key,
+                                $farmer,
+                                [
+                                    $task['key'],
+                                    null
+                                ],
+                                'https://api.hrum.me/quests/claim'
+                            );
 
-                                /** Update Data */
-                                $allData['hero'] = $result['hero'];
-                                $afterData['quests'] = $result['quests'];
-                            }
-
-
-                            /** Open Cookie */
-                            $cookies = intval($allData['hero']['cookies']);
-                            if ($cookies > 0) {
-                                $this->makeHrumRequest(
-                                    $key,
-                                    $farmer,
-                                    [],
-                                    'https://api.hrum.me/user/cookie/open',
-                                    JSON_FORCE_OBJECT
-                                );
-                            }
-                        } catch (\Throwable $e) {
-                            /** Log Error */
-                            $this->logError($e, $farmer);
-
-                            /** Refetch Auth or Disconnect Farmer */
-                            $this->refetchAuthOrDisconnect($farmer);
+                            /** Update Data */
+                            $allData['hero'] = $result['hero'];
+                            $afterData['quests'] = $result['quests'];
                         }
-                    })
-            );
+
+
+                        /** Open Cookie */
+                        $cookies = intval($allData['hero']['cookies']);
+                        if ($cookies > 0) {
+                            $this->makeHrumRequest(
+                                $key,
+                                $farmer,
+                                [],
+                                'https://api.hrum.me/user/cookie/open',
+                                JSON_FORCE_OBJECT
+                            );
+                        }
+                    } catch (\Throwable $e) {
+                        /** Log Error */
+                        $this->logError($e, $farmer);
+
+                        /** Refetch Auth or Disconnect Farmer */
+                        $this->refetchAuthOrDisconnect($farmer);
+                    }
+                });
+
         });
     }
 

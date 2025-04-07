@@ -6,13 +6,14 @@ use App\Helpers;
 use App\Models\Account;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Concurrency;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class Proxy
 {
-    public function __construct() {}
+    public function __construct()
+    {
+    }
 
     /**
      * Get List
@@ -113,31 +114,27 @@ class Proxy
      */
     public function testProxies()
     {
-        return collect(
-            Concurrency::driver('fork')->run(
-                collect($this->list())->mapForConcurrency(function ($proxy) {
-                    $status = true;
-                    $start = microtime(true);
+        return collect($this->list())->mapConcurrently(function ($proxy) {
+            $status = true;
+            $start = microtime(true);
 
-                    try {
-                        Http::throw()->timeout(3)
-                            ->withOptions(['proxy' => 'http://' . $proxy])
-                            ->head('https://www.google.com');
-                    } catch (\Throwable $e) {
-                        $status = false;
-                    }
+            try {
+                Http::throw()->timeout(3)
+                    ->withOptions(['proxy' => 'http://' . $proxy])
+                    ->head('https://www.google.com');
+            } catch (\Throwable $e) {
+                $status = false;
+            }
 
-                    $duration = microtime(true) - $start;
+            $duration = microtime(true) - $start;
 
-                    return  compact(
-                        'status',
-                        'proxy',
-                        'start',
-                        'duration',
-                    );
-                })
-            )
-        );
+            return compact(
+                'status',
+                'proxy',
+                'start',
+                'duration',
+            );
+        });
     }
 
 

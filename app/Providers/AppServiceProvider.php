@@ -43,7 +43,7 @@ class AppServiceProvider extends ServiceProvider
             /** @var Collection $this */
             return collect(
                 Concurrency::driver('fork')->run(
-                    $this->mapForConcurrency($callback)
+                    $this->mapConcurrently($callback)
                 )
             );
         });

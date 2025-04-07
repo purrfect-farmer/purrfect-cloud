@@ -77,81 +77,80 @@ class FarmGoldEagle extends Command
                 return false;
 
             /** Start Farming */
-            $this->runConcurrently(
-                $this->getFarmers()->mapForConcurrency(
-                    function (Farmer $farmer) {
-                        try {
-                            /** Get Progress */
-                            $progress = $this->getApi($farmer)->get('https://gold-eagle-api.fly.dev/user/me/progress')->json();
+            $this->getFarmers()->mapConcurrently(
+                function (Farmer $farmer) {
+                    try {
+                        /** Get Progress */
+                        $progress = $this->getApi($farmer)->get('https://gold-eagle-api.fly.dev/user/me/progress')->json();
 
-                            /** Tap */
-                            if ($progress['energy'] >= 10) {
-                                $energy = $progress['energy'];
-                                $weight = $progress['tap_weight'];
-                                $percent = 90 + rand(0, 8);
-                                $claim = floor(
-                                    ($energy * $percent) / 100
-                                );
-                                $taps = floor(
-                                    $claim / $weight
-                                );
+                        /** Tap */
+                        if ($progress['energy'] >= 10) {
+                            $energy = $progress['energy'];
+                            $weight = $progress['tap_weight'];
+                            $percent = 90 + rand(0, 8);
+                            $claim = floor(
+                                ($energy * $percent) / 100
+                            );
+                            $taps = floor(
+                                $claim / $weight
+                            );
 
-                                /** Initialize Status and Retries */
-                                $status = false;
-                                $retries = 0;
+                            /** Initialize Status and Retries */
+                            $status = false;
+                            $retries = 0;
 
-                                while ($status === false && ++$retries < 3) {
-                                    try {
-                                        /** Calculate Data */
-                                        $data = $this->calculateData($taps);
+                            while ($status === false && ++$retries < 3) {
+                                try {
+                                    /** Calculate Data */
+                                    $data = $this->calculateData($taps);
 
-                                        /** Send Taps */
-                                        $this->getApi($farmer)
-                                            ->post('https://gold-eagle-api.fly.dev/tap', [
-                                                'data' => $data,
-                                            ]);
+                                    /** Send Taps */
+                                    $this->getApi($farmer)
+                                        ->post('https://gold-eagle-api.fly.dev/tap', [
+                                            'data' => $data,
+                                        ]);
 
-                                        /** Set Status */
-                                        $status = true;
-                                    } catch (\Throwable $e) {
-                                        /** Log Error */
-                                        $this->logError($e, $farmer);
-                                    }
+                                    /** Set Status */
+                                    $status = true;
+                                } catch (\Throwable $e) {
+                                    /** Log Error */
+                                    $this->logError($e, $farmer);
                                 }
                             }
-
-                            /** Claim to Wallet */
-                            if (
-                                $this->getOption('automatic_claim') &&
-                                $progress['coins_amount'] >= 50_000
-                            ) {
-                                $tasks = $this->getApi($farmer)
-                                    ->get('https://gold-eagle-api.fly.dev/task/my/available')->json();
-
-                                $claimable = collect($tasks)->every(
-                                    fn($task) => $task['task_type'] !== 'Sl8' || $task['status'] === 'Completed'
-                                );
-
-                                /** Claim To Sl8 */
-                                if ($claimable) {
-                                    try {
-                                        $this->claimToSl8($farmer);
-                                    } catch (\Throwable $e) {
-                                        /** Log Error */
-                                        $this->logError($e, $farmer);
-                                    }
-                                }
-                            }
-                        } catch (\Throwable $e) {
-                            /** Log Error */
-                            $this->logError($e, $farmer);
-
-                            /** Refetch Auth or Disconnect Farmer */
-                            $this->refetchAuthOrDisconnect($farmer);
                         }
+
+                        /** Claim to Wallet */
+                        if (
+                            $this->getOption('automatic_claim') &&
+                            $progress['coins_amount'] >= 50_000
+                        ) {
+                            $tasks = $this->getApi($farmer)
+                                ->get('https://gold-eagle-api.fly.dev/task/my/available')->json();
+
+                            $claimable = collect($tasks)->every(
+                                fn($task) => $task['task_type'] !== 'Sl8' || $task['status'] === 'Completed'
+                            );
+
+                            /** Claim To Sl8 */
+                            if ($claimable) {
+                                try {
+                                    $this->claimToSl8($farmer);
+                                } catch (\Throwable $e) {
+                                    /** Log Error */
+                                    $this->logError($e, $farmer);
+                                }
+                            }
+                        }
+                    } catch (\Throwable $e) {
+                        /** Log Error */
+                        $this->logError($e, $farmer);
+
+                        /** Refetch Auth or Disconnect Farmer */
+                        $this->refetchAuthOrDisconnect($farmer);
                     }
-                )
+                }
             );
+
         });
     }
 

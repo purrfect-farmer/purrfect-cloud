@@ -82,30 +82,28 @@ class FarmMatchQuest extends Command
 
     protected function farmFarmers($farmers)
     {
-        $games = $this->runConcurrently(
-            $farmers->mapForConcurrency(function ($item) {
-                try {
-                    $farmer = $item['farmer'];
-                    $points = intval(
-                        Helpers::extraGamePoints(90)
-                    );
+        $games = $farmers->mapConcurrently(function ($item) {
+            try {
+                $farmer = $item['farmer'];
+                $points = intval(
+                    Helpers::extraGamePoints(90)
+                );
 
-                    $game = $this->getApi($farmer)
-                        ->get(
-                            'https://tgapp-api.matchain.io/api/tgapp/v1/game/play'
-                        )->json('data');
+                $game = $this->getApi($farmer)
+                    ->get(
+                        'https://tgapp-api.matchain.io/api/tgapp/v1/game/play'
+                    )->json('data');
 
-                    return compact(
-                        'farmer',
-                        'points',
-                        'game'
-                    );
-                } catch (\Throwable $e) {
-                    /** Log Error */
-                    $this->logError($e, $item['farmer']);
-                }
-            })
-        )->filter();
+                return compact(
+                    'farmer',
+                    'points',
+                    'game'
+                );
+            } catch (\Throwable $e) {
+                /** Log Error */
+                $this->logError($e, $item['farmer']);
+            }
+        })->filter();
 
 
         if ($games->isNotEmpty()) {
@@ -113,146 +111,143 @@ class FarmMatchQuest extends Command
             Sleep::for(30)->seconds();
 
             /** Claim Points */
-            $this->runConcurrently(
-                $games->mapForConcurrency(function ($item) {
-                    try {
+            $games->mapConcurrently(function ($item) {
+                try {
 
-                        $farmer = $item['farmer'];
-                        $points = $item['points'];
-                        $game = $item['game'];
+                    $farmer = $item['farmer'];
+                    $points = $item['points'];
+                    $game = $item['game'];
 
-                        $this->getApi($farmer)
-                            ->post(
-                                'https://tgapp-api.matchain.io/api/tgapp/v1/game/claim',
-                                [
-                                    'game_id' => $game['game_id'],
-                                    'points' => $points
-                                ]
-                            )->json('data');
-                    } catch (\Throwable $e) {
-                        /** Log Error */
-                        $this->logError($e, $item['farmer']);
-                    }
-                })
-            );
+                    $this->getApi($farmer)
+                        ->post(
+                            'https://tgapp-api.matchain.io/api/tgapp/v1/game/claim',
+                            [
+                                'game_id' => $game['game_id'],
+                                'points' => $points
+                            ]
+                        )->json('data');
+                } catch (\Throwable $e) {
+                    /** Log Error */
+                    $this->logError($e, $item['farmer']);
+                }
+            });
+
         }
     }
 
     protected function retrieveFarmers()
     {
-        return $this->runConcurrently(
-            $this->getFarmers()->mapForConcurrency(function (Farmer $farmer) {
-                try {
-                    /** UID */
-                    $uid = $farmer->getInitDataUnsafe()['user']['id'];
+        return $this->getFarmers()->mapConcurrently(function (Farmer $farmer) {
+            try {
+                /** UID */
+                $uid = $farmer->getInitDataUnsafe()['user']['id'];
 
-                    /** Rewards */
-                    $rewards = $this->getApi($farmer)->post(
-                        'https://tgapp-api.matchain.io/api/tgapp/v1/point/reward',
+                /** Rewards */
+                $rewards = $this->getApi($farmer)->post(
+                    'https://tgapp-api.matchain.io/api/tgapp/v1/point/reward',
+                    ['uid' => $uid]
+                )->json('data');
+
+
+                /** Start Farming */
+                if ($rewards['reward'] === 0) {
+                    /** Start Farming */
+                    $this->getApi($farmer)->post(
+                        'https://tgapp-api.matchain.io/api/tgapp/v1/point/reward/farming',
                         ['uid' => $uid]
                     )->json('data');
+                }
 
+                /** Can Claim */ else if (
+                    now()->isAfter(Carbon::createFromTimestampMs($rewards["next_claim_timestamp"]))
+                ) {
+                    /** Claim Previous Farming */
+                    $this->getApi($farmer)->post(
+                        'https://tgapp-api.matchain.io/api/tgapp/v1/point/reward/claim',
+                        ['uid' => $uid]
+                    )->json('data');
 
                     /** Start Farming */
-                    if ($rewards['reward'] === 0) {
-                        /** Start Farming */
-                        $this->getApi($farmer)->post(
-                            'https://tgapp-api.matchain.io/api/tgapp/v1/point/reward/farming',
-                            ['uid' => $uid]
-                        )->json('data');
-                    }
-
-                    /** Can Claim */ else if (
-                        now()->isAfter(Carbon::createFromTimestampMs($rewards["next_claim_timestamp"]))
-                    ) {
-                        /** Claim Previous Farming */
-                        $this->getApi($farmer)->post(
-                            'https://tgapp-api.matchain.io/api/tgapp/v1/point/reward/claim',
-                            ['uid' => $uid]
-                        )->json('data');
-
-                        /** Start Farming */
-                        $this->getApi($farmer)->post(
-                            'https://tgapp-api.matchain.io/api/tgapp/v1/point/reward/farming',
-                            ['uid' => $uid]
-                        )->json('data');
-                    }
-
-
-                    /** User */
-                    $user = $this->getApi($farmer)->post(
-                        'https://tgapp-api.matchain.io/api/tgapp/v1/user/profile',
+                    $this->getApi($farmer)->post(
+                        'https://tgapp-api.matchain.io/api/tgapp/v1/point/reward/farming',
                         ['uid' => $uid]
                     )->json('data');
-
-                    /** Daily Tasks */
-                    $dailyTasks = $this->getApi($farmer)->get(
-                        'https://tgapp-api.matchain.io/api/tgapp/v1/daily/task/status'
-                    )->json('data');
+                }
 
 
-                    $initialBalance = $user['Balance'] / 1000;
-                    $balance = $initialBalance;
-                    $hasPurchasedDailyBoost = false;
+                /** User */
+                $user = $this->getApi($farmer)->post(
+                    'https://tgapp-api.matchain.io/api/tgapp/v1/user/profile',
+                    ['uid' => $uid]
+                )->json('data');
 
-                    foreach ($dailyTasks as $task) {
-                        /** Prevent Purchase */
-                        if ($task["type"] === "daily" && $hasPurchasedDailyBoost) {
-                            continue;
-                        }
+                /** Daily Tasks */
+                $dailyTasks = $this->getApi($farmer)->get(
+                    'https://tgapp-api.matchain.io/api/tgapp/v1/daily/task/status'
+                )->json('data');
 
-                        for ($i = $task["current_count"]; $i < $task["task_count"]; $i++) {
-                            if ($balance >= $task["point"]) {
-                                try {
-                                    /** Purchase */
-                                    $isSuccess = $this->getApi($farmer)->post(
-                                        'https://tgapp-api.matchain.io/api/tgapp/v1/daily/task/purchase',
-                                        [
-                                            'uid' => $uid,
-                                            'type' => $task["type"]
-                                        ]
-                                    )->json('data');
 
-                                    if (!$isSuccess)
-                                        break;
+                $initialBalance = $user['Balance'] / 1000;
+                $balance = $initialBalance;
+                $hasPurchasedDailyBoost = false;
 
-                                    /** Update Balance */
-                                    $balance -= $task["point"];
-                                } catch (\Throwable $e) {
-                                    $this->logError($e, $farmer);
-                                }
+                foreach ($dailyTasks as $task) {
+                    /** Prevent Purchase */
+                    if ($task["type"] === "daily" && $hasPurchasedDailyBoost) {
+                        continue;
+                    }
+
+                    for ($i = $task["current_count"]; $i < $task["task_count"]; $i++) {
+                        if ($balance >= $task["point"]) {
+                            try {
+                                /** Purchase */
+                                $isSuccess = $this->getApi($farmer)->post(
+                                    'https://tgapp-api.matchain.io/api/tgapp/v1/daily/task/purchase',
+                                    [
+                                        'uid' => $uid,
+                                        'type' => $task["type"]
+                                    ]
+                                )->json('data');
+
+                                if (!$isSuccess)
+                                    break;
+
+                                /** Update Balance */
+                                $balance -= $task["point"];
+                            } catch (\Throwable $e) {
+                                $this->logError($e, $farmer);
                             }
                         }
-
-                        /** Prevent Purchasing Again */
-                        if ($task["type"] === "daily") {
-                            $hasPurchasedDailyBoost = true;
-                        }
                     }
 
-                    /** Game Rule */
-                    $gameRule = $this->getApi($farmer)->get(
-                        'https://tgapp-api.matchain.io/api/tgapp/v1/game/rule'
-                    )->json('data');
-
-                    $tickets = $gameRule['game_count'];
-
-                    /** Return Tickets and Farmer */
-                    if ($tickets > 0) {
-                        return compact(
-                            'farmer',
-                            'tickets',
-                            'uid',
-                        );
+                    /** Prevent Purchasing Again */
+                    if ($task["type"] === "daily") {
+                        $hasPurchasedDailyBoost = true;
                     }
-                } catch (\Throwable $e) {
-                    /** Log Error */
-                    $this->logError($e, $farmer);
-
-                    /** Refetch Auth or Disconnect Farmer */
-                    $this->refetchAuthOrDisconnect($farmer);
                 }
-            })
-        )->filter();
+
+                /** Game Rule */
+                $gameRule = $this->getApi($farmer)->get(
+                    'https://tgapp-api.matchain.io/api/tgapp/v1/game/rule'
+                )->json('data');
+
+                $tickets = $gameRule['game_count'];
+
+                /** Return Tickets and Farmer */
+                if ($tickets > 0) {
+                    return compact(
+                        'farmer',
+                        'tickets',
+                        'uid',
+                    );
+                }
+            } catch (\Throwable $e) {
+                /** Log Error */
+                $this->logError($e, $farmer);
+
+                /** Refetch Auth or Disconnect Farmer */
+                $this->refetchAuthOrDisconnect($farmer);
+            }
+        })->filter();
     }
 }

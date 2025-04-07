@@ -78,90 +78,86 @@ class FarmSlotcoin extends Command
 
     protected function farmFarmers($farmers)
     {
-        return $this->runConcurrently(
-            $farmers->mapForConcurrency(function ($item) {
-                try {
-                    $farmer = $item['farmer'];
-                    $ticketsCount = $item['ticketsCount'];
-                    $energy = $item['energy'];
-                    $bid = $item['bid'];
+        return $farmers->mapConcurrently(function ($item) {
+            try {
+                $farmer = $item['farmer'];
+                $ticketsCount = $item['ticketsCount'];
+                $energy = $item['energy'];
+                $bid = $item['bid'];
 
 
-                    if ($ticketsCount > 0) {
-                        /** Subtract Ticket */
-                        $ticketsCount -= 1;
+                if ($ticketsCount > 0) {
+                    /** Subtract Ticket */
+                    $ticketsCount -= 1;
 
-                        /** Spin Ticket */
-                        $this->getApi($farmer)->post('https://api.slotcoin.app/v1/clicker/daily/spin');
-                    }
-
-                    /** Deduct Energy */
-                    $energy -= $bid;
-
-                    /** Spin Lottery */
-                    $this->getApi($farmer)
-                        ->post(
-                            'https://api.slotcoin.app/v1/clicker/api/spin',
-                        );
-
-                    /** Return Energy and Farmer */
-                    if ($energy >= $bid || $ticketsCount > 0) {
-                        return compact(
-                            'farmer',
-                            'ticketsCount',
-                            'energy',
-                            'bid',
-                        );
-                    }
-                } catch (\Throwable $e) {
-                    /** Log Error */
-                    $this->logError($e, $item['farmer']);
+                    /** Spin Ticket */
+                    $this->getApi($farmer)->post('https://api.slotcoin.app/v1/clicker/daily/spin');
                 }
-            })
-        )->filter();
+
+                /** Deduct Energy */
+                $energy -= $bid;
+
+                /** Spin Lottery */
+                $this->getApi($farmer)
+                    ->post(
+                        'https://api.slotcoin.app/v1/clicker/api/spin',
+                    );
+
+                /** Return Energy and Farmer */
+                if ($energy >= $bid || $ticketsCount > 0) {
+                    return compact(
+                        'farmer',
+                        'ticketsCount',
+                        'energy',
+                        'bid',
+                    );
+                }
+            } catch (\Throwable $e) {
+                /** Log Error */
+                $this->logError($e, $item['farmer']);
+            }
+        })->filter();
     }
 
     protected function retrieveFarmers()
     {
-        return $this->runConcurrently(
-            $this->getFarmers()->mapForConcurrency(function (Farmer $farmer) {
-                try {
-                    /** Daily Check-In */
-                    $dailyCheckIn = $this->getApi($farmer)->post('https://api.slotcoin.app/v1/clicker/check-in/info')->json();
-                    $timeToClaim = intval($dailyCheckIn['time_to_claim']);
+        return $this->getFarmers()->mapConcurrently(function (Farmer $farmer) {
+            try {
+                /** Daily Check-In */
+                $dailyCheckIn = $this->getApi($farmer)->post('https://api.slotcoin.app/v1/clicker/check-in/info')->json();
+                $timeToClaim = intval($dailyCheckIn['time_to_claim']);
 
-                    /** Claim Daily Check-In */
-                    if ($timeToClaim <= 0) {
-                        $this->getApi($farmer)->post('https://api.slotcoin.app/v1/clicker/check-in/claim');
-                    }
-
-                    /** Get Info */
-                    $info = $this->getApi($farmer)->post('https://api.slotcoin.app/v1/clicker/api/info')->json();
-
-                    /** Tickets */
-                    $ticketsCount = intval($info['user']['daily_roulette_count']);
-
-                    /** Energy */
-                    $energy = intval($info['user']['spins']);
-                    $bid = intval($info['user']['bid']);
-
-                    /** Return Energy and Farmer */
-                    if ($energy >= $bid || $ticketsCount > 0) {
-                        return compact(
-                            'farmer',
-                            'ticketsCount',
-                            'energy',
-                            'bid',
-                        );
-                    }
-                } catch (\Throwable $e) {
-                    /** Log Error */
-                    $this->logError($e, $farmer);
-
-                    /** Refetch Auth or Disconnect Farmer */
-                    $this->refetchAuthOrDisconnect($farmer);
+                /** Claim Daily Check-In */
+                if ($timeToClaim <= 0) {
+                    $this->getApi($farmer)->post('https://api.slotcoin.app/v1/clicker/check-in/claim');
                 }
-            })
-        )->filter();
+
+                /** Get Info */
+                $info = $this->getApi($farmer)->post('https://api.slotcoin.app/v1/clicker/api/info')->json();
+
+                /** Tickets */
+                $ticketsCount = intval($info['user']['daily_roulette_count']);
+
+                /** Energy */
+                $energy = intval($info['user']['spins']);
+                $bid = intval($info['user']['bid']);
+
+                /** Return Energy and Farmer */
+                if ($energy >= $bid || $ticketsCount > 0) {
+                    return compact(
+                        'farmer',
+                        'ticketsCount',
+                        'energy',
+                        'bid',
+                    );
+                }
+            } catch (\Throwable $e) {
+                /** Log Error */
+                $this->logError($e, $farmer);
+
+                /** Refetch Auth or Disconnect Farmer */
+                $this->refetchAuthOrDisconnect($farmer);
+            }
+        })->filter();
     }
 }
