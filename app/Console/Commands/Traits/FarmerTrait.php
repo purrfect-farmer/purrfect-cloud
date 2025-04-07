@@ -28,9 +28,6 @@ trait FarmerTrait
             $result = call_user_func($callback);
 
             if ($result !== false) {
-                /** Update Telegram Data */
-                $this->updateTelegramData();
-
                 /** End Date */
                 $endDate = now();
 
@@ -129,10 +126,10 @@ trait FarmerTrait
         /** Log Error */
         Log::error($this->getTitle() . ' Error', array_merge(
             $farmer ?
-                [
-                    'user_id' => $farmer->user_id ?? null,
-                    'username' => $farmer->getInitDataUnsafe()['user']['username'] ?? null,
-                ] : [],
+            [
+                'user_id' => $farmer->user_id ?? null,
+                'username' => $farmer->getInitDataUnsafe()['user']['username'] ?? null,
+            ] : [],
             [
 
                 'message' => $e->getMessage(),
@@ -218,7 +215,7 @@ trait FarmerTrait
                 ->mapForConcurrency(function (Farmer $farmer) {
                     if ($farmer->account->session_id) {
                         try {
-                            $this->refetchAuth(
+                            $this->updateFarmerData(
                                 $farmer,
                                 property_exists(
                                     $this,
@@ -239,8 +236,9 @@ trait FarmerTrait
     {
         if ($farmer->account->session_id) {
             try {
-                /** Refetch Auth using Session */
-                $this->refetchAuth($farmer, true);
+                if (method_exists($this, 'setAuth')) {
+                    $this->setAuth($farmer);
+                }
             } catch (\Throwable $e) {
                 /** Log Error */
                 $this->logError($e, $farmer);
@@ -256,12 +254,40 @@ trait FarmerTrait
 
 
     /**
-     * Refetch Auth
+     * Update Farmer Data
      * @param \App\Models\Farmer $farmer
      * @param boolean $shouldSetAuth
      * @return void
      */
-    protected function refetchAuth(Farmer $farmer, $shouldSetAuth = true)
+    protected function updateFarmerData(Farmer $farmer, $shouldSetAuth = true)
+    {
+        /** Update TelegramWebApp */
+        $this->updateTelegramWebApp($farmer);
+
+        /** Try to Update Auth Headers */
+        try {
+            if (
+                $shouldSetAuth && method_exists($this, 'setAuth')
+            ) {
+                $this->setAuth($farmer);
+            }
+        } catch (\Throwable $e) {
+            $this->logError($e, $farmer);
+        }
+
+        /** Mark as connected */
+        $farmer->is_connected = true;
+
+        /** Save the Farmer */
+        $farmer->save();
+    }
+
+    /**
+     * Update TelegramWebApp Data
+     * @param \App\Models\Farmer $farmer
+     * @return void
+     */
+    protected function updateTelegramWebApp(Farmer $farmer)
     {
         $api = Madeline::session(
             $farmer->account->session_id
@@ -285,23 +311,6 @@ trait FarmerTrait
             /** Throw Error */
             throw $e;
         }
-
-        /** Try to Update Auth Headers */
-        try {
-            if (
-                $shouldSetAuth && method_exists($this, 'setAuth')
-            ) {
-                $this->setAuth($farmer, $result);
-            }
-        } catch (\Throwable $e) {
-            $this->logError($e, $farmer);
-        }
-
-        /** Mark as connected */
-        $farmer->is_connected = true;
-
-        /** Save the Farmer */
-        $farmer->save();
     }
 
     /**

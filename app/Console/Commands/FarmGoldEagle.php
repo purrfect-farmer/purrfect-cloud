@@ -73,7 +73,8 @@ class FarmGoldEagle extends Command
     {
         $this->farm(function () {
             /** Get OTP */
-            if (!$this->getOtp()) return false;
+            if (!$this->getOtp())
+                return false;
 
             /** Start Farming */
             $this->runConcurrently(
@@ -161,12 +162,22 @@ class FarmGoldEagle extends Command
      * @param array $data
      * @return void
      */
-    protected function setAuth(Farmer $farmer, $data)
+    protected function setAuth(Farmer $farmer)
     {
+        $query = http_build_query(
+            data: [
+                'tgWebAppData' => $farmer->getInitData(),
+                'tgWebAppPlatform' => 'android',
+                'tgWebAppVersion' => '8.4',
+            ],
+        );
+
+        $url = 'https://telegram.geagle.online/?tgWebAppStartParam=r_ubdOBYN6KX#' . $query;
+
         /** Get Access Token */
         $accessToken = $this->getBaseApi($farmer)
             ->post('https://gold-eagle-api.fly.dev/login/telegram', [
-                'init_data_raw' => $data['url']
+                'init_data_raw' => $url
             ])
             ->json('access_token');
 

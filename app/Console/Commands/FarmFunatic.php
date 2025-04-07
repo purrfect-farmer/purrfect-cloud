@@ -63,13 +63,12 @@ class FarmFunatic extends Command
     /**
      *  Set Authorization
      * @param \App\Models\Farmer $farmer
-     * @param array $data
      * @return void
      */
-    protected function setAuth(Farmer $farmer, $data)
+    protected function setAuth(Farmer $farmer)
     {
         /** Init Data */
-        $initData = $data['initData'];
+        $initData = $farmer->getInitData();
 
         /** Get Access Token */
         $accessToken = $this->getBaseApi($farmer)
@@ -174,9 +173,9 @@ class FarmFunatic extends Command
                                 collect(
                                     $item['buyOrUpgradeRequirements']
                                 )
-                                ->every(
-                                    fn($dep) => $dep['isMissing'] === false
-                                )
+                                    ->every(
+                                        fn($dep) => $dep['isMissing'] === false
+                                    )
                             )
                         );
 
@@ -199,8 +198,8 @@ class FarmFunatic extends Command
                             /** Buy or Upgrade Card */
                             $this->getApi($farmer)->post(
                                 $isUpgrade ?
-                                    'https://api2.funtico.com/api/lucky-funatic/upgrade-card' :
-                                    'https://api2.funtico.com/api/lucky-funatic/buy-card',
+                                'https://api2.funtico.com/api/lucky-funatic/upgrade-card' :
+                                'https://api2.funtico.com/api/lucky-funatic/buy-card',
                                 [
                                     'cardId' => $card['id']
                                 ]

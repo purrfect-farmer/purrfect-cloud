@@ -15,6 +15,14 @@ Schedule::command('app:expire-subscriptions')->daily();
 /** Update Proxies */
 Schedule::command('app:update-proxies')->everyThirtyMinutes();
 
+/** Update WebAppData */
+Schedule::command('farmer:update-web-app-data')
+    ->withoutOverlapping(10)
+    ->onOneServer()
+    ->runInBackground()
+    ->everyFiveMinutes();
+
+
 /** Farm enabled drops every 10 minutes */
 collect(config('farmer.drops'))
     ->filter(fn($drop) => $drop['enabled'])

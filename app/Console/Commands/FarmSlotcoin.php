@@ -60,15 +60,14 @@ class FarmSlotcoin extends Command
     /**
      *  Set Authorization
      * @param \App\Models\Farmer $farmer
-     * @param array $data
      * @return void
      */
-    protected function setAuth(Farmer $farmer, $data)
+    protected function setAuth(Farmer $farmer)
     {
         /** Get Access Token */
         $accessToken = $this->getBaseApi($farmer)
             ->post('https://api.slotcoin.app/v1/clicker/auth', [
-                'initData' => $data['initData'],
+                'initData' => $farmer->getInitData(),
                 'referralCode' => 'a2dd-60f7'
             ])
             ->json('accessToken');

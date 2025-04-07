@@ -55,11 +55,16 @@ class FarmMatchQuest extends Command
     /**
      *  Set Authorization
      * @param \App\Models\Farmer $farmer
-     * @param array $data
      * @return void
      */
-    protected function setAuth(Farmer $farmer, $data)
+    protected function setAuth(Farmer $farmer)
     {
+        /** Get Data */
+        $data = [
+            'initData' => $farmer->getInitData(),
+            'initDataUnsafe' => $farmer->getInitDataUnsafe(),
+        ];
+
         /** Get Access Token */
         $accessToken = $this->getBaseApi($farmer)
             ->post('https://tgapp-api.matchain.io/api/tgapp/v1/user/login', [
@@ -157,8 +162,7 @@ class FarmMatchQuest extends Command
                         )->json('data');
                     }
 
-                    /** Can Claim */
-                    else if (
+                    /** Can Claim */ else if (
                         now()->isAfter(Carbon::createFromTimestampMs($rewards["next_claim_timestamp"]))
                     ) {
                         /** Claim Previous Farming */
@@ -209,7 +213,8 @@ class FarmMatchQuest extends Command
                                         ]
                                     )->json('data');
 
-                                    if (!$isSuccess) break;
+                                    if (!$isSuccess)
+                                        break;
 
                                     /** Update Balance */
                                     $balance -= $task["point"];

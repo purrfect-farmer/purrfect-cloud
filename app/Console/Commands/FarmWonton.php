@@ -61,15 +61,14 @@ class FarmWonton extends Command
     /**
      *  Set Authorization
      * @param \App\Models\Farmer $farmer
-     * @param array $data
      * @return void
      */
-    protected function setAuth(Farmer $farmer, $data)
+    protected function setAuth(Farmer $farmer)
     {
         /** Get Access Token */
         $accessToken = $this->getBaseApi($farmer)
             ->post('https://wonton.food/api/v1/user/auth', [
-                'initData' => $data['initData'],
+                'initData' => $farmer->getInitData(),
                 'inviteCode' => 'K45JQRG7',
                 'newUserPromoteCode' => ''
             ])

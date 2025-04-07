@@ -7,6 +7,7 @@ use App\Libraries\Proxy;
 use App\Payment\Paystack;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Concurrency;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -36,6 +37,15 @@ class AppServiceProvider extends ServiceProvider
         Collection::macro('mapForConcurrency', function ($callback) {
             /** @var Collection $this */
             return $this->map(fn($value, $key) => fn() => $callback($value, $key))->all();
+        });
+
+        Collection::macro('mapConcurrently', function ($callback) {
+            /** @var Collection $this */
+            return collect(
+                Concurrency::driver('fork')->run(
+                    $this->mapForConcurrency($callback)
+                )
+            );
         });
 
         ResetPassword::createUrlUsing(function (object $notifiable, string $token) {

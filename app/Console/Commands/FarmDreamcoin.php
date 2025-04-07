@@ -53,16 +53,15 @@ class FarmDreamcoin extends Command
     /**
      *  Set Authorization
      * @param \App\Models\Farmer $farmer
-     * @param array $data
      * @return void
      */
-    protected function setAuth(Farmer $farmer, $data)
+    protected function setAuth(Farmer $farmer)
     {
         /** Init Data */
-        $initData = $data['initData'];
+        $initData = $farmer->getInitData();
 
         /** Init Data Unsafe */
-        $initDataUnsafe = $data['initDataUnsafe'];
+        $initDataUnsafe = $farmer->getInitDataUnsafe();
 
         /** Get Access Token */
         $accessToken = $this->getBaseApi($farmer)
