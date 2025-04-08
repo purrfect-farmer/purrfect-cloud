@@ -242,9 +242,6 @@ trait FarmerTrait
             } catch (\Throwable $e) {
                 /** Log Error */
                 $this->logError($e, $farmer);
-
-                /** Disconnect */
-                $farmer->disconnect();
             }
         } else {
             /** Disconnect */
