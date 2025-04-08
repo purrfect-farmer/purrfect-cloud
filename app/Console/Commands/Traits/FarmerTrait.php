@@ -195,10 +195,12 @@ trait FarmerTrait
      */
     protected function getFarmers($shouldSetAuth = false)
     {
-        return $this->getBaseFarmers()
+        $farmers = $this->getBaseFarmers()
             ->connected()
-            ->get()
-            ->mapConcurrently(function (Farmer $farmer) use ($shouldSetAuth) {
+            ->get();
+
+        if ($shouldSetAuth) {
+            return $farmers->mapConcurrently(function (Farmer $farmer) use ($shouldSetAuth) {
                 if ($shouldSetAuth) {
                     try {
                         $this->setAuth($farmer)->save();
@@ -209,6 +211,9 @@ trait FarmerTrait
                 }
                 return $farmer;
             });
+        } else {
+            return $farmers;
+        }
     }
 
     /**
