@@ -132,11 +132,8 @@ class FarmWonton extends Command
 
     protected function retrieveFarmers()
     {
-        return $this->getFarmers()->mapConcurrently(function (Farmer $farmer) {
+        return $this->getFarmers(true)->mapConcurrently(function (Farmer $farmer) {
             try {
-                /** Set Auth */
-                $this->setAuth($farmer)->save();
-
                 /** Daily Check-In */
                 $this->getApi($farmer)->get('https://wonton.food/api/v1/checkin')->json();
 

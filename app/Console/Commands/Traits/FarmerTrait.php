@@ -193,11 +193,22 @@ trait FarmerTrait
      * Get Farmers
      * @return \Illuminate\Database\Eloquent\Collection<int, Farmer>
      */
-    protected function getFarmers()
+    protected function getFarmers($shouldSetAuth = false)
     {
         return $this->getBaseFarmers()
             ->connected()
-            ->get();
+            ->get()
+            ->mapConcurrently(function (Farmer $farmer) use ($shouldSetAuth) {
+                if ($shouldSetAuth) {
+                    try {
+                        $this->setAuth($farmer)->save();
+                    } catch (\Throwable $e) {
+                        /** Log Error */
+                        $this->logError($e, $farmer);
+                    }
+                }
+                return $farmer;
+            });
     }
 
     /**
