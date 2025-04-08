@@ -55,7 +55,7 @@ class FarmMatchQuest extends Command
     /**
      *  Set Authorization
      * @param \App\Models\Farmer $farmer
-     * @return void
+     * @return Farmer
      */
     protected function setAuth(Farmer $farmer)
     {
@@ -77,7 +77,7 @@ class FarmMatchQuest extends Command
             ->json('data.token');
 
         /** Set Headers */
-        $farmer->setAuthorizationHeader($accessToken);
+        return $farmer->setAuthorizationHeader($accessToken);
     }
 
     protected function farmFarmers($farmers)

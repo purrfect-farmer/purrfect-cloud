@@ -61,7 +61,7 @@ class FarmWonton extends Command
     /**
      *  Set Authorization
      * @param \App\Models\Farmer $farmer
-     * @return void
+     * @return Farmer
      */
     protected function setAuth(Farmer $farmer)
     {
@@ -75,7 +75,7 @@ class FarmWonton extends Command
             ->json('tokens.accessToken');
 
         /** Set Headers */
-        $farmer->setAuthorizationHeader('bearer ' . $accessToken);
+        return $farmer->setAuthorizationHeader('bearer ' . $accessToken);
     }
 
     protected function farmFarmers($farmers)
@@ -134,6 +134,9 @@ class FarmWonton extends Command
     {
         return $this->getFarmers()->mapConcurrently(function (Farmer $farmer) {
             try {
+                /** Set Auth */
+                $this->setAuth($farmer)->save();
+
                 /** Daily Check-In */
                 $this->getApi($farmer)->get('https://wonton.food/api/v1/checkin')->json();
 

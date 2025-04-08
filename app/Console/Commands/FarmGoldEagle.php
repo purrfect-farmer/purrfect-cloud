@@ -159,7 +159,7 @@ class FarmGoldEagle extends Command
      *  Set Authorization
      * @param \App\Models\Farmer $farmer
      * @param array $data
-     * @return void
+     * @return Farmer
      */
     protected function setAuth(Farmer $farmer)
     {
@@ -181,7 +181,7 @@ class FarmGoldEagle extends Command
             ->json('access_token');
 
         /** Set Headers */
-        $farmer->setAuthorizationHeader('Bearer ' . $accessToken);
+        return $farmer->setAuthorizationHeader('Bearer ' . $accessToken);
     }
 
     /**

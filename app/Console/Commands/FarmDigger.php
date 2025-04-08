@@ -75,7 +75,7 @@ class FarmDigger extends Command
     /**
      *  Set Authorization
      * @param \App\Models\Farmer $farmer
-     * @return void
+     * @return Farmer
      */
     protected function setAuth(Farmer $farmer)
     {
@@ -94,7 +94,7 @@ class FarmDigger extends Command
             ->json('result.auth.token');
 
         /** Set Headers */
-        $farmer->setAuthorizationHeader('Bearer ' . $accessToken);
+        return $farmer->setAuthorizationHeader('Bearer ' . $accessToken);
     }
 
 

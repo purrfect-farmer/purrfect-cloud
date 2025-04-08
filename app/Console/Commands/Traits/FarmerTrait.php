@@ -234,10 +234,7 @@ trait FarmerTrait
             try {
                 if (method_exists($this, 'setAuth')) {
                     /** Update Auth */
-                    $this->setAuth($farmer);
-
-                    /** Save */
-                    $farmer->save();
+                    $this->setAuth($farmer)->save();
                 }
             } catch (\Throwable $e) {
                 /** Log Error */

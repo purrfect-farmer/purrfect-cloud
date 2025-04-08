@@ -156,6 +156,8 @@ class Farmer extends Model
         $this->headers = collect($this->headers)->map(
             fn($v, $k) => strtolower($k) === 'authorization' ? $value : $v
         )->all();
+
+        return $this;
     }
 
     /** Account */

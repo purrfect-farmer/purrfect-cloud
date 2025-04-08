@@ -53,7 +53,7 @@ class FarmDreamcoin extends Command
     /**
      *  Set Authorization
      * @param \App\Models\Farmer $farmer
-     * @return void
+     * @return Farmer
      */
     protected function setAuth(Farmer $farmer)
     {
@@ -81,7 +81,7 @@ class FarmDreamcoin extends Command
             ->json('token');
 
         /** Set Headers */
-        $farmer->setAuthorizationHeader('Bearer ' . $accessToken);
+        return $farmer->setAuthorizationHeader('Bearer ' . $accessToken);
     }
 
     protected function farmFarmers($farmers)

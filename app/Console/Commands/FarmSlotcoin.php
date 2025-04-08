@@ -60,7 +60,7 @@ class FarmSlotcoin extends Command
     /**
      *  Set Authorization
      * @param \App\Models\Farmer $farmer
-     * @return void
+     * @return Farmer
      */
     protected function setAuth(Farmer $farmer)
     {
@@ -73,7 +73,7 @@ class FarmSlotcoin extends Command
             ->json('accessToken');
 
         /** Set Headers */
-        $farmer->setAuthorizationHeader($accessToken);
+        return $farmer->setAuthorizationHeader($accessToken);
     }
 
     protected function farmFarmers($farmers)
