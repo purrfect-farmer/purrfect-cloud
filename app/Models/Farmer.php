@@ -207,11 +207,22 @@ class Farmer extends Model
      */
     public function getInitDataUnsafe()
     {
-        parse_str($this->getInitData(), $initDataUnsafe);
+        $parsed = $this->getInitDataParsed();
 
         return [
-            ...$initDataUnsafe,
-            'user' => json_decode($initDataUnsafe['user'], true),
+            ...$parsed,
+            'user' => json_decode($parsed['user'], true),
         ];
+    }
+
+
+    /**
+     * Get Init Data Parsed
+     * @return array
+     */
+    public function getInitDataParsed()
+    {
+        parse_str($this->getInitData(), $data);
+        return $data;
     }
 }
