@@ -40,7 +40,7 @@ class FarmWonton extends Command
      *
      * @var int
      */
-    protected $delay = 3;
+    protected $delay = 5;
 
     /**
      * Execute the console command.
