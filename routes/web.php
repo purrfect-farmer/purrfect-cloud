@@ -7,4 +7,6 @@ Route::get('/', function () {
     return ['Laravel' => app()->version()];
 });
 
-Route::get('payments/verify', [PaymentController::class, 'verifyWeb'])->name('payments.verify');
+Route::middleware('feature:farmer.enable_payments')
+    ->get('payments/verify', [PaymentController::class, 'verifyWeb'])
+    ->name('payments.verify');
