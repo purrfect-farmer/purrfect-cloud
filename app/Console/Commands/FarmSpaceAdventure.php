@@ -253,14 +253,15 @@ class FarmSpaceAdventure extends Command
     protected function getStatus($user)
     {
         $timePassed = $this->createDate($user["claimed_last"])->diffInSeconds();
-        $remainingFuel = now()->diffInSeconds(
+        $lowFuelInSeconds = 10 * 60; // Ten Minutes
+        $remainingFuelInSeconds = now()->diffInSeconds(
             $this->createDate(
                 $user["fuel_last_at"] + $user["fuel"] * 1000
             )
         );
 
         $unclaimed = $user["claim"] * $timePassed;
-        $canBuyFuel = $remainingFuel <= 10 &&
+        $canBuyFuel = $remainingFuelInSeconds <= $lowFuelInSeconds &&
             now()->isAfter(
                 $this->createDate($user["fuel_free_at"])
             );
