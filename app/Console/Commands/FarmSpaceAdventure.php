@@ -260,7 +260,7 @@ class FarmSpaceAdventure extends Command
         );
 
         $unclaimed = $user["claim"] * $timePassed;
-        $canBuyFuel = $remainingFuel <= $user["fuel"] / 2 &&
+        $canBuyFuel = $remainingFuel <= 10 &&
             now()->isAfter(
                 $this->createDate($user["fuel_free_at"])
             );
@@ -272,9 +272,13 @@ class FarmSpaceAdventure extends Command
                 $this->createDate($user["shield_free_at"])
             );
 
-        $canBuyImmunity = now()->isAfter(
-            $this->createDate($user["shield_free_immunity_at"])
-        );
+        $canBuyImmunity =
+            now()->isAfter(
+                $this->createDate($user["shield_immunity_at"])
+            ) &&
+            now()->isAfter(
+                $this->createDate($user["shield_free_immunity_at"])
+            );
 
         $canSpin = now()->isAfter(
             $this->createDate($user["spin_after_at"])
