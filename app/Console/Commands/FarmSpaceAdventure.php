@@ -307,11 +307,11 @@ class FarmSpaceAdventure extends Command
 
     /**
      * Create Date
-     * @param int|string $date
+     * @param int|string|null $date
      * @return Carbon
      */
     protected function createDate($date)
     {
-        return Carbon::createFromTimestampMs($date);
+        return $date === null ? Carbon::now() : Carbon::createFromTimestampMs($date);
     }
 }
