@@ -46,6 +46,7 @@ trait FarmerTrait
     protected function getBaseHeaders()
     {
         return [
+            'Origin' => $this->origin,
             'Origins' => $this->origin,
             'Referer' => $this->origin . '/',
             'Referrer-Policy' => 'strict-origin-when-cross-origin',
