@@ -46,8 +46,10 @@ trait FarmerTrait
     protected function getBaseHeaders()
     {
         return [
-            'Origin' => $this->origin,
+            'Origins' => $this->origin,
             'Referer' => $this->origin . '/',
+            'Referrer-Policy' => 'strict-origin-when-cross-origin',
+            'Cache-Control' => 'no-cache',
             'X-Requested-With' => 'org.telegram.messenger'
         ];
     }
@@ -96,6 +98,7 @@ trait FarmerTrait
                         'method' => (string) $request->getMethod(),
                         'uri' => (string) $request->getUri(),
                         'body' => (string) $request->getBody(),
+                        'headers' => $request->getHeaders()
                     ]);
                 }
 
