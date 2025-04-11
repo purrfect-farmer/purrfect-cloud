@@ -181,6 +181,48 @@ class FarmSpaceAdventure extends Command
                         }
                     }
 
+                    $balance = intval($user['balance']);
+                    $gems = intval($user['gems']);
+                    $levelBoosts = $boosts
+                        ->filter(
+                            fn($item) => $item['type'] === 'level_boost'
+                        )->map(
+                            fn($item) => [
+                                ...$item,
+                                'next_level' => $item['level_list'][$item['level_current'] + 1] ?? null
+                            ]
+                        );
+
+                    $availableBoosts = $levelBoosts->filter(
+                        fn($item) =>
+                        $item['next_level'] !== null &&
+                        $item['next_level']['price_coin'] <= $balance ||
+                        $item['next_level']['price_gems'] <= $gems
+                    );
+
+                    $maxLevel = $availableBoosts->max('level_current');
+                    $sameLevel = $availableBoosts->every('level_current', $maxLevel);
+
+                    $upgradableBoosts = $availableBoosts->filter(
+                        fn($item) => $sameLevel || $item['level_current'] < $maxLevel
+                    );
+
+                    if ($upgradableBoosts->isNotEmpty()) {
+                        $random = $upgradableBoosts->random();
+                        $method = $random['next_level']['price_gems'] <= $gems ? 'gems' : 'coin';
+
+                        $helper
+                            ->makeAuthRequest(
+                                fn(PendingRequest $api) => $api->post(
+                                    'https://space-adventure.online/api/boost/buy/',
+                                    [
+                                        'method' => $method,
+                                        'id' => $random['id']
+                                    ]
+                                )
+                            );
+                    }
+
 
                 } catch (\Throwable $e) {
                     /** Log Error */

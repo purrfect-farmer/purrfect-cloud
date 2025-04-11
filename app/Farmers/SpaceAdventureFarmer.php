@@ -43,6 +43,7 @@ class SpaceAdventureFarmer
     /**
      * Make Request
      * @param Closure $callback
+     * @return \Illuminate\Http\Client\Response
      */
     public function makeRequest($callback)
     {
@@ -71,7 +72,7 @@ class SpaceAdventureFarmer
             $api->withHeaders($headers);
         }
 
-        /** Get Response */
+        /** @var Response Get Response */
         $response = $callback($api);
 
         /** Update Cookies */
@@ -87,6 +88,7 @@ class SpaceAdventureFarmer
     /**
      * Make Authenticated Request
      * @param Closure $callback
+     * @return \Illuminate\Http\Client\Response
      */
     public function makeAuthRequest($callback)
     {
