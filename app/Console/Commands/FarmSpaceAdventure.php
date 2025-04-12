@@ -39,6 +39,39 @@ class FarmSpaceAdventure extends Command
 
 
     /**
+     *  Set Authorization
+     * @param \App\Models\Farmer $farmer
+     * @return Farmer
+     */
+    protected function setAuth(Farmer $farmer)
+    {
+        $helper = new SpaceAdventureFarmer(
+            $farmer,
+            fn() => $this->getBaseApi($farmer)
+        );
+
+        /** Fetch CSRF */
+        $helper->fetchCSRFToken();
+
+
+        /** Get Access Token */
+        $accessToken = $helper
+            ->withoutSignature()
+            ->makeRequest(
+                fn(PendingRequest $api) =>
+                $api->asForm()
+                    ->post(
+                        'https://space-adventure.online/api/auth/telegram',
+                        $farmer->getInitDataParsed()
+                    )
+            )->json('token');
+
+        /** Update Authorization Header */
+        return $farmer->setAuthorizationHeader('Bearer ' . $accessToken);
+    }
+
+
+    /**
      * Execute the console command.
      */
     public function handle()
@@ -46,41 +79,23 @@ class FarmSpaceAdventure extends Command
         $this->farm(function () {
             $this->getFarmers()->mapConcurrently(function (Farmer $farmer) {
                 try {
+                    /** Initiate Helper */
                     $helper = new SpaceAdventureFarmer(
                         $farmer,
                         fn() => $this->getBaseApi($farmer)
                     );
 
-                    $helper
-                        ->withoutCookies()
-                        ->withoutSignature()
-                        ->makeRequest(
-                            fn(PendingRequest $api) => $api->get('https://space-adventure.online/sanctum/csrf-cookie')
-                        );
+                    /** Fetch CSRF */
+                    $helper->fetchCSRFToken();
 
-
-                    /** Get Access Token */
-                    $accessToken = $helper
-                        ->withoutSignature()
-                        ->makeRequest(
-                            fn(PendingRequest $api) =>
-                            $api->asForm()
-                                ->post(
-                                    'https://space-adventure.online/api/auth/telegram',
-                                    $farmer->getInitDataParsed()
-                                )
-                        )->json('token');
-
-                    /** Update Authorization Header */
-                    $farmer->setAuthorizationHeader('Bearer ' . $accessToken)->save();
-
-
+                    /** Get User */
                     $user = $helper
                         ->makeAuthRequest(
                             fn(PendingRequest $api) => $api->get('https://space-adventure.online/api/user/get')
                         )
                         ->json('user');
 
+                    /** Get Boosts */
                     $boosts = $helper
                         ->makeAuthRequest(
                             fn(PendingRequest $api) => $api->get('https://space-adventure.online/api/boost/get/')

@@ -21,6 +21,20 @@ class SpaceAdventureFarmer
     }
 
     /**
+     * Fetch CSRF Token
+     * @return static
+     */
+    public function fetchCSRFToken()
+    {
+        $this->withoutCookies()
+            ->withoutSignature()
+            ->makeRequest(
+                fn(PendingRequest $api) => $api->get('https://space-adventure.online/sanctum/csrf-cookie')
+            );
+        return $this;
+    }
+
+    /**
      * Without Cookies
      * @return static
      */
