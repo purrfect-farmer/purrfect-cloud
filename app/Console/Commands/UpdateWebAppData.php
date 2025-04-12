@@ -29,7 +29,7 @@ class UpdateWebAppData extends Command
      */
     public function handle()
     {
-        $this->getAcccounts()->mapConcurrently(function (Account $account) {
+        $this->getAccounts()->mapConcurrently(function (Account $account) {
             $api = Madeline::session($account->session_id);
             try {
                 $account->farmers->each(function (Farmer $farmer) use ($api) {
@@ -73,7 +73,7 @@ class UpdateWebAppData extends Command
         });
     }
 
-    protected function getAcccounts()
+    protected function getAccounts()
     {
         return Account::with('farmers')
             ->subscribed()
