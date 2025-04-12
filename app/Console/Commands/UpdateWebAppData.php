@@ -22,7 +22,7 @@ class UpdateWebAppData extends Command
      *
      * @var string
      */
-    protected $description = 'Command description';
+    protected $description = 'Update WebAppData of accounts with session';
 
     /**
      * Execute the console command.
