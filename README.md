@@ -39,7 +39,7 @@ cd PrimeModule-ext && make -j$(nproc) && sudo make install
 ```bash
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.2/install.sh | bash
 
-\. "$HOME/.nvm/nvm.sh":
+\. "$HOME/.nvm/nvm.sh"
 
 nvm install --lts
 
