@@ -20,7 +20,7 @@ Schedule::command('farmer:update-web-app-data')
     ->withoutOverlapping(10)
     ->onOneServer()
     ->runInBackground()
-    ->everyFiveMinutes();
+    ->cron('5-59/10 * * * *');
 
 
 /** Farm enabled drops every 10 minutes */
