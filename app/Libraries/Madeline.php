@@ -95,10 +95,10 @@ class Madeline
     {
         return (
             collect($this->disk->directories())
-            ->map(
-                fn($item) => str_replace(['session_', '.madeline'], '', $item)
-            )
-            ->all()
+                ->map(
+                    fn($item) => str_replace(['session_', '.madeline'], '', $item)
+                )
+                ->all()
         );
     }
 
@@ -156,7 +156,7 @@ class Madeline
             $url
         );
 
-        $webview = $parsed['short_name']  ?
+        $webview = $parsed['short_name'] ?
             $this->requestAppWebView($api, $parsed) :
             $this->requestMainWebView($api, $parsed);
 
@@ -178,6 +178,7 @@ class Madeline
             peer: $parsed['bot'],
             bot: $parsed['bot'],
             platform: 'android',
+            theme_params: $this->getThemeParams()
         );
     }
 
@@ -197,6 +198,7 @@ class Madeline
                 'bot_id' => $parsed['bot'],
                 'short_name' => $parsed['short_name'],
             ],
+            theme_params: $this->getThemeParams()
         );
     }
 
@@ -222,6 +224,18 @@ class Madeline
                 ...$initDataUnsafe,
                 'user' => json_decode($initDataUnsafe['user'], true),
             ],
+        ];
+    }
+
+    public function getThemeParams()
+    {
+        return [
+            "bg_color" => "#ffffff",
+            "text_color" => "#000000",
+            "hint_color" => "#aaaaaa",
+            "link_color" => "#006aff",
+            "button_color" => "#2cab37",
+            "button_text_color" => "#ffffff",
         ];
     }
 }
