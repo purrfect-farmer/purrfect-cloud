@@ -83,7 +83,7 @@ sudo chmod -R 775 /var/www
 cd /var/www
 ```
 
-[Proceed with Installation](#installation)
+[Nginx - Proceed with Installation](#installation)
 
 
 ### Regular Setup
@@ -95,7 +95,7 @@ Use this method for setting up Purrfect Cloud in a different directory.
 cd ~
 ```
 
-[Proceed with Installation](#installation)
+[Regular - Proceed with Installation](#installation)
 
 ### Installation
 
