@@ -32,6 +32,7 @@ class UpdateWebAppData extends Command
         $this->getAccounts()->each(function (Account $account) {
             $api = Madeline::session($account->session_id);
             try {
+                /** Update Farmers */
                 $account->farmers->each(function (Farmer $farmer) use ($api) {
                     try {
                         $config = config('farmer.drops')[$farmer->farmer];
@@ -62,6 +63,11 @@ class UpdateWebAppData extends Command
                         throw $e;
                     }
                 });
+
+                /** Update Status */
+                $api->account->updateStatus(
+                    offline: false
+                );
 
             } catch (\Throwable $e) {
                 /** Logout */
