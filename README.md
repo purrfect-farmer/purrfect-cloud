@@ -249,12 +249,18 @@ sudo systemctl reload nginx
 ```
 
 ### Nginx Installation - Cron Job
-##### Register a Cron Job for Scheduled Tasks
+
+A cron job is required for scheduled tasks.
+
+##### Edit crontab
 ```bash
 sudo micro /etc/crontab
 ```
 
-#### Append the following
+##### Register Cron Job for Scheduled Tasks
+
+Append the following to the end of the file
+
 ```bash
 * * * * * www-data cd /var/www/purrfect-cloud && php artisan schedule:run >> /dev/null 2>&1
 ```
@@ -262,11 +268,16 @@ sudo micro /etc/crontab
 [Nginx - Continue to Adding a User](#adding-a-user)
 
 ### Regular Installation - Cron Job
-##### Register a Cron Job for Scheduled Tasks
 
+A cron job is required for scheduled tasks.
+
+##### Edit Crontab
 ```bash
 crontab -e
 ```
+
+
+##### Register a Cron Job for Scheduled Tasks
 
 Append the following to crontab (edit path):
 
