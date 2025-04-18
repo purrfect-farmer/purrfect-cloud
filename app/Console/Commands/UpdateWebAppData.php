@@ -29,7 +29,7 @@ class UpdateWebAppData extends Command
      */
     public function handle()
     {
-        $this->getAccounts()->mapConcurrently(function (Account $account) {
+        $this->getAccounts()->each(function (Account $account) {
             $api = Madeline::session($account->session_id);
             try {
                 $account->farmers->each(function (Farmer $farmer) use ($api) {
