@@ -47,10 +47,57 @@ npm i -g npm
 npm i -g pnpm
 ```
 
+
+### Nginx Installation (Recommended)
+
+To setup Purrfect Cloud with Nginx, you will need to run the following commands.
+
+#### Remove Apache
+```bash
+sudo apt remove apache2 apache2-utils apache2-bin -y
+sudo apt autoremove -y
+```
+
+#### Install Nginx
+```bash
+sudo apt update && sudo apt install nginx php8.3-fpm php8.3-cli php8.3-mysql php8.3-curl php8.3-mbstring php8.3-xml php8.3-zip php8.3-bcmath -y
+```
+
+#### Add User to www-data group
+```bash
+sudo usermod -aG www-data $USER && newgrp www-data
+```
+
+#### Change Owner or /var/www
+```bash
+sudo chown -R www-data:www-data /var/www
+```
+
+### Change Permission of /var/www
+```bash
+sudo chmod -R 775 /var/www
+```
+
+##### Change Working Directory to /var/www
+```bash
+cd /var/www
+```
+
+[Proceed with Installation](#installation)
+
+
+### Regular Setup
+
+Use this method for setting up Purrfect Cloud in a different directory.
+
 ##### Change Working Directory to Home or Desired Path
 ```bash
 cd ~
 ```
+
+[Proceed with Installation](#installation)
+
+### Installation
 
 ##### Clone the repository
 ```bash
@@ -131,7 +178,88 @@ Entry | Description
 `FARMER_EXAMPLE_ENABLED` | Farmer is Enabled
 `FARMER_EXAMPLE_THREAD_ID` | Farmer Topic ID
 
-### Cron Job
+Now continue the setup using your preferred method
+[Proceed with Nginx Installation (Recommended)](#nginx-server)
+[Proceed with Regular Installation](#regular-installation---cron-job)
+
+
+### Nginx Server
+
+#### Create Purrfect Cloud Nginx Server Block
+```bash
+sudo micro /etc/nginx/sites-available/purrfect-cloud
+```
+
+#### Add Block Code
+
+Paste the following block and save.
+
+```nginx
+server {
+    listen 80;
+    listen [::]:80;
+    server_name _; # Change if needed
+    root /var/www/purrfect-cloud/public;
+
+    add_header X-Frame-Options "SAMEORIGIN";
+    add_header X-Content-Type-Options "nosniff";
+
+    index index.php;
+
+    charset utf-8;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location = /favicon.ico { access_log off; log_not_found off; }
+    location = /robots.txt  { access_log off; log_not_found off; }
+
+    error_page 404 /index.php;
+
+    location ~ ^/index\.php(/|$) {
+        fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        include fastcgi_params;
+        fastcgi_hide_header X-Powered-By;
+    }
+
+    location ~ /\.(?!well-known).* {
+        deny all;
+    }
+}
+```
+
+#### Disable Default Nginx Server
+```bash
+sudo rm /etc/nginx/sites-enabled/default
+```
+
+#### Enable Purrfect Cloud Server
+```bash
+sudo ln -s /etc/nginx/sites-available/purrfect-cloud /etc/nginx/sites-enabled/
+```
+
+#### Reload Nginx
+```bash
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+### Nginx Installation - Cron Job
+##### Register a Cron Job for Scheduled Tasks
+```bash
+sudo micro /etc/crontab
+```
+
+#### Append the following
+```bash
+* * * * * www-data cd /var/www/purrfect-cloud && php artisan schedule:run >> /dev/null 2>&1
+```
+
+[Nginx - Continue to Adding a User](#adding-a-user)
+
+### Regular Installation - Cron Job
 ##### Register a Cron Job for Scheduled Tasks
 
 ```bash
@@ -154,7 +282,7 @@ Append the following to crontab (edit path):
 # Send Server IP Address
 @reboot cd /home/ubuntu/purrfect-cloud && php artisan app:send-server-address >> /dev/null 2>&1
 ```
-
+[Regular - Continue to Adding a User](#adding-a-user)
 
 ### Adding a User
 If payments are disabled, you will need to add the user manually. To add a user, you need to add a subscription, you will be prompted to create the user if it doesn't exist. Get the user's Telegram Id
@@ -170,7 +298,12 @@ php artisan app:update-account-subscription 87654321 2030-01-01
 ### Updating
 Simply run the following commands to update the application.
 
-##### Change Working Directory (edit path)
+##### Nginx Installation - Change Working Directory
+```bash
+cd /var/www/purrfect-cloud
+```
+
+##### Regular Installation - Change Working Directory (edit path)
 ```bash
 cd ~/purrfect-cloud
 ```
