@@ -178,8 +178,10 @@ Entry | Description
 `FARMER_EXAMPLE_ENABLED` | Farmer is Enabled
 `FARMER_EXAMPLE_THREAD_ID` | Farmer Topic ID
 
-Now continue the setup using your preferred method
+Now continue the setup using your preferred method:
+
 [Proceed with Nginx Installation (Recommended)](#nginx-server)
+
 [Proceed with Regular Installation](#regular-installation---cron-job)
 
 
