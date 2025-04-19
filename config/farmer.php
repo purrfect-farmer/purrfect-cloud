@@ -37,9 +37,6 @@ return [
             'enabled' => env('FARMER_GOLD_EAGLE_ENABLED', true),
             'thread_id' => env('FARMER_GOLD_EAGLE_THREAD_ID', ''),
             'telegram_link' => 'https://t.me/gold_eagle_coin_bot/main?startapp=r_ubdOBYN6KX',
-            'options' => [
-                'automatic_claim' => env('FARMER_GOLD_EAGLE_AUTOMATIC_CLAIM', false)
-            ]
         ],
         'hrum' => [
             'title' => '🥠 Hrum Farmer',

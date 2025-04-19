@@ -122,24 +122,38 @@ class FarmGoldEagle extends Command
 
                         /** Claim to Wallet */
                         if (
-                            $this->getOption('automatic_claim') &&
                             $progress['coins_amount'] >= 50_000
                         ) {
                             $tasks = $this->getApi($farmer)
-                                ->get('https://gold-eagle-api.fly.dev/task/my/available')->json();
+                                ->get('https://gold-eagle-api.fly.dev/task/my/available')
+                                ->collect();
 
-                            $claimable = collect($tasks)->every(
+                            $hasCompletedTasks = $tasks->every(
                                 fn($task) => $task['task_type'] !== 'Sl8' || $task['status'] === 'Completed'
                             );
 
+                            if ($hasCompletedTasks === false) {
+                                return;
+                            }
+
+                            $boosters = $this->getApi($farmer)
+                                ->get('https://gold-eagle-api.fly.dev/boosters')
+                                ->collect();
+                            $claimBooster = $boosters->first(
+                                fn($item) => $item['booster_type'] === 'Claim' && $item['purchased']
+                            );
+
+                            /** Check Booster */
+                            if ($claimBooster === null) {
+                                return;
+                            }
+
                             /** Claim To Sl8 */
-                            if ($claimable) {
-                                try {
-                                    $this->claimToSl8($farmer);
-                                } catch (\Throwable $e) {
-                                    /** Log Error */
-                                    $this->logError($e, $farmer);
-                                }
+                            try {
+                                $this->claimToSl8($farmer);
+                            } catch (\Throwable $e) {
+                                /** Log Error */
+                                $this->logError($e, $farmer);
                             }
                         }
                     } catch (\Throwable $e) {
@@ -151,7 +165,6 @@ class FarmGoldEagle extends Command
                     }
                 }
             );
-
         });
     }
 
@@ -215,6 +228,8 @@ class FarmGoldEagle extends Command
                     $sl8['wallet_address'],
                     $result['hash']
                 );
+            } else if ($sl8['wallet_status'] === 'Inactive') {
+                $this->getApi($farmer)->post('https://gold-eagle-api.fly.dev/slate/wallet/activate')->json();
             }
         }
     }
