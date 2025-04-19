@@ -74,7 +74,7 @@ sudo apt update && sudo apt install nginx php8.3-fpm php8.3-cli php8.3-mysql php
 sudo usermod -aG www-data $USER && newgrp www-data
 ```
 
-#### Change Owner or /var/www
+#### Change Owner of /var/www
 ```bash
 sudo chown -R www-data:www-data /var/www
 ```
@@ -201,6 +201,11 @@ Now continue the setup using your preferred method:
 
 
 ### Nginx Server
+
+#### Change Group of /var/www/purrfect-cloud
+```bash
+sudo chown -R $USER:www-data /var/www/purrfect-cloud
+```
 
 #### Create Purrfect Cloud Nginx Server Block
 ```bash
