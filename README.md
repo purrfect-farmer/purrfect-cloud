@@ -47,6 +47,12 @@ npm i -g npm
 npm i -g pnpm
 ```
 
+There are two methods of setup to follow, it's recommended to use the Nginx method:
+
+[Proceed with Nginx Installation (Recommended)](#nginx-installation-recommended)
+
+[Proceed with Regular Setup](#regular-setup)
+
 
 ### Nginx Installation (Recommended)
 
