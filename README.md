@@ -115,6 +115,14 @@ git clone https://github.com/purrfect-farmer/purrfect-cloud.git
 cd purrfect-cloud
 ```
 
+##### Set Permisisons
+```bash
+sudo find storage -type d -exec chmod 775 {} \;                                               
+sudo find storage -type f -exec chmod 664 {} \;
+sudo find bootstrap/cache -type d -exec chmod 775 {} \;
+sudo find bootstrap/cache -type f -exec chmod 664 {} \;
+```
+
 ##### Install Composer Packages
 ```bash
 composer i
@@ -145,13 +153,6 @@ php artisan key:generate
 php artisan migrate --seed --force
 ```
 
-##### Set Permisisons
-```bash
-sudo find storage -type d -exec chmod 775 {} \;                                               
-sudo find storage -type f -exec chmod 664 {} \;
-sudo find bootstrap/cache -type d -exec chmod 775 {} \;
-sudo find bootstrap/cache -type f -exec chmod 664 {} \;
-```
 
 ##### Extracting Group ID and Topic ID
 Before proceeding, obtain your Telegram Group ID and Topic ID by sending a message to a topic in your group and copy the message link.
