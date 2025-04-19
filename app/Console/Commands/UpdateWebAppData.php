@@ -31,7 +31,7 @@ class UpdateWebAppData extends Command
     public function handle()
     {
         $startDate = now();
-        $this->getAccounts()->each(function (Account $account) {
+        $this->getAccounts()->mapConcurrently(function (Account $account) {
             $api = Madeline::session($account->session_id);
             try {
                 /** Update Farmers */
