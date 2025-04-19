@@ -79,7 +79,7 @@ sudo usermod -aG www-data $USER && newgrp www-data
 sudo chown -R www-data:www-data /var/www
 ```
 
-### Change Permission of /var/www
+#### Change Permission of /var/www
 ```bash
 sudo chmod -R 775 /var/www
 ```
