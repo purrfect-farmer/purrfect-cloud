@@ -10,7 +10,7 @@
 - Additional Topics for Each Farmer
 
 ### Setup
-###### Install Packages
+##### Install Packages
 ```bash
 sudo apt-get update
 sudo apt-get install software-properties-common -y
@@ -35,7 +35,7 @@ git clone https://github.com/danog/PrimeModule-ext
 cd PrimeModule-ext && make -j$(nproc) && sudo make install
 ```
 
-###### Setup Node.js
+##### Setup Node.js
 ```bash
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.2/install.sh | bash
 
@@ -96,7 +96,7 @@ cd /var/www
 
 Use this method for setting up Purrfect Cloud in a different directory.
 
-###### Change Working Directory to Home or Desired Path
+##### Change Working Directory to Home or Desired Path
 ```bash
 cd ~
 ```
@@ -105,17 +105,17 @@ cd ~
 
 ### Installation
 
-###### Clone the repository
+##### Clone the repository
 ```bash
 git clone https://github.com/purrfect-farmer/purrfect-cloud.git
 ```
 
-###### Change Working Directory to Purrfect Cloud
+##### Change Working Directory to Purrfect Cloud
 ```bash
 cd purrfect-cloud
 ```
 
-###### Set Permisisons
+##### Set Permisisons
 ```bash
 sudo find storage -type d -exec chmod 775 {} \;                                               
 sudo find storage -type f -exec chmod 664 {} \;
@@ -123,38 +123,38 @@ sudo find bootstrap/cache -type d -exec chmod 775 {} \;
 sudo find bootstrap/cache -type f -exec chmod 664 {} \;
 ```
 
-###### Install Composer Packages
+##### Install Composer Packages
 ```bash
 composer i
 ```
 
-###### Install Node.js Packages
+##### Install Node.js Packages
 ```bash
 pnpm install
 ```
 
-###### Build Front-End
+##### Build Front-End
 ```bash
 pnpm run build
 ```
 
-###### Setup .env
+##### Setup .env
 ```bash
 cp .env.example .env
 ```
 
-###### Generate Key
+##### Generate Key
 ```bash
 php artisan key:generate
 ```
 
-###### Run migrations
+##### Run migrations
 ```bash
 php artisan migrate --seed --force
 ```
 
 
-###### Extracting Group ID and Topic ID
+##### Extracting Group ID and Topic ID
 Before proceeding, obtain your Telegram Group ID and Topic ID by sending a message to a topic in your group and copy the message link.
 
 Then you can extract the Group ID and Topic ID from the link:
@@ -164,7 +164,7 @@ An example: `https://t.me/c/2322054671/10837/34926`
 
 The Group ID is always the same but the Topic ID changes.
 
-###### Update .env
+##### Update .env
 For Micro: press (`Ctrl+S` then `Ctrl+Q`) to save.
 For Nano: press (`Ctrl+S` then `Ctrl+X`) to save.
 
@@ -176,7 +176,7 @@ Note: When setting the `TELEGRAM_CHAT_ID`, it should always start with `-100` li
 
 Set the appropriate Topic ID for any key that ends with `_THREAD_ID` e.g `TELEGRAM_CHAT_ANNOUNCEMENT_THREAD_ID`
 
-###### Important Entries
+##### Important Entries
 Entry | Description
 --- | ---
 `APP_NAME` | Server Name
@@ -187,7 +187,7 @@ Entry | Description
 `DISPLAY_FARMER_TITLE` | Displays Farmer Title
 
 
-###### Additional Entries for Farmers
+##### Additional Entries for Farmers
 Entry | Description
 --- | ---
 `FARMER_EXAMPLE_ENABLED` | Farmer is Enabled
@@ -272,12 +272,12 @@ sudo systemctl reload nginx
 
 A cron job is required for scheduled tasks.
 
-###### Edit crontab
+##### Edit crontab
 ```bash
 sudo micro /etc/crontab
 ```
 
-###### Register Cron Job for Scheduled Tasks
+##### Register Cron Job for Scheduled Tasks
 
 Append the following to the end of the file
 
@@ -291,13 +291,13 @@ Append the following to the end of the file
 
 A cron job is required for scheduled tasks.
 
-###### Edit Crontab
+##### Edit Crontab
 ```bash
 crontab -e
 ```
 
 
-###### Register a Cron Job for Scheduled Tasks
+##### Register a Cron Job for Scheduled Tasks
 
 Append the following to crontab (edit path):
 
@@ -305,7 +305,7 @@ Append the following to crontab (edit path):
 * * * * * cd /home/ubuntu/purrfect-cloud && php artisan schedule:run >> /dev/null 2>&1
 ```
 
-###### (Optional) Start the Server and Send the IP on reboots
+##### (Optional) Start the Server and Send the IP on reboots
 
 Append the following to crontab (edit path):
 ```bash
@@ -331,17 +331,17 @@ php artisan app:update-account-subscription 87654321 2030-01-01
 ### Updating
 Simply run the following commands to update the application.
 
-###### Nginx Installation - Change Working Directory
+##### Nginx Installation - Change Working Directory
 ```bash
 cd /var/www/purrfect-cloud
 ```
 
-###### Regular Installation - Change Working Directory (edit path)
+##### Regular Installation - Change Working Directory (edit path)
 ```bash
 cd ~/purrfect-cloud
 ```
 
-###### Pull Changes and Update
+##### Pull Changes and Update
 ```bash
 git pull && composer i && pnpm i && pnpm run build && php artisan migrate --seed --force
 ```
