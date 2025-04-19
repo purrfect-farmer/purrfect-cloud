@@ -215,11 +215,11 @@ class FarmSpaceAdventure extends Command
                         $item['next_level']['price_gems'] <= $gems
                     );
 
-                    $maxLevel = $availableBoosts->max('level_current');
-                    $sameLevel = $availableBoosts->every('level_current', $maxLevel);
+                    $minLevel = $availableBoosts->min('level_current');
+                    $sameLevel = $availableBoosts->every('level_current', $minLevel);
 
                     $upgradableBoosts = $availableBoosts->filter(
-                        fn($item) => $sameLevel || $item['level_current'] < $maxLevel
+                        fn($item) => $sameLevel || $item['level_current'] === $minLevel
                     );
 
                     if ($upgradableBoosts->isNotEmpty()) {
