@@ -199,25 +199,41 @@ trait FarmerTrait
      */
     protected function getFarmers($shouldSetAuth = false)
     {
-        $farmers = $this->getBaseFarmers()
-            ->connected()
-            ->get();
-
-        if ($shouldSetAuth) {
-            return $farmers->mapConcurrently(function (Farmer $farmer) use ($shouldSetAuth) {
-                if ($shouldSetAuth) {
+        return $this->getBaseFarmers()
+            ->get()
+            ->mapConcurrently(function (Farmer $farmer) use ($shouldSetAuth) {
+                if ($farmer->account->session_id) {
                     try {
-                        $this->setAuth($farmer)->save();
+                        /** Update Telegram Web App */
+                        $this->updateTelegramWebApp($farmer);
+
+                        /** Mark as connected */
+                        $farmer->is_connected = true;
                     } catch (\Throwable $e) {
                         /** Log Error */
                         $this->logError($e, $farmer);
                     }
                 }
+
+                /** Set Auth */
+                if ($shouldSetAuth) {
+                    try {
+                        $this->setAuth($farmer);
+                    } catch (\Throwable $e) {
+                        /** Log Error */
+                        $this->logError($e, $farmer);
+                    }
+                }
+
+                /** Save Farmer */
+                if ($farmer->isDirty()) {
+                    $farmer->save();
+                }
+
                 return $farmer;
-            });
-        } else {
-            return $farmers;
-        }
+            })->filter(
+                fn(Farmer $farmer) => $farmer->is_connected
+            );
     }
 
     /**
