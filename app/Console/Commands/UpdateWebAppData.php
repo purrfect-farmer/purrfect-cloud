@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Facades\Madeline;
+use App\Helpers;
 use App\Models\Account;
 use App\Models\Farmer;
 use Illuminate\Console\Command;
@@ -29,6 +30,7 @@ class UpdateWebAppData extends Command
      */
     public function handle()
     {
+        $startDate = now();
         $this->getAccounts()->each(function (Account $account) {
             $api = Madeline::session($account->session_id);
             try {
@@ -77,13 +79,32 @@ class UpdateWebAppData extends Command
                 $account->forceFill(['session_id' => null])->save();
             }
         });
+
+        $endDate = now();
+        $count = $this->getAccountsBuilder()->count();
+
+        Helpers::sendCloudFarmerMessage(
+            'telegram:update-web-app-data',
+            [
+                "<b>🌐 Telegram WebAppData</b>",
+                "<i>✅ Status: Completed</i>",
+                "\n<blockquote><b>👤 Total Users</b>: $count\n<i>WebAppData was successfully updated!</i></blockquote>\n",
+                "<b>🗓️ Start Date</b>: $startDate",
+                "<b>🗓️ End Date</b>: $endDate",
+            ],
+            ['message_thread_id' => config('farmer.announcement_thread_id')]
+        );
     }
 
     protected function getAccounts()
     {
+        return $this->getAccountsBuilder()->get();
+    }
+
+    protected function getAccountsBuilder()
+    {
         return Account::with('farmers')
             ->subscribed()
-            ->whereNotNull('session_id')
-            ->get();
+            ->whereNotNull('session_id');
     }
 }
