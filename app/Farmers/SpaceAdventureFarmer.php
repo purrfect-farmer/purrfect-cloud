@@ -16,7 +16,7 @@ class SpaceAdventureFarmer
 
     public function __construct(
         protected Farmer $farmer,
-        protected Closure $getBaseApi,
+        protected Closure $getApi,
     ) {
     }
 
@@ -62,10 +62,10 @@ class SpaceAdventureFarmer
     public function makeRequest($callback)
     {
         /** Get Callback */
-        $getBaseApi = $this->getBaseApi;
+        $getApi = $this->getApi;
 
-        /** @var \Illuminate\Http\Client\PendingRequest Base API */
-        $api = $getBaseApi($this->farmer);
+        /** @var \Illuminate\Http\Client\PendingRequest API */
+        $api = $getApi($this->farmer);
 
         /** Set Cookie and XSRF */
         if ($this->setCookies) {

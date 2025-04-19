@@ -82,7 +82,7 @@ class FarmSpaceAdventure extends Command
                     /** Initiate Helper */
                     $helper = new SpaceAdventureFarmer(
                         $farmer,
-                        fn() => $this->getBaseApi($farmer)
+                        fn() => $this->getApi($farmer)
                     );
 
                     /** Fetch CSRF */
