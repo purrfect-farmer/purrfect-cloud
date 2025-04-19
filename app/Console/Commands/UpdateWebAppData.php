@@ -66,11 +66,6 @@ class UpdateWebAppData extends Command
                     }
                 });
 
-                /** Update Status */
-                $api->account->updateStatus(
-                    offline: false
-                );
-
             } catch (\Throwable $e) {
                 /** Logout */
                 $api->logout();
