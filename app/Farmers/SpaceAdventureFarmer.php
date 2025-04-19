@@ -70,7 +70,7 @@ class SpaceAdventureFarmer
         /** Set Cookie and XSRF */
         if ($this->setCookies) {
             $api->withCookies($this->cookies, '.space-adventure.online')
-                ->withHeaders(['x-xsrf-token' => $this->cookies['XSRF-TOKEN'] ?? '']);
+                ->replaceHeaders(['x-xsrf-token' => $this->cookies['XSRF-TOKEN'] ?? '']);
 
         }
 
@@ -83,7 +83,7 @@ class SpaceAdventureFarmer
                 xsrf: $this->cookies['XSRF-TOKEN'] ?? '',
                 uuid: Str::uuid(),
             );
-            $api->withHeaders($headers);
+            $api->replaceHeaders($headers);
         }
 
         /** @var Response Get Response */
@@ -107,7 +107,7 @@ class SpaceAdventureFarmer
     public function makeAuthRequest($callback)
     {
         return $this->makeRequest(fn(PendingRequest $api) => $callback(
-            $api->withHeaders($this->farmer->headers)
+            $api->replaceHeaders($this->farmer->headers)
         ));
     }
 

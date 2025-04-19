@@ -106,6 +106,7 @@ class FarmGoldEagle extends Command
 
                                     /** Send Taps */
                                     $this->getApi($farmer)
+                                        ->retry(1)
                                         ->post('https://gold-eagle-api.fly.dev/tap', [
                                             'data' => $data,
                                         ]);

@@ -218,7 +218,7 @@ class FarmTsubasa extends Command
      */
     protected function getTsubasaApi(Farmer $farmer, string $hash = '')
     {
-        return $this->getBaseApi($farmer)->withHeaders([
+        return $this->getBaseApi($farmer)->replaceHeaders([
             'X-Masterhash' => $hash,
             'X-Player-Id' => $farmer->user_id,
         ]);

@@ -5,6 +5,9 @@ namespace App\Console\Commands\Traits;
 use App\Facades\Madeline;
 use App\Helpers;
 use App\Models\Farmer;
+use Exception;
+use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Sleep;
@@ -73,8 +76,28 @@ trait FarmerTrait
      */
     protected function getApi(Farmer $farmer)
     {
+        return $this->getBaseApi($farmer)->replaceHeaders($farmer->headers)
+            ->retry(
+                2,
+                0,
+                function (Exception $exception, PendingRequest $request) use ($farmer) {
+                    try {
+                        if (method_exists($this, 'setAuth')) {
+                            /** Update Auth */
+                            $this->setAuth($farmer)->save();
 
-        return $this->getBaseApi($farmer)->withHeaders($farmer->headers);
+                            /** Update Headers */
+                            $request->replaceHeaders($farmer->headers);
+
+                            return true;
+                        }
+                    } catch (\Throwable $e) {
+                        /** Log Error */
+                        $this->logError($e, $farmer);
+                    }
+                    return false;
+                }
+            );
     }
 
     /**
@@ -84,9 +107,6 @@ trait FarmerTrait
      */
     protected function getBaseApi(Farmer $farmer)
     {
-        /** Delay */
-        $this->delayRequest();
-
         return Http::throw()
             ->withRequestMiddleware(function (RequestInterface $request) use ($farmer) {
                 /** Log API Call */
@@ -103,14 +123,17 @@ trait FarmerTrait
                     ]);
                 }
 
+                /** Delay */
+                $this->delayRequest();
+
                 /** Return Request */
                 return $request;
             })
+            ->replaceHeaders(
+                $this->getBaseHeaders()
+            )
             ->withOptions(
                 $this->getProxyOptions($farmer)
-            )
-            ->withHeaders(
-                $this->getBaseHeaders()
             )
             ->withUserAgent(
                 $farmer->getUserAgent()

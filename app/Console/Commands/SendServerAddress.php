@@ -41,7 +41,7 @@ class SendServerAddress extends Command
                     config('seeker.server')
                 )
                     ->throw()
-                    ->withHeaders([
+                    ->replaceHeaders([
                         'Accept' => 'application/json',
                     ])
                     ->post("/api/servers", [

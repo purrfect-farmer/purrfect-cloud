@@ -10,12 +10,13 @@ class Paystack
     public function __construct(
         protected string $publicKey = '',
         protected string $secretKey = '',
-    ) {}
+    ) {
+    }
 
     /** Get http client */
     protected function getClient()
     {
-        return Http::throw()->baseUrl('https://api.paystack.co')->withHeaders(
+        return Http::throw()->baseUrl('https://api.paystack.co')->replaceHeaders(
             ['Authorization' => 'Bearer ' . $this->secretKey]
         );
     }

@@ -237,7 +237,7 @@ class FarmHrum extends Command
         $requestBody = json_encode(['data' => $data], $flags);
 
         /** Get Result */
-        return $this->getApi($farmer)->withHeaders(
+        return $this->getApi($farmer)->replaceHeaders(
             $this->getHrumHeaders(
                 $requestBody,
                 $key
