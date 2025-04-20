@@ -54,14 +54,6 @@ class FarmDigger extends Command
             /** Retrieve Farmers */
             $farmers = $this->retrieveFarmers();
 
-            /** Rewards */
-            $rewards = $farmers->filter(fn($item) => isset($item['reward']));
-
-            /** Claim Rewards */
-            if ($rewards->isNotEmpty()) {
-                $this->claimRewards($rewards);
-            }
-
             /** Taps */
             $taps = $farmers->filter(fn($item) => $item['energy'] > 0);
 
@@ -95,34 +87,6 @@ class FarmDigger extends Command
 
         /** Set Headers */
         return $farmer->setAuthorizationHeader('Bearer ' . $accessToken);
-    }
-
-
-    protected function claimRewards($farmers)
-    {
-        /** Sleep */
-        Sleep::for(10)->seconds();
-
-        /** Claim Reward */
-        $farmers->mapConcurrently(function ($item) {
-            try {
-                $farmer = $item['farmer'];
-                $reward = $item['reward'];
-
-                /** Claim Reward */
-                $this->getApi($farmer)
-                    ->post(
-                        'https://api.diggergame.app/api/content/update',
-                        [
-                            'status' => 'reward',
-                            'uid' => $reward,
-                        ]
-                    );
-            } catch (\Throwable $e) {
-                /** Log Error */
-                $this->logError($e, $item['farmer']);
-            }
-        });
     }
 
     /** Farm Farmers */
@@ -256,6 +220,7 @@ class FarmDigger extends Command
                         ->json('result.chest_statuses')
                 );
 
+                /** Viewable Chests */
                 $viewableChests = $chestStatus->filter(
                     fn($item) => (
                         $item['remaining_cooldown_sec'] === 0 &&
@@ -263,17 +228,35 @@ class FarmDigger extends Command
                     )
                 );
 
-                $reward = $viewableChests->isNotEmpty() ?
-                    (
-                        $this->getApi($farmer)
+                if ($viewableChests->isNotEmpty()) {
+                    /** Select Chest */
+                    $chest = $viewableChests->random();
+
+                    /** Loop */
+                    for ($i = $chest['ads_watched']; $i < $chest['ads_required']; $i++) {
+
+                        /** Get Reward */
+                        $reward = $this->getApi($farmer)
                             ->post('https://api.diggergame.app/api/content/intent', [
                                 'platform' => '2',
-                                'type' => static::CHEST_TYPES[$viewableChests->random()['chest_id']],
+                                'type' => static::CHEST_TYPES[$chest['chest_id']],
                             ])
-                            ->json('result.uid')
-                    ) : null;
+                            ->json('result.uid');
 
+                        /** Sleep */
+                        Sleep::for(10)->seconds();
 
+                        /** Claim Reward */
+                        $this->getApi($farmer)
+                            ->post(
+                                'https://api.diggergame.app/api/content/update',
+                                [
+                                    'status' => 'reward',
+                                    'uid' => $reward,
+                                ]
+                            );
+                    }
+                }
 
                 /** Get Chests */
                 $chests = collect(
@@ -282,7 +265,8 @@ class FarmDigger extends Command
                         ->json('result')
                 )
                     ->filter(fn($item) => $item['status'] === 'progress')
-                    ->sort(fn($a, $b) => $b['chest']['id'] - $a['chest']['id']);
+                    ->sort(fn($a, $b) => $b['chest']['id'] - $a['chest']['id'])
+                    ->values();
 
 
                 /** Current Chest */
@@ -295,15 +279,12 @@ class FarmDigger extends Command
                 $energy = $currentChest ?
                     $currentChest['open_tap_cnt'] - $currentChest['current_tap_cnt'] : 0;
 
-
-
                 /** Return Energy and Farmer */
-                if ($energy > 0 || $reward) {
+                if ($energy > 0) {
                     return compact(
                         'farmer',
                         'uid',
                         'energy',
-                        'reward'
                     );
                 }
             } catch (\Throwable $e) {
