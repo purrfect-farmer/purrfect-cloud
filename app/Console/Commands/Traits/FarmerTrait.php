@@ -84,6 +84,16 @@ trait FarmerTrait
                     /** Log Error */
                     $this->logError($exception, $farmer);
 
+                    if (
+                        !($exception instanceof RequestException) ||
+                        in_array(
+                            $exception->response->status(),
+                            [401, 403, 418]
+                        ) === false
+                    ) {
+                        return false;
+                    }
+
                     try {
                         if (method_exists($this, 'setAuth')) {
                             /** Update Auth */
