@@ -121,6 +121,7 @@ trait FarmerTrait
     protected function getBaseApi(Farmer $farmer)
     {
         return Http::throw()
+            ->timeout(30)
             ->withRequestMiddleware(function (RequestInterface $request) use ($farmer) {
                 /** Log API Call */
                 if (config('farmer.log_api_calls')) {
