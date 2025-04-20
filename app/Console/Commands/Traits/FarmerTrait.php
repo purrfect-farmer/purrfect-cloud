@@ -81,6 +81,9 @@ trait FarmerTrait
                 2,
                 0,
                 function (Exception $exception, PendingRequest $request) use ($farmer) {
+                    /** Log Error */
+                    $this->logError($exception, $farmer);
+
                     try {
                         if (method_exists($this, 'setAuth')) {
                             /** Update Auth */
