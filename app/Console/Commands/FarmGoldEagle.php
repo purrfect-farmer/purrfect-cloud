@@ -59,7 +59,7 @@ class FarmGoldEagle extends Command
                         $progress = $this->getApi($farmer)->get('https://gold-eagle-api.fly.dev/user/me/progress')->json();
 
                         /** Refill */
-                        if ($progress['energy'] <= 10) {
+                        if ($progress['energy'] < ($progress['max_energy'] * 0.2)) {
                             $this->getApi($farmer)
                                 ->post('https://gold-eagle-api.fly.dev/user/me/refill');
                         }
