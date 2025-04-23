@@ -5,38 +5,13 @@ namespace App\Console\Commands;
 use App\Console\Commands\Traits\FarmerTrait;
 use App\Helpers;
 use App\Models\Farmer;
-use ParagonIE\ConstantTime\Base32;
-use ParagonIE\ConstantTime\Hex;
-use ParagonIE\ConstantTime\Base64;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
-use OTPHP\TOTP;
-use phpseclib3\Crypt\PublicKeyLoader;
-use phpseclib3\Crypt\RSA;
-use phpseclib3\Crypt\RSA\PublicKey;
 
 class FarmGoldEagle extends Command
 {
     use FarmerTrait;
-
-    /**
-     * TOTP Secret
-     * @var string
-     */
-    const SECRET = 'FZYQHANLB3I2KAWEOKI4T2PVXHHZ4K5F';
-
-    /**
-     * Private Key
-     * @var string
-     */
-    const PUBLIC_KEY = '-----BEGIN PUBLIC KEY----- MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyH0A/d/2Dc1QGDCpVgD/ 8Xx1o3GHccjybtK3AM4Wv0faLZL6J1jDLGdmOEnE2+HkTuxTBSVBZT1a+8Iazxkd LqTihCZxGUxp6i9CZatICimC7LbdGJW++t+X9l7EH6uEBPuSjQcuNuaODQkefncW //rni5iksdd3pjQRLM+PVEMzPw+pvgfPfAn0fUDqer0itUJFQ5P0+tVaL/6AlcBY EqnirvIo8tfps/+9yGqc2znCVWwaR+1uCeVZ6gbt96XPVxaGf+hKn+TwiJo2sykH OGADDSK8sEWca7DqSQScGSTc5/DD2CeSK78pwlhYOQb6694PI0Cr5g+tpPm94gk/ nwIDAQAB -----END PUBLIC KEY-----';
-
-    /**
-     * TOTP Instance
-     * @var TOTP
-     */
-    protected $otp;
 
     /**
      * The name and signature of the console command.
@@ -72,8 +47,8 @@ class FarmGoldEagle extends Command
     public function handle()
     {
         $this->farm(function () {
-            /** Get OTP */
-            if (!$this->getOtp())
+            /** Check Script */
+            if (!$this->checkScript())
                 return false;
 
             /** Start Farming */
@@ -83,46 +58,15 @@ class FarmGoldEagle extends Command
                         /** Get Progress */
                         $progress = $this->getApi($farmer)->get('https://gold-eagle-api.fly.dev/user/me/progress')->json();
 
-                        /** Tap */
-                        if ($progress['energy'] >= 10) {
-                            $energy = $progress['energy'];
-                            $weight = $progress['tap_weight'];
-                            $percent = 90 + rand(0, 8);
-                            $claim = floor(
-                                ($energy * $percent) / 100
-                            );
-                            $taps = floor(
-                                $claim / $weight
-                            );
-
-                            /** Initialize Status and Retries */
-                            $status = false;
-                            $retries = 0;
-
-                            while ($status === false && ++$retries < 3) {
-                                try {
-                                    /** Calculate Data */
-                                    $data = $this->calculateData($taps);
-
-                                    /** Send Taps */
-                                    $this->getApi($farmer)
-                                        ->retry(1)
-                                        ->post('https://gold-eagle-api.fly.dev/tap', [
-                                            'data' => $data,
-                                        ]);
-
-                                    /** Set Status */
-                                    $status = true;
-                                } catch (\Throwable $e) {
-                                    /** Log Error */
-                                    $this->logError($e, $farmer);
-                                }
-                            }
+                        /** Refill */
+                        if ($progress['energy'] <= 10) {
+                            $this->getApi($farmer)
+                                ->post('https://gold-eagle-api.fly.dev/user/me/refill');
                         }
 
                         /** Claim to Wallet */
                         if (
-                            $progress['coins_amount'] >= 50_000
+                            $progress['coins_amount'] >= $progress['max_coins_amount']
                         ) {
                             $tasks = $this->getApi($farmer)
                                 ->get('https://gold-eagle-api.fly.dev/task/my/available')
@@ -272,56 +216,10 @@ class FarmGoldEagle extends Command
     }
 
     /**
-     * Get Nonce
-     *
-     * @return string
+     * Check Script
+     * @return boolean|null
      */
-    protected function getNonce()
-    {
-        return Base64::encode($this->otp->now());
-    }
-
-    /**
-     * Calculate Data
-     *
-     * @param mixed $taps
-     * @return string
-     */
-    protected function calculateData($taps)
-    {
-        /** Encode as JSON */
-        $json = json_encode([
-            'st' => $taps,
-            'ct' => $this->getNonce(),
-        ]);
-
-        /**
-         * @var PublicKey
-         */
-        $key = PublicKeyLoader::load(static::PUBLIC_KEY);
-        $data = $key->withPadding(RSA::ENCRYPTION_PKCS1)->encrypt($json);
-
-        return Base64::encode($data);
-    }
-
-
-    /**
-     * Convert Base32 Secret to Hex
-     * @param string $secret
-     * @return string
-     */
-    protected function secretToHex($secret)
-    {
-        $bytes = Base32::decodeUpper($secret);
-        $hex = Hex::encode($bytes);
-        return $hex;
-    }
-
-    /**
-     * Get TOTP Generator
-     * @return TOTP|null
-     */
-    protected function getOtp()
+    protected function checkScript()
     {
         try {
             $config = Http::throw()->get("https://raw.githubusercontent.com/purrfect-farmer/purrfect-data/main/config.json")->json();
@@ -355,16 +253,7 @@ class FarmGoldEagle extends Command
                 Cache::delete('error-notice:gold-eagle');
             }
 
-            $otp = TOTP::createFromSecret(static::SECRET);
-
-            $otp->setDigest('sha256');
-            $otp->setDigits(6);
-            $otp->setPeriod(3);
-
-            /** Set OTP */
-            $this->otp = $otp;
-
-            return $otp;
+            return true;
         } catch (\Throwable $e) {
             /** Log Error */
             $this->logError($e);
