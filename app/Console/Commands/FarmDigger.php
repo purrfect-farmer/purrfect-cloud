@@ -130,13 +130,17 @@ class FarmDigger extends Command
     {
         return $this->getFarmers()->mapConcurrently(function (Farmer $farmer) {
             try {
-                /** Dig */
-                $this->getApi($farmer)
-                    ->post('https://api.diggergame.app/api/play/dig', [
-                        'init_data' => $farmer->getInitData(),
-                        'platform' => 'android'
-                    ]);
-
+                try {
+                    /** Dig */
+                    $this->getApi($farmer)
+                        ->post('https://api.diggergame.app/api/play/dig', [
+                            'init_data' => $farmer->getInitData(),
+                            'platform' => 'android'
+                        ]);
+                } catch (\Throwable $e) {
+                    /** Log Error */
+                    $this->logError($e, $farmer);
+                }
 
                 /** Get Tasks */
                 $tasks = collect(
