@@ -119,7 +119,7 @@ class Proxy
             $start = microtime(true);
 
             try {
-                Http::throw()->timeout(3)
+                Http::throw()->timeout(2)
                     ->withOptions(['proxy' => 'http://' . $proxy])
                     ->head('https://www.google.com');
             } catch (\Throwable $e) {
