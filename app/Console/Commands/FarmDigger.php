@@ -150,7 +150,6 @@ class FarmDigger extends Command
                 );
 
 
-
                 $pendingTasks = $tasks->filter(fn($item) => $item['status'] === 'progress');
                 $unclaimedTasks = $tasks->filter(fn($item) => $item['status'] === 'waiting_reward');
 
