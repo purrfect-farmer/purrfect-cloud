@@ -265,6 +265,8 @@ trait FarmerTrait
                 /** Save Farmer */
                 if ($farmer->isDirty()) {
                     $farmer->save();
+
+                    return $farmer->fresh();
                 }
 
                 return $farmer;
