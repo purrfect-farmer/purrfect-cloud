@@ -99,6 +99,9 @@ trait FarmerTrait
                             /** Update Auth */
                             $this->setAuth($farmer)->save();
 
+                            /** Refresh */
+                            $farmer->refresh();
+
                             /** Update Headers */
                             $request->replaceHeaders($farmer->headers);
 
