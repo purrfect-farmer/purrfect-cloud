@@ -351,7 +351,7 @@ class FarmSpaceAdventure extends Command
 
         $canClaim = $unclaimed >= $user["claim_max"];
 
-        $canBuyShield = $user["shield_damage"] === 1 &&
+        $canBuyShield = $user["shield_damage"] > 0 &&
             now()->isAfter(
                 $this->createDate($user["shield_free_at"])
             );
