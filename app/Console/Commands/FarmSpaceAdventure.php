@@ -241,11 +241,11 @@ class FarmSpaceAdventure extends Command
                         $item['next_level']['price_gems'] <= $gems
                     );
 
-                    $minLevel = $availableBoosts->min('level_current');
-                    $sameLevel = $availableBoosts->every('level_current', $minLevel);
+                    $currentLevel = $user['level_global'];
+                    $sameLevel = $availableBoosts->every('level_current', $currentLevel);
 
                     $upgradableBoosts = $availableBoosts->filter(
-                        fn($item) => $sameLevel || $item['level_current'] === $minLevel
+                        fn($item) => $sameLevel || $item['level_current'] === $currentLevel
                     );
 
                     if ($upgradableBoosts->isNotEmpty()) {
@@ -335,7 +335,9 @@ class FarmSpaceAdventure extends Command
      */
     protected function getStatus($user)
     {
-        $timePassed = $this->createDate($user["claimed_last"])->diffInSeconds();
+        $timePassed = $this->createDate($user["claimed_last"])->diffInSeconds(
+            $user["shield_ended_at"]
+        );
         $lowFuelInSeconds = 10 * 60; // Ten Minutes
         $remainingFuelInSeconds = now()->diffInSeconds(
             $this->createDate(
