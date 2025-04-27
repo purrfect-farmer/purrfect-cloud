@@ -135,6 +135,32 @@ class FarmSpaceAdventure extends Command
                     }
 
                     if ($status['canClaim']) {
+                        /** Get Captcha */
+                        $captcha = $this->makeAdsRequest(
+                            $helper,
+                            'claim_coins',
+                            fn(PendingRequest $api) => $api->get(
+                                'https://space-adventure.online/api/game/captcha/'
+                            )
+                        )->json();
+
+                        $correct = collect($captcha['captchaList'])->first(
+                            fn($item) => $item['img'] === $captcha['captchaTrue']
+                        );
+
+
+                        /** Solve Captcha */
+                        $helper
+                            ->makeAuthRequest(
+                                fn(PendingRequest $api) => $api->post(
+                                    'https://space-adventure.online/api/game/captcha/',
+                                    [
+                                        'captcha' => $correct['value']
+                                    ]
+                                )
+                            )->json();
+
+                        /** Claim */
                         $user = $helper
                             ->makeAuthRequest(
                                 fn(PendingRequest $api) => $api->post(
