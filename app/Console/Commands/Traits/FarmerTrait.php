@@ -341,7 +341,6 @@ trait FarmerTrait
 
             /** Update Telegram Web App */
             $farmer->telegram_web_app = [
-                ...$farmer->telegram_web_app,
                 'initData' => $result['initData'],
             ];
         } catch (\Throwable $e) {

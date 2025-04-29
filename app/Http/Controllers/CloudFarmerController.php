@@ -74,10 +74,10 @@ class CloudFarmerController extends Controller
 
                     return tap($farmer)->update([
                         'is_connected' => true,
+                        'headers' => $validated['headers'],
                         'telegram_web_app' => [
                             'initData' => $validated['telegram_web_app']['initData']
                         ],
-                        'headers' => $validated['headers'],
                     ]);
                 } else {
                     abort(400, 'Not allowed!');
@@ -96,8 +96,10 @@ class CloudFarmerController extends Controller
                     /** Create Farmer */
                     return $account->farmers()->create([
                         'farmer' => $validated['farmer'],
-                        'telegram_web_app' => $validated['telegram_web_app'],
                         'headers' => $validated['headers'],
+                        'telegram_web_app' => [
+                            'initData' => $validated['telegram_web_app']['initData']
+                        ],
                         'is_connected' => true,
                     ]);
                 } else {
@@ -206,7 +208,7 @@ class CloudFarmerController extends Controller
     {
         $account->update([
             'data' => array_merge($account->data ?? [], [
-                'farmerTitle' => $data['farmerTitle'],
+                'farmerTitle' => $data['farmerTitle'] ?? 'TGUser',
                 'user' => Helpers::getWebAppData($data['initData'])['user']
             ])
         ]);
