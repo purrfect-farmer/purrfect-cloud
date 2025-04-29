@@ -27,7 +27,7 @@ Schedule::command('farmer:update-web-app-data')
         config('farmer.enable_telegram_sessions') &&
         config('farmer.update_webapp_data_periodically')
     )
-    ->withoutOverlapping(10)
+    ->withoutOverlapping(20)
     ->everyTenMinutes();
 
 /** Farm enabled drops every 10 minutes */
@@ -37,7 +37,7 @@ collect(config('farmer.drops'))
     ->each(
         function ($key) {
             $event = Schedule::command('farm:' . $key)
-                ->withoutOverlapping(10)
+                ->withoutOverlapping(20)
                 ->onOneServer()
                 ->everyTenMinutes();
 
