@@ -179,6 +179,10 @@ class TelegramController extends Controller
             try {
                 Madeline::session($previousSessionId)->logout();
             } catch (\Throwable $e) {
+                Log::error(
+                    'TELEGRAM SESSION LOGOUT: ' . $e->getMessage(),
+                    ['user_id' => $account->user_id ?? null]
+                );
             }
         }
 
