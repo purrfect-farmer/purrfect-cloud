@@ -274,17 +274,12 @@ sudo systemctl reload nginx
 
 A cron job is required for scheduled tasks.
 
-##### Edit Crontab
-```bash
-crontab -e
-```
-
 ##### Register a Cron Job for Scheduled Tasks
 
-Append the following to crontab (edit path):
+Run the following command
 
 ```bash
-* * * * * cd /var/www/purrfect-cloud && php artisan schedule:run >> /dev/null 2>&1
+echo '* * * * * www-data cd /var/www/purrfect-cloud && php artisan schedule:run >> /dev/null 2>&1' | sudo tee -a /etc/crontab
 ```
 
 [Nginx - Continue to Adding a User](#adding-a-user)
