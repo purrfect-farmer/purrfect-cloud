@@ -86,6 +86,7 @@ class UpdateWebAppData extends Command
                     try {
                         $api->logout();
                     } catch (\Throwable $e) {
+                        /** Log Error */
                         Log::error(
                             'TELEGRAM SESSION LOGOUT: ' . $e->getMessage(),
                             ['user_id' => $account->user_id ?? null]
@@ -95,6 +96,12 @@ class UpdateWebAppData extends Command
                     throw $e;
                 }
             } catch (\Throwable $e) {
+                /** Log Error */
+                Log::error(
+                    'TELEGRAM WEBAPP DATA: ' . $e->getMessage(),
+                    ['user_id' => $account->user_id ?? null]
+                );
+
                 /** Update Session */
                 $account->update(['session_id' => null]);
             }
