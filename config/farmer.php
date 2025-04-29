@@ -19,7 +19,7 @@ return [
     'display_farmer_title' => env('DISPLAY_FARMER_TITLE', false),
     'disable_telegram_messages' => env('DISABLE_TELEGRAM_MESSAGES', false),
 
-    'log_api_calls' => env('FARMER_LOG_API_CALLS', true),
+    'log_api_calls' => env('FARMER_LOG_API_CALLS', false),
 
     'enable_payments' => env('FARMER_ENABLE_PAYMENTS', true),
     'subscription_amount' => env('FARMER_SUBSCRIPTION_AMOUNT', 1550),
