@@ -276,7 +276,7 @@ A cron job is required for scheduled tasks.
 
 ##### Register a Cron Job for Scheduled Tasks
 
-Run the following command
+Run the following command:
 
 ```bash
 echo '* * * * * www-data cd /var/www/purrfect-cloud && php artisan schedule:run >> /dev/null 2>&1' | sudo tee -a /etc/crontab
