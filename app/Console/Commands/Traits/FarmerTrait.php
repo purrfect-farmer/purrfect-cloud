@@ -348,8 +348,12 @@ trait FarmerTrait
                 'initData' => $result['initData'],
             ];
         } catch (\Throwable $e) {
-            /** Logout */
-            $api->logout();
+            try {
+                /** Logout */
+                $api->logout();
+            } catch (\Throwable $e) {
+                $this->logError($e, $farmer);
+            }
 
             /** Remove Session */
             $farmer->account->forceFill(['session_id' => null])->save();

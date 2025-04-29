@@ -8,6 +8,7 @@ use App\Models\Account;
 use App\Rules\ExistingMadelineSession;
 use App\Rules\ValidWebAppData;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Propaganistas\LaravelPhone\Rules\Phone;
 
 class TelegramController extends Controller
@@ -94,8 +95,17 @@ class TelegramController extends Controller
         $account = $this->getAccount($request);
 
         if ($account) {
-            Madeline::session($account->session_id)->logout();
-            $account->forceFill(['session_id' => null])->save();
+            try {
+                Madeline::session($account->session_id)->logout();
+            } catch (\Throwable $e) {
+                Log::error(
+                    'TELEGRAM SESSION LOGOUT: ' . $e->getMessage(),
+                    ['user_id' => $account->user_id ?? null]
+                );
+            }
+
+            /** Update Session */
+            $account->update(['session_id' => null]);
         }
 
         return [

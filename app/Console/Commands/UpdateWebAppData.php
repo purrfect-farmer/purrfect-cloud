@@ -68,10 +68,17 @@ class UpdateWebAppData extends Command
 
             } catch (\Throwable $e) {
                 /** Logout */
-                $api->logout();
+                try {
+                    $api->logout();
+                } catch (\Throwable $e) {
+                    Log::error(
+                        'TELEGRAM SESSION LOGOUT: ' . $e->getMessage(),
+                        ['user_id' => $account->user_id ?? null]
+                    );
+                }
 
-                /** Remove Session */
-                $account->forceFill(['session_id' => null])->save();
+                /** Update Session */
+                $account->update(['session_id' => null]);
             }
         });
 
