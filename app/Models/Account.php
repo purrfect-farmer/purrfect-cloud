@@ -17,8 +17,22 @@ class Account extends Model
     protected $fillable = [
         'user_id',
         'session_id',
-        'proxy'
+        'proxy',
+        'data'
     ];
+
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'data' => 'array',
+        ];
+    }
 
 
     /**
