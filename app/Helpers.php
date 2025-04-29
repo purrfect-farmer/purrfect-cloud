@@ -5,8 +5,8 @@ namespace App;
 use App\Models\Farmer;
 use Base64Url\Base64Url;
 use Elliptic\EdDSA;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -275,7 +275,7 @@ class Helpers
 
     /**
      * Get User Links
-     * @param \Illuminate\Database\Eloquent\Collection $collection
+     * @param \Illuminate\Support\Collection $collection
      * @return string
      */
     public static function getCloudUserLinks(Collection $collection)
