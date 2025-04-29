@@ -159,4 +159,13 @@ class Account extends Model
             'user_id'
         );
     }
+
+    /**
+     * Get Farmer Title
+     * @return string
+     */
+    public function getFarmerTitle()
+    {
+        return $this->data['farmerTitle'] ?? 'TGUser';
+    }
 }

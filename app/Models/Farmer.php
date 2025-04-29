@@ -189,7 +189,7 @@ class Farmer extends Model
      */
     public function getFarmerTitle()
     {
-        return $this->account->data['farmerTitle'] ?? 'TGUser';
+        return $this->account->getFarmerTitle();
     }
 
     /**

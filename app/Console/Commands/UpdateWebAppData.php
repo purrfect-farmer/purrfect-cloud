@@ -7,7 +7,9 @@ use App\Helpers;
 use App\Models\Account;
 use App\Models\Farmer;
 use Illuminate\Console\Command;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class UpdateWebAppData extends Command
 {
@@ -99,14 +101,14 @@ class UpdateWebAppData extends Command
         });
 
         $endDate = now();
-        $count = $this->getAccountsBuilder()->count();
+        $links = $this->getCloudUserLinks();
 
         Helpers::sendCloudFarmerMessage(
             'telegram:update-web-app-data',
             [
                 "<b>🌐 Telegram WebAppData</b>",
                 "<i>✅ Status: Completed</i>",
-                "\n<blockquote><b>👤 Total Users</b>: $count\n<i>WebAppData was successfully updated!</i></blockquote>\n",
+                $links,
                 "<b>🗓️ Start Date</b>: $startDate",
                 "<b>🗓️ End Date</b>: $endDate",
             ],
@@ -124,5 +126,63 @@ class UpdateWebAppData extends Command
         return Account::with('farmers')
             ->subscribed()
             ->whereNotNull('session_id');
+    }
+
+
+    /**
+     * Get User Links
+     * @return string
+     */
+    public function getCloudUserLinks()
+    {
+        $accounts = Account::subscribed()->get();
+        $totalUsers = $accounts->count();
+        $list = $accounts->map(function (Account $account) {
+            $id = $account->user_id;
+            $status = $account->session_id ? '✅' : '❌';
+
+            /** Username */
+            $username = Str::padRight(
+                Str::lower(
+                    Str::limit(
+                        $account->data['user']['username'] ?? ''
+                        ?: $id,
+                        12
+                    )
+                ),
+                15,
+                '  '
+            );
+
+            /** Farmer Title */
+            $title = config('farmer.display_farmer_title') ? Str::upper(
+                Str::limit(
+                    $account->getFarmerTitle(),
+                    8
+                )
+            ) : '';
+
+            return compact(
+                'id',
+                'status',
+                'username',
+                'title'
+            );
+        });
+
+        /** Sort By Title or Username */
+        $list = $list->sortBy(config('farmer.display_farmer_title') ? 'title' : 'username')->values();
+
+        /** Retrieve Links */
+        $links = $list->map(function ($data) {
+            $id = $data['id'];
+            $status = $data['status'];
+            $username = htmlspecialchars('@' . $data['username']);
+            $title = $data['title'] ? ' <b>' . htmlspecialchars('(' . $data['title'] . ')') . '</b>' : '';
+
+            return $status . "$title <a href=\"tg://user?id=$id\">$username</a>";
+        })->implode("\n");
+
+        return "\n<blockquote><i>WebAppData updated!</i></blockquote>\n<blockquote><b>👤 Users: $totalUsers</b>\n$links</blockquote>\n";
     }
 }

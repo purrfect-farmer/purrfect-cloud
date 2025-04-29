@@ -314,7 +314,7 @@ class Helpers
             $status = $data['status'];
             $session = $data['session'];
             $username = htmlspecialchars('@' . $data['username']);
-            $title = $data['title'] ? '<b>' . htmlspecialchars(' (' . $data['title'] . ')') . '</b>' : '';
+            $title = $data['title'] ? ' <b>' . htmlspecialchars('(' . $data['title'] . ')') . '</b>' : '';
 
             return $status . ' ' . $session . "$title <a href=\"tg://user?id=$id\">$username</a>";
         })->implode("\n");
