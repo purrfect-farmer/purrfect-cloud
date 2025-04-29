@@ -76,44 +76,7 @@ trait FarmerTrait
      */
     protected function getApi(Farmer $farmer)
     {
-        return $this->getBaseApi($farmer)->replaceHeaders($farmer->headers)
-            ->retry(
-                2,
-                0,
-                function (Exception $exception, PendingRequest $request) use ($farmer) {
-                    /** Log Error */
-                    $this->logError($exception, $farmer);
-
-                    if (
-                        !($exception instanceof RequestException) ||
-                        in_array(
-                            $exception->response->status(),
-                            [401, 403, 418]
-                        ) === false
-                    ) {
-                        return false;
-                    }
-
-                    try {
-                        if (method_exists($this, 'setAuth')) {
-                            /** Update Auth */
-                            $this->setAuth($farmer)->save();
-
-                            /** Refresh */
-                            $farmer->refresh();
-
-                            /** Update Headers */
-                            $request->replaceHeaders($farmer->headers);
-
-                            return true;
-                        }
-                    } catch (\Throwable $e) {
-                        /** Log Error */
-                        $this->logError($e, $farmer);
-                    }
-                    return false;
-                }
-            );
+        return $this->getBaseApi($farmer)->replaceHeaders($farmer->headers);
     }
 
     /**
