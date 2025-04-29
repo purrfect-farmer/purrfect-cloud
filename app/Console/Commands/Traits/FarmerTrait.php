@@ -134,6 +134,7 @@ trait FarmerTrait
             [
                 'user_id' => $farmer->user_id ?? null,
                 'username' => $farmer->getInitDataUnsafe()['user']['username'] ?? null,
+                'session' => $farmer->account->session_id ?? null,
             ] : [],
             [
 
