@@ -274,20 +274,26 @@ trait FarmerTrait
     /** Refetch Auth or Disconnect */
     protected function refetchAuthOrDisconnect(Farmer $farmer)
     {
-        if ($farmer->account->session_id) {
-            try {
-                if (method_exists($this, 'setAuth')) {
-                    /** Update Auth */
-                    $this->setAuth($farmer)->save();
+        try {
+            if ($farmer->account->session_id) {
+                try {
+                    if (method_exists($this, 'setAuth')) {
+                        /** Update Auth */
+                        $this->setAuth($farmer)->save();
+                    }
+                } catch (\Throwable $e) {
+                    /** Log Error */
+                    $this->logError($e, $farmer);
                 }
-            } catch (\Throwable $e) {
-                /** Log Error */
-                $this->logError($e, $farmer);
+            } else {
+                /** Disconnect */
+                $farmer->disconnect();
             }
-        } else {
-            /** Disconnect */
-            $farmer->disconnect();
+        } catch (\Throwable $e) {
+            /** Log Error */
+            $this->logError($e, $farmer);
         }
+
     }
 
 
