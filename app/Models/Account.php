@@ -82,8 +82,8 @@ class Account extends Model
 
         /** Message */
         $message = $loggedIn ?
-            'Telegram account was successfully logged in on Cloud. Automatic refetch of disconnected farmers has been enabled.' :
-            'Telegram account was logged out of Cloud. Automatic refetch of disconnected farmers has been disabled.';
+            'Telegram account was successfully logged in on Cloud. Automatic refetch of farmers has been enabled.' :
+            'Telegram account was logged out of Cloud. Automatic refetch of farmers has been disabled.';
 
         /** Date */
         $date = now();
@@ -95,7 +95,7 @@ class Account extends Model
                 "<b>⚡ Cloud Telegram Session</b>",
                 "$status",
                 "<b>🗓️ Date</b>: $date",
-                "<blockquote><b>$message</b></blockquote>",
+                "<blockquote><b><i>$message</i></b></blockquote>",
             ],
             [
                 'chat_id' => $this->user_id,

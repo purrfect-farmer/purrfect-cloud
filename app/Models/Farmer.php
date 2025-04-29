@@ -80,8 +80,11 @@ class Farmer extends Model
 
         /** Message */
         $message = $connected ?
-            'Automatic Cloud Farming has commenced. Remember to keep track of your account.' :
-            'Please kindly re-open the Farmer and Sync to Cloud.';
+            'Cloud Farming has commenced. Ensure to keep track of your account.' :
+            'Cloud Farming has been paused. Launch the Farmer and Sync to Cloud to resume.';
+
+        $config = config('farmer.drops')[$this->farmer];
+        $link = $config['telegram_link'];
 
         /** Send Message */
         Helpers::sendUserMessage(
@@ -89,7 +92,7 @@ class Farmer extends Model
             $this,
             [
                 "$status",
-                "<blockquote><b>$message</b></blockquote>",
+                "\n<blockquote>(<a href=\"$link\">Open Telegram Bot</a>) <b><i>$message</i></b></blockquote>",
             ],
         );
     }
