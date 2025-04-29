@@ -336,7 +336,9 @@ class FarmSpaceAdventure extends Command
     protected function getStatus($user)
     {
         $timePassed = $this->createDate($user["claimed_last"])->diffInSeconds(
-            $user["shield_ended_at"]
+            $this->createDate(
+                $user["shield_ended_at"]
+            )
         );
         $lowFuelInSeconds = 10 * 60; // Ten Minutes
         $remainingFuelInSeconds = now()->diffInSeconds(
