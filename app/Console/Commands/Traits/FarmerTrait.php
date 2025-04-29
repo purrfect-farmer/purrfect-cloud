@@ -234,7 +234,7 @@ trait FarmerTrait
                 if ($farmer->isDirty()) {
                     $farmer->save();
 
-                    return $farmer->fresh();
+                    return $farmer->fresh(['account']);
                 }
 
                 return $farmer;
