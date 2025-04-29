@@ -315,7 +315,7 @@ Append the following to crontab (edit path):
 [Regular - Continue to Adding a User](#adding-a-user)
 
 ### Adding a User
-If payments are disabled, you will need to add the user manually. To add a user, you need to add a subscription, you will be prompted to create the user if it doesn't exist. Get the user's Telegram Id
+If payments are disabled, you will need to add the user manually. To add a user, you need to add a subscription, you will be prompted to create the user if it doesn't exist. Get the user's Telegram ID
 
 ```bash
 php artisan app:update-account-subscription {user_id} {date}
