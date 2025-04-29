@@ -9,11 +9,24 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote')->hourly();
 
 
+
+
 /** Expire Subscriptions */
 Schedule::command('app:expire-subscriptions')->daily();
 
 /** Update Proxies */
 Schedule::command('app:update-proxies')->everyThirtyMinutes();
+
+/** Update WebAppData */
+Schedule::command('farmer:update-web-app-data')
+    ->when(
+        config('farmer.enable_telegram_sessions') &&
+        config('farmer.update_webapp_data_periodically')
+    )
+    ->withoutOverlapping(10)
+    ->onOneServer()
+    ->runInBackground()
+    ->cron('5-59/10 * * * *');
 
 /** Farm enabled drops every 10 minutes */
 collect(config('farmer.drops'))

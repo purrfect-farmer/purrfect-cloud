@@ -205,19 +205,21 @@ trait FarmerTrait
         return $this->getBaseFarmers()
             ->get()
             ->mapConcurrently(function (Farmer $farmer) use ($shouldSetAuth) {
-                if ($farmer->account->session_id) {
-                    try {
-                        /** Update Telegram Web App */
-                        $this->updateTelegramWebApp($farmer);
+                if (config('farmer.update_webapp_data_periodically') !== true) {
+                    if ($farmer->account->session_id) {
+                        try {
+                            /** Update Telegram Web App */
+                            $this->updateTelegramWebApp($farmer);
 
-                        /** Mark as connected */
-                        $farmer->is_connected = true;
-                    } catch (\Throwable $e) {
-                        /** Disconnect */
-                        $farmer->is_connected = false;
+                            /** Mark as connected */
+                            $farmer->is_connected = true;
+                        } catch (\Throwable $e) {
+                            /** Disconnect */
+                            $farmer->is_connected = false;
 
-                        /** Log Error */
-                        $this->logError($e, $farmer);
+                            /** Log Error */
+                            $this->logError($e, $farmer);
+                        }
                     }
                 }
 

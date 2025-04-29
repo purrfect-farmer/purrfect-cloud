@@ -25,6 +25,7 @@ return [
     'subscription_amount' => env('FARMER_SUBSCRIPTION_AMOUNT', 1550),
 
     'run_in_background' => env('FARMER_RUN_IN_BACKGROUND', true),
+    'update_webapp_data_periodically' => env('FARMER_UPDATE_WEBAPP_DATA_PERIODICALLY', true),
 
     'proxy' => [
         'enabled' => env('FARMER_PROXY_ENABLED', false),
