@@ -24,6 +24,8 @@ return [
     'enable_payments' => env('FARMER_ENABLE_PAYMENTS', true),
     'subscription_amount' => env('FARMER_SUBSCRIPTION_AMOUNT', 1550),
 
+    'run_in_background' => env('FARMER_RUN_IN_BACKGROUND', false),
+
     'proxy' => [
         'enabled' => env('FARMER_PROXY_ENABLED', false),
         'api_key' => env('FARMER_PROXY_API_KEY', ''),
