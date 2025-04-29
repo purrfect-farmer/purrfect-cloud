@@ -165,8 +165,10 @@ An example: `https://t.me/c/2322054671/10837/34926`
 The Group ID is always the same but the Topic ID changes.
 
 ##### Update .env
-For Micro: press (`Ctrl+S` then `Ctrl+Q`) to save.
-For Nano: press (`Ctrl+S` then `Ctrl+X`) to save.
+
+For `Micro`: press (`Ctrl+S` then `Ctrl+Q`) to save.
+
+For `Nano`: press (`Ctrl+S` then `Ctrl+X`) to save.
 
 ```bash
 micro .env
