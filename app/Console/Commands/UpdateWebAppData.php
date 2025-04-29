@@ -140,6 +140,7 @@ class UpdateWebAppData extends Command
         $list = $accounts->map(function (Account $account) {
             $id = $account->user_id;
             $status = $account->session_id ? '✅' : '❌';
+            $session = $account->session_id ? '🟨' : '🟪';
 
             /** Username */
             $username = Str::padRight(
@@ -165,6 +166,7 @@ class UpdateWebAppData extends Command
             return compact(
                 'id',
                 'status',
+                'session',
                 'username',
                 'title'
             );
@@ -177,10 +179,11 @@ class UpdateWebAppData extends Command
         $links = $list->map(function ($data) {
             $id = $data['id'];
             $status = $data['status'];
+            $session = $data['session'];
             $username = htmlspecialchars('@' . $data['username']);
             $title = $data['title'] ? ' <b>' . htmlspecialchars('(' . $data['title'] . ')') . '</b>' : '';
 
-            return $status . "$title <a href=\"tg://user?id=$id\">$username</a>";
+            return $status . ' ' . $session . "$title <a href=\"tg://user?id=$id\">$username</a>";
         })->implode("\n");
 
         return "\n<blockquote><i>WebAppData updated!</i></blockquote>\n<blockquote><b>👤 Users: $totalUsers</b>\n$links</blockquote>\n";
