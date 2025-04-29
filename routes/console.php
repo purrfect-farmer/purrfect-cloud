@@ -15,7 +15,11 @@ Artisan::command('inspire', function () {
 Schedule::command('app:expire-subscriptions')->daily();
 
 /** Update Proxies */
-Schedule::command('app:update-proxies')->everyThirtyMinutes();
+Schedule::command('app:update-proxies')
+    ->when(
+        config('farmer.proxy.enabled')
+    )
+    ->everyTenMinutes();
 
 /** Update WebAppData */
 Schedule::command('farmer:update-web-app-data')

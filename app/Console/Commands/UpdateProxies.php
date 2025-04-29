@@ -27,45 +27,43 @@ class UpdateProxies extends Command
      */
     public function handle()
     {
-        if (config('farmer.proxy.enabled')) {
-            /** Update List */
-            Proxy::updateList();
+        /** Update List */
+        Proxy::updateList();
 
-            /** Test Proxies */
-            $results = Proxy::getWorkingProxies();
+        /** Test Proxies */
+        $results = Proxy::getWorkingProxies();
 
-            /** Get List */
-            $list = $results->sortBy('duration')->values()->pluck('proxy');
+        /** Get List */
+        $list = $results->sortBy('duration')->values()->pluck('proxy');
 
-            /** Unset Proxy for Unsubscribed Accounts */
-            Account::unsubscribed()->whereNotNull('proxy')->update(['proxy' => null]);
+        /** Unset Proxy for Unsubscribed Accounts */
+        Account::unsubscribed()->whereNotNull('proxy')->update(['proxy' => null]);
 
-            /** Get Accounts */
-            $accounts = Account::subscribed()->get();
+        /** Get Accounts */
+        $accounts = Account::subscribed()->get();
 
-            /** Used Proxies */
-            $proxies = $accounts->pluck('proxy')->filter();
+        /** Used Proxies */
+        $proxies = $accounts->pluck('proxy')->filter();
 
-            /** Get Invalid Accounts */
-            $invalidAccounts = $accounts->filter(
-                fn($account) => $list->doesntContain($account->proxy)
-            );
+        /** Get Invalid Accounts */
+        $invalidAccounts = $accounts->filter(
+            fn($account) => $list->doesntContain($account->proxy)
+        );
 
-            /** Check if there are accounts to update */
-            if ($invalidAccounts->isNotEmpty()) {
-                /** Available Proxies */
-                $available = $list->filter(
-                    fn($proxy) => $proxies->doesntContain($proxy)
-                )->values();
+        /** Check if there are accounts to update */
+        if ($invalidAccounts->isNotEmpty()) {
+            /** Available Proxies */
+            $available = $list->filter(
+                fn($proxy) => $proxies->doesntContain($proxy)
+            )->values();
 
-                /** Update Proxy */
-                $invalidAccounts
-                    ->each(
-                        fn(Account $account) => $account->forceFill(
-                            ['proxy' => $available->shift()]
-                        )->save()
-                    );
-            }
+            /** Update Proxy */
+            $invalidAccounts
+                ->each(
+                    fn(Account $account) => $account->forceFill(
+                        ['proxy' => $available->shift()]
+                    )->save()
+                );
         }
     }
 }
