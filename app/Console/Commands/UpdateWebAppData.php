@@ -135,57 +135,18 @@ class UpdateWebAppData extends Command
      */
     public function getCloudUserLinks()
     {
-        $accounts = Account::subscribed()->get();
-        $totalUsers = $accounts->count();
-        $list = $accounts->map(function (Account $account) {
-            $id = $account->user_id;
-            $status = $account->session_id ? '✅' : '❌';
-            $session = $account->session_id ? '🟨' : '🟪';
+        $links = Helpers::getCloudUserLinks(
+            Account::subscribed()
+                ->get()
+                ->map(fn(Account $account) => [
+                    'id' => $account->user_id,
+                    'status' => $account->session_id ? '✅' : '❌',
+                    'session' => $account->session_id ? '🟨' : '🟪',
+                    'username' => $account->data['user']['username'] ?? '',
+                    'title' => $account->getFarmerTitle(),
+                ])
+        );
 
-            /** Username */
-            $username = Str::padRight(
-                Str::lower(
-                    Str::limit(
-                        $account->data['user']['username'] ?? ''
-                        ?: $id,
-                        12
-                    )
-                ),
-                15,
-                '  '
-            );
-
-            /** Farmer Title */
-            $title = config('farmer.display_farmer_title') ? Str::upper(
-                Str::limit(
-                    $account->getFarmerTitle(),
-                    8
-                )
-            ) : '';
-
-            return compact(
-                'id',
-                'status',
-                'session',
-                'username',
-                'title'
-            );
-        });
-
-        /** Sort By Title or Username */
-        $list = $list->sortBy(config('farmer.display_farmer_title') ? 'title' : 'username')->values();
-
-        /** Retrieve Links */
-        $links = $list->map(function ($data) {
-            $id = $data['id'];
-            $status = $data['status'];
-            $session = $data['session'];
-            $username = htmlspecialchars('@' . $data['username']);
-            $title = $data['title'] ? ' <b>' . htmlspecialchars('(' . $data['title'] . ')') . '</b>' : '';
-
-            return $status . ' ' . $session . "$title <a href=\"tg://user?id=$id\">$username</a>";
-        })->implode("\n");
-
-        return "\n<blockquote><i>WebAppData updated!</i></blockquote>\n<blockquote><b>👤 Users: $totalUsers</b>\n$links</blockquote>\n";
+        return "\n<blockquote><i>WebAppData updated!</i></blockquote>$links";
     }
 }

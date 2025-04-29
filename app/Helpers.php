@@ -151,7 +151,18 @@ class Helpers
         $config = config('farmer.drops')[$farmer];
         $title = $config['title'];
         $links = static::getCloudUserLinks(
-            Farmer::with(['account'])->farmer($farmer)->subscribed()->get()
+            Farmer::with(['account'])
+                ->farmer($farmer)
+                ->subscribed()
+                ->get()
+                ->map(fn(Farmer $farmer) => [
+                    'id' => $farmer->user_id,
+                    'status' => $farmer->is_connected ? '✅' : '❌',
+                    'session' => $farmer->account->session_id ? '🟨' : '🟪',
+                    'username' => $farmer->getInitDataUnsafe()['user']['username'] ?? '',
+                    'title' => $farmer->getFarmerTitle(),
+
+                ])
         );
 
         $key = $farmer . '.completed';
@@ -264,25 +275,21 @@ class Helpers
 
     /**
      * Get User Links
-     * @param \Illuminate\Database\Eloquent\Collection $farmers
+     * @param \Illuminate\Database\Eloquent\Collection $collection
      * @return string
      */
-    public static function getCloudUserLinks(Collection $farmers)
+    public static function getCloudUserLinks(Collection $collection)
     {
-        $totalUsers = $farmers->count();
-        $list = $farmers->map(function (Farmer $farmer) {
-            $id = $farmer->user_id;
-            $status = $farmer->is_connected ? '✅' : '❌';
-            $session = $farmer->account->session_id ? '🟨' : '🟪';
+        $totalUsers = $collection->count();
+        $list = $collection->map(function (array $data) {
+            $id = $data['id'];
+            $status = $data['status'];
+            $session = $data['session'];
 
             /** Username */
             $username = Str::padRight(
                 Str::lower(
-                    Str::limit(
-                        $farmer->getInitDataUnsafe()['user']['username'] ?? ''
-                        ?: $id,
-                        12
-                    )
+                    Str::limit($data['username'] ?: $id, 12)
                 ),
                 15,
                 '  '
@@ -290,10 +297,7 @@ class Helpers
 
             /** Farmer Title */
             $title = config('farmer.display_farmer_title') ? Str::upper(
-                Str::limit(
-                    $farmer->getFarmerTitle(),
-                    8
-                )
+                Str::limit($data['title'], 8)
             ) : '';
 
             return compact(
@@ -314,7 +318,7 @@ class Helpers
             $status = $data['status'];
             $session = $data['session'];
             $username = htmlspecialchars('@' . $data['username']);
-            $title = $data['title'] ? ' <b>' . htmlspecialchars('(' . $data['title'] . ')') . '</b>' : '';
+            $title = $data['title'] ? ' ' . '<b>' . htmlspecialchars('(' . $data['title'] . ')') . '</b>' : '';
 
             return $status . ' ' . $session . "$title <a href=\"tg://user?id=$id\">$username</a>";
         })->implode("\n");
