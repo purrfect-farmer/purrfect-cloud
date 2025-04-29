@@ -189,7 +189,7 @@ class Farmer extends Model
      */
     public function getFarmerTitle()
     {
-        return $this->telegram_web_app['farmerTitle'] ?? 'TGUser';
+        return $this->account->data['farmerTitle'] ?? 'TGUser';
     }
 
     /**

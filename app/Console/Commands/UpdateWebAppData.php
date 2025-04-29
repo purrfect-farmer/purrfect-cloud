@@ -32,51 +32,67 @@ class UpdateWebAppData extends Command
     {
         $startDate = now();
         $this->getAccounts()->mapConcurrently(function (Account $account) {
-            $api = Madeline::session($account->session_id);
             try {
-                /** Update Farmers */
-                $account->farmers->each(function (Farmer $farmer) use ($api) {
-                    try {
-                        $config = config('farmer.drops')[$farmer->farmer];
-                        $data = Madeline::getTelegramData($api, $config['telegram_link']);
-
-                        /** Update TelegramWebApp */
-                        $farmer->telegram_web_app = [
-                            ...$farmer->telegram_web_app,
-                            'initData' => $data['initData']
-                        ];
-
-                        /** Mark as connected */
-                        $farmer->is_connected = true;
-
-                        /** Save */
-                        $farmer->save();
-                    } catch (\Throwable $e) {
-                        /** Log Error */
-                        Log::error($config['title'] . ' Error (Updating WebAppData)', [
-                            'user_id' => $farmer->user_id ?? null,
-                            'username' => $farmer->getInitDataUnsafe()['user']['username'] ?? null,
-                            'message' => $e->getMessage(),
-                            'file' => $e->getFile(),
-                            'line' => $e->getLine(),
-                        ]);
-
-                        /** Throw Error */
-                        throw $e;
-                    }
-                });
-
-            } catch (\Throwable $e) {
-                /** Logout */
+                $api = Madeline::session($account->session_id);
                 try {
-                    $api->logout();
-                } catch (\Throwable $e) {
-                    Log::error(
-                        'TELEGRAM SESSION LOGOUT: ' . $e->getMessage(),
-                        ['user_id' => $account->user_id ?? null]
-                    );
-                }
+                    /** Update Farmers */
+                    $account->farmers->each(function (Farmer $farmer) use ($api) {
+                        try {
+                            $config = config('farmer.drops')[$farmer->farmer];
+                            $data = Madeline::getTelegramData($api, $config['telegram_link']);
 
+                            /** Update TelegramWebApp */
+                            $farmer->telegram_web_app = [
+                                'initData' => $data['initData']
+                            ];
+
+                            /** Mark as connected */
+                            $farmer->is_connected = true;
+
+                            /** Save */
+                            $farmer->save();
+                        } catch (\Throwable $e) {
+                            /** Log Error */
+                            Log::error($config['title'] . ' Error (Updating WebAppData)', [
+                                'user_id' => $farmer->user_id ?? null,
+                                'username' => $farmer->getInitDataUnsafe()['user']['username'] ?? null,
+                                'message' => $e->getMessage(),
+                                'file' => $e->getFile(),
+                                'line' => $e->getLine(),
+                            ]);
+
+                            /** Throw Error */
+                            throw $e;
+                        }
+                    });
+
+                    /** Update Account */
+                    $data = Madeline::getTelegramData(
+                        $api,
+                        config('farmer.farmer_bot_link')
+                    );
+
+                    $account->update([
+                        'data' => array_merge(
+                            $account->data ?? [],
+                            ['user' => $data['initDataUnsafe']['user']]
+                        )
+                    ]);
+
+                } catch (\Throwable $e) {
+                    /** Logout */
+                    try {
+                        $api->logout();
+                    } catch (\Throwable $e) {
+                        Log::error(
+                            'TELEGRAM SESSION LOGOUT: ' . $e->getMessage(),
+                            ['user_id' => $account->user_id ?? null]
+                        );
+                    }
+
+                    throw $e;
+                }
+            } catch (\Throwable $e) {
                 /** Update Session */
                 $account->update(['session_id' => null]);
             }

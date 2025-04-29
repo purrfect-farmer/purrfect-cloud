@@ -66,9 +66,17 @@ class CloudFarmerController extends Controller
             /** Update Farmer */
             if ($farmer) {
                 if ($farmer->subscription) {
+                    /** Update Account */
+                    $this->updateAccount(
+                        $farmer->account,
+                        $validated['telegram_web_app']
+                    );
+
                     return tap($farmer)->update([
                         'is_connected' => true,
-                        'telegram_web_app' => $validated['telegram_web_app'],
+                        'telegram_web_app' => [
+                            'initData' => $validated['telegram_web_app']['initData']
+                        ],
                         'headers' => $validated['headers'],
                     ]);
                 } else {
@@ -79,6 +87,12 @@ class CloudFarmerController extends Controller
                 $account = Account::subscribed()->where('user_id', $validated['user_id'])->first();
 
                 if ($account) {
+                    /** Update Account */
+                    $this->updateAccount(
+                        $account,
+                        $validated['telegram_web_app']
+                    );
+
                     /** Create Farmer */
                     return $account->farmers()->create([
                         'farmer' => $validated['farmer'],
@@ -123,8 +137,8 @@ class CloudFarmerController extends Controller
                         ] : []
                     )
                 )->sortBy(
-                    $displayTitle ? 'title' : 'username'
-                )->values()
+                        $displayTitle ? 'title' : 'username'
+                    )->values()
             ]);
 
         return $list;
@@ -180,5 +194,21 @@ class CloudFarmerController extends Controller
 
         /** Delete the Account */
         $account->delete();
+    }
+
+    /**
+     * Update Account
+     * @param \App\Models\Account $account
+     * @param array $data
+     * @return void
+     */
+    protected function updateAccount(Account $account, $data)
+    {
+        $account->update([
+            'data' => array_merge($account->data ?? [], [
+                'farmerTitle' => $data['farmerTitle'],
+                'user' => Helpers::getWebAppData($data['initData'])['user']
+            ])
+        ]);
     }
 }
