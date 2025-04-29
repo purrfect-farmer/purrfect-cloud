@@ -212,6 +212,9 @@ trait FarmerTrait
                         /** Mark as connected */
                         $farmer->is_connected = true;
                     } catch (\Throwable $e) {
+                        /** Disconnect */
+                        $farmer->is_connected = false;
+
                         /** Log Error */
                         $this->logError($e, $farmer);
                     }
