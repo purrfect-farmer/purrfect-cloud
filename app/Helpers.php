@@ -177,7 +177,10 @@ class Helpers
                 "<b>🗓️ Start Date</b>: $startDate",
                 "<b>🗓️ End Date</b>: $endDate",
             ],
-            ['message_thread_id' => $config['thread_id']]
+            [
+                'message_thread_id' => $config['thread_id'],
+                'disable_web_page_preview' => true
+            ]
         );
     }
 
