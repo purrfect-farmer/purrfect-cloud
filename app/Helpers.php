@@ -150,7 +150,8 @@ class Helpers
     ) {
         $config = config('farmer.drops')[$farmer];
         $title = $config['title'];
-        $links = static::getCloudUserLinks(
+        $link = $config['telegram_link'];
+        $users = static::getCloudUserLinks(
             Farmer::with(['account'])
                 ->farmer($farmer)
                 ->subscribed()
@@ -172,7 +173,7 @@ class Helpers
             [
                 "<b>$title</b>",
                 "<i>✅ Status: Completed</i>",
-                $links,
+                "\n<blockquote><a href=\"$link\">Open Telegram Bot</a></blockquote>$users",
                 "<b>🗓️ Start Date</b>: $startDate",
                 "<b>🗓️ End Date</b>: $endDate",
             ],
