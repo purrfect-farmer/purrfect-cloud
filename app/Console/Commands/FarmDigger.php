@@ -267,7 +267,7 @@ class FarmDigger extends Command
                         ->get('https://api.diggergame.app/api/user-chest/list')
                         ->json('result')
                 )
-                    ->filter(fn($item) => $item['status'] === 'progress')
+                    ->filter(fn($item) => $item['status'] === 'progress' && isset($item['chest']))
                     ->sort(fn($a, $b) => $b['chest']['id'] - $a['chest']['id'])
                     ->values();
 
