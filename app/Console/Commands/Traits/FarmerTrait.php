@@ -92,6 +92,7 @@ trait FarmerTrait
                 if (config('farmer.log_api_calls')) {
                     /** Log Info */
                     Log::info($this->getTitle() . ' API Call', [
+                        'title' => $farmer->getFarmerTitle(),
                         'user_id' => $farmer->user_id ?? null,
                         'username' => $farmer->getInitDataUnsafe()['user']['username'] ?? null,
                         'method' => (string) $request->getMethod(),
@@ -128,6 +129,7 @@ trait FarmerTrait
         Log::error($this->getTitle() . ' Error', array_merge(
             $farmer ?
             [
+                'title' => $farmer->getFarmerTitle(),
                 'user_id' => $farmer->user_id ?? null,
                 'username' => $farmer->getInitDataUnsafe()['user']['username'] ?? null,
                 'session' => $farmer->account->session_id ?? null,
