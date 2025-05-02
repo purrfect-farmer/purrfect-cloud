@@ -36,8 +36,6 @@ collect(config('farmer.drops'))
     ->each(
         function ($key) {
             $event = Schedule::command('farm:' . $key)
-                ->withoutOverlapping(20)
-                ->onOneServer()
                 ->everyTenMinutes();
 
             if (config('farmer.run_in_background')) {
