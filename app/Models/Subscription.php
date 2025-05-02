@@ -65,7 +65,7 @@ class Subscription extends Model
     public function sendSubscriptionStatusMessage($active = true)
     {
         /** Message Key */
-        $key =  implode(':', [
+        $key = implode(':', [
             'cloud-subscription',
             $this->user_id
         ]);
@@ -105,6 +105,12 @@ class Subscription extends Model
     {
         return $builder->where('status', 'active')
             ->where('ends_at', '>', now());
+    }
+
+    /** Scope Expired But Active */
+    public function scopeExpiredButActive(Builder $builder)
+    {
+        return $builder->where('status', 'active')->where('ends_at', '<', now());
     }
 
     /** Account */

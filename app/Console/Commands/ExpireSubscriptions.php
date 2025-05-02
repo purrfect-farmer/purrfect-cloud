@@ -30,8 +30,7 @@ class ExpireSubscriptions extends Command
     public function handle()
     {
         Subscription::with('account')
-            ->where('ends_at', '<', now())
-            ->where('status', 'active')
+            ->expiredButActive()
             ->get()
             ->each(function (Subscription $subscription) {
                 /** Update The Subscription */
