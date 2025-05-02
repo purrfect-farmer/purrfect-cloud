@@ -104,13 +104,13 @@ class Subscription extends Model
     public function scopeActive(Builder $builder)
     {
         return $builder->where('status', 'active')
-            ->where('ends_at', '>', now());
+            ->where('ends_at', '>', now()->toDateTimeString());
     }
 
     /** Scope Expired But Active */
     public function scopeExpiredButActive(Builder $builder)
     {
-        return $builder->where('status', 'active')->where('ends_at', '<', now());
+        return $builder->where('status', 'active')->where('ends_at', '<', now()->toDateTimeString());
     }
 
     /** Account */
