@@ -168,4 +168,14 @@ class Account extends Model
     {
         return $this->data['farmerTitle'] ?? 'TGUser';
     }
+
+
+    /**
+     * Get Username
+     * @return string
+     */
+    public function getUsername()
+    {
+        return $this->data['user']['username'] ?? null;
+    }
 }
