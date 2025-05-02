@@ -47,15 +47,12 @@ class UpdateWebAppData extends Command
 
                         try {
                             /** Update TelegramWebApp */
-                            $farmer->telegram_web_app = [
-                                'initData' => $data['initData']
-                            ];
-
-                            /** Mark as connected */
-                            $farmer->is_connected = true;
-
-                            /** Save */
-                            $farmer->save();
+                            $farmer->update([
+                                'is_connected' => true,
+                                'telegram_web_app' => [
+                                    'initData' => $data['initData']
+                                ]
+                            ]);
                         } catch (\Throwable $e) {
                             /** Log Error */
                             $this->logError(
