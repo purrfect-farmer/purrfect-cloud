@@ -42,7 +42,7 @@ class AppServiceProvider extends ServiceProvider
         Collection::macro('mapConcurrently', function ($callback) {
             /** @var Collection $this */
             return collect(
-                Concurrency::driver('fork')->run(
+                Concurrency::run(
                     $this->mapForConcurrency($callback)
                 )
             );
