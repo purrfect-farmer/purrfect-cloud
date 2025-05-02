@@ -83,11 +83,13 @@ trait FarmerTrait
      */
     protected function getBaseApi(Farmer $farmer)
     {
+        /** Delay */
+        $this->delayRequest();
+
         return Http::throw()
             ->withRequestMiddleware(function (RequestInterface $request) use ($farmer) {
                 /** Log API Call */
                 if (config('farmer.log_api_calls')) {
-
                     /** Log Info */
                     Log::info($this->getTitle() . ' API Call', [
                         'user_id' => $farmer->user_id ?? null,
@@ -98,9 +100,6 @@ trait FarmerTrait
                         'headers' => $request->getHeaders()
                     ]);
                 }
-
-                /** Delay */
-                $this->delayRequest();
 
                 /** Return Request */
                 return $request;
