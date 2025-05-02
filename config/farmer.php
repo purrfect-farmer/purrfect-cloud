@@ -25,7 +25,7 @@ return [
 
     'log_api_calls' => env('FARMER_LOG_API_CALLS', false),
 
-    'enable_payments' => env('FARMER_ENABLE_PAYMENTS', true),
+    'enable_payments' => env('FARMER_ENABLE_PAYMENTS', false),
     'subscription_amount' => env('FARMER_SUBSCRIPTION_AMOUNT', 1550),
 
     'run_in_background' => env('FARMER_RUN_IN_BACKGROUND', true),
