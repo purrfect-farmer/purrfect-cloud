@@ -142,16 +142,15 @@ class UpdateWebAppData extends Command
      */
     public function getCloudUserLinks()
     {
+        $accounts = Account::subscribed()->get();
         $links = Helpers::getCloudUserLinks(
-            Account::subscribed()
-                ->get()
-                ->map(fn(Account $account) => [
-                    'id' => $account->user_id,
-                    'status' => $account->session_id ? '✅' : '❌',
-                    'session' => $account->session_id ? '🟨' : '🟪',
-                    'username' => $account->data['user']['username'] ?? '',
-                    'title' => $account->getFarmerTitle(),
-                ])
+            $accounts->map(fn(Account $account) => [
+                'id' => $account->user_id,
+                'status' => $account->session_id ? '✅' : '❌',
+                'session' => $account->session_id ? '🟨' : '🟪',
+                'username' => $account->data['user']['username'] ?? '',
+                'title' => $account->getFarmerTitle(),
+            ])
         );
 
         return "\n<blockquote><i>WebAppData updated!</i></blockquote>$links";
