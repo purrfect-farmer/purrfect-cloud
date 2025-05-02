@@ -27,7 +27,6 @@ Schedule::command('farmer:update-web-app-data')
         config('farmer.enable_telegram_sessions') &&
         config('farmer.update_webapp_data_periodically')
     )
-    ->withoutOverlapping(20)
     ->everyTenMinutes();
 
 /** Farm enabled drops every 10 minutes */
