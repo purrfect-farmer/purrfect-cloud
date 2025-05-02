@@ -2,7 +2,6 @@
 
 namespace App\Console\Commands\Traits;
 
-use App\Facades\Madeline;
 use App\Helpers;
 use App\Models\Farmer;
 use Illuminate\Support\Facades\Http;
@@ -203,24 +202,6 @@ trait FarmerTrait
         return $this->getBaseFarmers()
             ->get()
             ->mapConcurrently(function (Farmer $farmer) use ($shouldSetAuth) {
-                if (config('farmer.update_webapp_data_periodically') !== true) {
-                    if ($farmer->account->session_id) {
-                        try {
-                            /** Update Telegram Web App */
-                            $this->updateTelegramWebApp($farmer);
-
-                            /** Mark as connected */
-                            $farmer->is_connected = true;
-                        } catch (\Throwable $e) {
-                            /** Disconnect */
-                            $farmer->is_connected = false;
-
-                            /** Log Error */
-                            $this->logError($e, $farmer);
-                        }
-                    }
-                }
-
                 /** Set Auth */
                 if ($shouldSetAuth) {
                     try {
@@ -242,33 +223,6 @@ trait FarmerTrait
             })->filter(
                 fn(Farmer $farmer) => $farmer->is_connected
             );
-    }
-
-    /**
-     * Update Telegram Data
-     * @return void
-     */
-    protected function updateTelegramData()
-    {
-        $this->getBaseFarmers()
-            ->needsRefetch()
-            ->get()
-            ->mapConcurrently(function (Farmer $farmer) {
-                if ($farmer->account->session_id) {
-                    try {
-                        $this->updateFarmerData(
-                            $farmer,
-                            property_exists(
-                                $this,
-                                'setAuthOnlyOnError'
-                            ) ? $this->setAuthOnlyOnError === false : true
-                        );
-                    } catch (\Throwable $e) {
-                        /** Log Error */
-                        $this->logError($e, $farmer);
-                    }
-                }
-            });
     }
 
     /** Refetch Auth or Disconnect */
@@ -294,82 +248,5 @@ trait FarmerTrait
             $this->logError($e, $farmer);
         }
 
-    }
-
-
-    /**
-     * Update Farmer Data
-     * @param \App\Models\Farmer $farmer
-     * @param boolean $shouldSetAuth
-     * @return void
-     */
-    protected function updateFarmerData(Farmer $farmer, $shouldSetAuth = true)
-    {
-        /** Update TelegramWebApp */
-        $this->updateTelegramWebApp($farmer);
-
-        /** Try to Update Auth Headers */
-        try {
-            if (
-                $shouldSetAuth && method_exists($this, 'setAuth')
-            ) {
-                $this->setAuth($farmer);
-            }
-        } catch (\Throwable $e) {
-            $this->logError($e, $farmer);
-        }
-
-        /** Mark as connected */
-        $farmer->is_connected = true;
-
-        /** Save the Farmer */
-        $farmer->save();
-    }
-
-    /**
-     * Update TelegramWebApp Data
-     * @param \App\Models\Farmer $farmer
-     * @return void
-     */
-    protected function updateTelegramWebApp(Farmer $farmer)
-    {
-        $api = Madeline::session(
-            $farmer->account->session_id
-        );
-
-        try {
-            $result = $this->getTelegramData($api);
-
-            /** Update Telegram Web App */
-            $farmer->telegram_web_app = [
-                'initData' => $result['initData'],
-            ];
-        } catch (\Throwable $e) {
-            try {
-                /** Logout */
-                $api->logout();
-            } catch (\Throwable $e) {
-                $this->logError($e, $farmer);
-            }
-
-            /** Remove Session */
-            $farmer->account->forceFill(['session_id' => null])->save();
-
-            /** Throw Error */
-            throw $e;
-        }
-    }
-
-    /**
-     * Get TelegramData
-     * @param \danog\MadelineProto\API $api
-     * @return array
-     */
-    protected function getTelegramData($api)
-    {
-        return Madeline::getTelegramData(
-            $api,
-            config('farmer.drops')[$this->getKey()]['telegram_link']
-        );
     }
 }
