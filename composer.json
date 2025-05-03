@@ -22,7 +22,7 @@
         "predis/predis": "^2.3",
         "propaganistas/laravel-phone": "^5.3",
         "simplito/elliptic-php": "^1.0",
-        "spatie/fork": "^1.2",
+        "spatie/fork": "1.2.4",
         "spomky-labs/base64url": "^2.0",
         "spomky-labs/otphp": "^11.3"
     },
