@@ -24,7 +24,9 @@
         "simplito/elliptic-php": "^1.0",
         "spatie/fork": "^1.2",
         "spomky-labs/base64url": "^2.0",
-        "spomky-labs/otphp": "^11.3"
+        "spomky-labs/otphp": "^11.3",
+        "symfony/filesystem": "^7.2",
+        "symfony/finder": "^7.2"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
