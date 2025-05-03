@@ -153,6 +153,11 @@ php artisan key:generate
 php artisan migrate --seed --force
 ```
 
+#### Set Database File Permission
+```bash
+chmod 664 database/database.sqlite
+```
+
 
 ##### Extracting Group ID and Topic ID
 Before proceeding, obtain your Telegram Group ID and Topic ID by sending a message to a topic in your group and copy the message link.
