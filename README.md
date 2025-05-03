@@ -153,7 +153,7 @@ php artisan key:generate
 php artisan migrate --seed --force
 ```
 
-#### Set Database File Permission
+##### Set Database File Permission
 ```bash
 chmod 664 database/database.sqlite
 ```
