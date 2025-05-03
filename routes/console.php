@@ -21,15 +21,6 @@ Schedule::command('app:update-proxies')
     )
     ->everyTenMinutes();
 
-
-/** Set MadelineProto Permissions */
-Schedule::command('telegram:update-sessions')
-    ->when(
-        config('farmer.enable_telegram_sessions')
-    )
-    ->everyTenMinutes();
-
-
 /** Update WebAppData */
 Schedule::command('farmer:update-web-app-data')
     ->when(
