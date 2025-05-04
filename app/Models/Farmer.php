@@ -195,6 +195,21 @@ class Farmer extends Model
         return $this->account->getFarmerTitle();
     }
 
+    /** Get Username */
+    public function getUsername()
+    {
+        return $this->getInitDataUnsafe()['user']['username'] ?? null;
+    }
+
+    /**
+     * Get Photo URL
+     * @return string
+     */
+    public function getPhotoUrl()
+    {
+        return $this->getInitDataUnsafe()['user']['photo_url'] ?? null;
+    }
+
     /**
      * Get Init Data
      * @return string

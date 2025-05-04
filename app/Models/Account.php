@@ -178,4 +178,13 @@ class Account extends Model
     {
         return $this->data['user']['username'] ?? null;
     }
+
+    /**
+     * Get Photo URL
+     * @return string
+     */
+    public function getPhotoUrl()
+    {
+        return $this->data['user']['photo_url'] ?? null;
+    }
 }
