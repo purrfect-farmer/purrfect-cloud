@@ -190,11 +190,14 @@ class Account extends Model
     }
 
 
+    /**
+     * Update Subscription
+     * @param \Illuminate\Support\Carbon|string $date
+     * @return void
+     */
     public function updateSubscription($date)
     {
-        if (
-            $this->activeSubscription
-        ) {
+        if ($this->activeSubscription) {
             $this->activeSubscription->forceFill(['ends_at' => $date])->save();
         } else {
             /** Create Subscription */
