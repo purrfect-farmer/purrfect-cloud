@@ -364,12 +364,12 @@ Entry | Description
 `FARMER_PROXY_API_KEY` | WebShare Proxy API Key
 
 ### Payments (Optional)
-Payments work with Paystack, enable payments in .env, get your Paystack public and secret key then save it inside .env
+Payments work with Flutterwave, enable payments in .env, get your Flutterwave public and secret key then save it inside .env
 
 Entry | Description
 --- | ---
 `FARMER_ENABLE_PAYMENTS` | Payments are enabled
 `FARMER_SUBSCRIPTION_AMOUNT` | Subscription Amount
-`PAYSTACK_PUBLIC_KEY` | Paystack Public Key
-`PAYSTACK_SECRET_KEY` | Paystack Secret Key
+`FLUTTERWAVE_PUBLIC_KEY` | Flutterwave Public Key
+`FLUTTERWAVE_SECRET_KEY` | Flutterwave Secret Key
 
