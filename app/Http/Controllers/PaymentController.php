@@ -176,7 +176,8 @@ class PaymentController extends Controller
     protected function savePayment($result)
     {
         /** Find or Create Account */
-        $account = Account::firstOrCreate(['user_id' => $this->getUserId($result)]);
+        $account = Account::with('activeSubscription')
+            ->firstOrCreate(['user_id' => $this->getUserId($result)]);
 
         /** Create Payment */
         $payment = $account->payments()->create([
@@ -187,34 +188,10 @@ class PaymentController extends Controller
         /** Get Active Subscription */
         $subscription = $account->activeSubscription;
 
-        if ($subscription) {
-            $subscription->forceFill(
-                [
-                    'status' => 'active',
-                    'ends_at' => $subscription->ends_at->addMonth()
-                ]
-            )->save();
-        } else {
-            /** Create Subscription */
-            $account->subscriptions()->create([
-                'status' => 'active',
-                'starts_at' => now(),
-                'ends_at' => now()->addMonth(),
-            ]);
-        }
-
-        /** Add Member to Group */
-        try {
-            if (!Helpers::isGroupMember($account->user_id)) {
-                Helpers::sendInviteLink($account->user_id);
-            }
-        } catch (\Throwable $e) {
-            /** Log Error */
-            Log::error('Add Member to Group', [
-                'account' => $account,
-                'error' => $e->getMessage(),
-            ]);
-        }
+        /** Update Subscription */
+        $account->updateSubscription(
+            $subscription ? $subscription->ends_at->addMonth() : now()->addMonth()
+        );
 
         /** Return Payment */
         return $payment;

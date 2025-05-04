@@ -6,6 +6,7 @@ use App\Facades\Proxy;
 use App\Helpers;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
 
 class Account extends Model
 {
@@ -186,5 +187,35 @@ class Account extends Model
     public function getPhotoUrl()
     {
         return $this->data['user']['photo_url'] ?? null;
+    }
+
+
+    public function updateSubscription($date)
+    {
+        if (
+            $this->activeSubscription
+        ) {
+            $this->activeSubscription->forceFill(['ends_at' => $date])->save();
+        } else {
+            /** Create Subscription */
+            $this->subscriptions()->create([
+                'status' => 'active',
+                'starts_at' => now(),
+                'ends_at' => $date,
+            ]);
+        }
+
+        /** Add Member to Group */
+        try {
+            if (!Helpers::isGroupMember($this->user_id)) {
+                Helpers::sendInviteLink($this->user_id);
+            }
+        } catch (\Throwable $e) {
+            /** Log Error */
+            Log::error('Add Member to Group', [
+                'account' => $this,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 }

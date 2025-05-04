@@ -49,6 +49,18 @@ class AccountController extends Controller
             }
         }
 
+        /** Delete the Farmers */
+        try {
+            $account->farmers->each->delete();
+        } catch (\Throwable $e) {
+            /** Log Error */
+            Log::error('Failed to delete farmers: ' . $e->getMessage());
+        }
+
+        /** Delete the Account */
+        $account->delete();
+
+
         /** Remove User */
         try {
             Helpers::removeUserFromGroup(
@@ -62,16 +74,7 @@ class AccountController extends Controller
             ]);
         }
 
-        /** Delete the Farmers */
-        try {
-            $account->farmers->each->delete();
-        } catch (\Throwable $e) {
-            /** Log Error */
-            Log::error('Failed to delete farmers: ' . $e->getMessage());
-        }
-
-        /** Delete the Account */
-        $account->delete();
+        return response()->noContent();
     }
 
 
@@ -88,32 +91,7 @@ class AccountController extends Controller
             ->firstOrCreate(['user_id' => $validated['user_id']]);
 
         /** Update Subscription */
-        if (
-            $account->wasRecentlyCreated === false &&
-            $account->activeSubscription
-        ) {
-            $account->activeSubscription->forceFill(['ends_at' => $validated['date']])->save();
-        } else {
-            /** Create Subscription */
-            $account->subscriptions()->create([
-                'status' => 'active',
-                'starts_at' => now(),
-                'ends_at' => $validated['date'],
-            ]);
-
-            /** Add Member to Group */
-            try {
-                if (!Helpers::isGroupMember($account->user_id)) {
-                    Helpers::sendInviteLink($account->user_id);
-                }
-            } catch (\Throwable $e) {
-                /** Log Error */
-                Log::error('Add Member to Group', [
-                    'account' => $account,
-                    'error' => $e->getMessage(),
-                ]);
-            }
-        }
+        $account->updateSubscription($validated['date']);
 
         return $account->fresh(['activeSubscription']);
     }

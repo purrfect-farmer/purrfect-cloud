@@ -61,29 +61,7 @@ class UpdateAccountSubscription extends Command
         }
 
         /** Update Subscription */
-        if ($account->wasRecentlyCreated === false && $account->activeSubscription) {
-            $account->activeSubscription->forceFill(['ends_at' => $date])->save();
-        } else {
-            /** Create Subscription */
-            $account->subscriptions()->create([
-                'status' => 'active',
-                'starts_at' => now(),
-                'ends_at' => $date,
-            ]);
-
-            /** Add Member to Group */
-            try {
-                if (!Helpers::isGroupMember($account->user_id)) {
-                    Helpers::sendInviteLink($account->user_id);
-                }
-            } catch (\Throwable $e) {
-                /** Log Error */
-                Log::error('Add Member to Group', [
-                    'account' => $account,
-                    'error' => $e->getMessage(),
-                ]);
-            }
-        }
+        $account->updateSubscription($date);
 
         $this->info('Subscription was successfully updated!');
         $this->info($date);
