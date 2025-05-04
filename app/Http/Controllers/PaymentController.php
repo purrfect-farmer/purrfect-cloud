@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Facades\Paystack;
+use App\Facades\Flutterwave;
 use App\Helpers;
 use App\Models\Account;
 use App\Models\Payment;
@@ -26,14 +26,25 @@ class PaymentController extends Controller
 
         $data = Helpers::getWebAppData($validated['auth']);
 
-        return Paystack::initialize([
+        $payment = Flutterwave::initialize([
             'amount' => config('farmer.subscription_amount'),
-            'callback_url' => route('payments.verify'),
-            'email' => $validated['email'],
-            'metadata' => [
+            'redirect_url' => route('payments.verify'),
+            'currency' => 'NGN',
+            'customer' => [
+                'email' => $validated['email'],
+            ],
+            'customizations' => [
+                'title' => config('app.name') . ' Payment',
+                'logo' => url('icon.png')
+            ],
+            'meta' => [
                 'user_id' => $data['user']['id'],
             ]
         ]);
+
+        return [
+            'authorization_url' => $payment['link']
+        ];
     }
 
     /**
@@ -43,17 +54,20 @@ class PaymentController extends Controller
      */
     public function verify(Request $request)
     {
+        /** Reference */
+        $reference = $this->validateRequest($request);
+
         /** Fetch Payment */
-        $payment = $this->getPayment($request);
+        $payment = $this->getPayment($reference);
 
         if ($payment) {
             return $payment;
         } else {
             /** Get Result */
-            $result = Paystack::verify($request->input('reference'));
+            $result = Flutterwave::verify($reference);
 
             /** Compare Result */
-            if ($result['status'] !== 'success') {
+            if (!$this->isSuccessful($result)) {
                 return response($result)
                     ->setStatusCode(403, 'Payment not found / unsuccessful!');
             }
@@ -70,22 +84,25 @@ class PaymentController extends Controller
      */
     public function verifyWeb(Request $request)
     {
+        /** Reference */
+        $reference = $this->validateRequest($request);
+
         /** Fetch Payment */
-        $payment = $this->getPayment($request);
+        $payment = $this->getPayment($reference);
 
         if ($payment) {
             return view('payments.success', ['payment' => $payment]);
         } else {
             try {
                 /** Get Result */
-                $result = Paystack::verify($request->input('reference'));
+                $result = Flutterwave::verify($reference);
             } catch (\Throwable $e) {
                 return response(view('payments.error'))
                     ->setStatusCode(403, 'Payment not found!');
             }
 
             /** Compare Result */
-            if ($result['status'] !== 'success') {
+            if (!$this->isSuccessful($result)) {
                 return response(view('payments.error'))
                     ->setStatusCode(403, 'Payment unsuccessful!');
             }
@@ -98,34 +115,72 @@ class PaymentController extends Controller
     }
 
     /**
-     * Get Payment
+     * Validate and Get Reference
      * @param \Illuminate\Http\Request $request
-     * @return Payment|null
      */
-    protected function getPayment(Request $request)
+    protected function validateRequest(Request $request)
     {
         $validated = $request->validate([
-            'reference' => ['required', 'string', 'max:32']
+            'tx_ref' => ['required', 'string', 'max:32']
         ]);
 
-        /** Fetch Payment */
-        return Payment::where('reference', $validated['reference'])->first();
+        return $validated['tx_ref'];
+    }
+
+    /**
+     * Check if result is successful
+     * @param array $result
+     * @return bool
+     */
+    protected function isSuccessful($result)
+    {
+        return $result['status'] === 'successful';
+    }
+
+    /**
+     * Get User ID
+     * @param array $result
+     * @return int
+     */
+    protected function getUserId($result)
+    {
+        return $result['meta']['user_id'];
+    }
+
+    /**
+     * Get Reference
+     * @param array $result
+     * @return string
+     */
+    protected function getReference($result)
+    {
+        return $result['tx_ref'];
+    }
+
+    /**
+     * Get Payment
+     * @param string $reference
+     * @return Payment|null
+     */
+    protected function getPayment($reference)
+    {
+        return Payment::where('reference', $reference)->first();
     }
 
 
     /**
      * Save Payment
-     * @param mixed $result
+     * @param array $result
      * @return Payment
      */
     protected function savePayment($result)
     {
         /** Find or Create Account */
-        $account = Account::firstOrCreate(['user_id' => $result['metadata']['user_id']]);
+        $account = Account::firstOrCreate(['user_id' => $this->getUserId($result)]);
 
         /** Create Payment */
         $payment = $account->payments()->create([
-            'reference' => $result['reference'],
+            'reference' => $this->getReference($result),
             'data' => $result
         ]);
 

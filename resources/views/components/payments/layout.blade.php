@@ -12,7 +12,7 @@
         items-center justify-center gap-4 p-4
         min-h-dvh max-w-sm mx-auto">
         {{-- Logo --}}
-        <img src="{{ Vite::asset('resources/images/icon.png') }}" class="size-28" />
+        <img src="{{ url('icon.png') }}" class="size-28" />
 
         {{-- Heading --}}
         <h1 class="text-3xl text-center text-orange-500 font-turret-road">{{ config('app.name') }}</h1>
