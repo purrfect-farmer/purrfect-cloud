@@ -3,13 +3,14 @@
 namespace App\Console\Commands;
 
 use App\Console\Commands\Traits\FarmerTrait;
-use App\Farmers\SpaceAdventureFarmer;
 use App\Models\Farmer;
 use Illuminate\Console\Command;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use GuzzleHttp\Cookie\CookieJar;
+use Psr\Http\Message\RequestInterface;
 
 class FarmSpaceAdventure extends Command
 {
@@ -45,25 +46,14 @@ class FarmSpaceAdventure extends Command
      */
     protected function setAuth(Farmer $farmer)
     {
-        $helper = new SpaceAdventureFarmer(
-            $farmer,
-            fn() => $this->getBaseApi($farmer)
-        );
-
-        /** Fetch CSRF */
-        $helper->fetchCSRFToken();
-
+        /** Get API */
+        $api = $this->getSpaceAdventureApi($farmer);
 
         /** Get Access Token */
-        $accessToken = $helper
-            ->withoutSignature()
-            ->makeRequest(
-                fn(PendingRequest $api) =>
-                $api->asForm()
-                    ->post(
-                        'https://space-adventure.online/api/auth/telegram',
-                        $farmer->getInitDataParsed()
-                    )
+        $accessToken = $api->asForm()
+            ->post(
+                'https://space-adventure.online/api/auth/telegram',
+                $farmer->getInitDataParsed()
             )->json('token');
 
         /** Update Authorization Header */
@@ -79,70 +69,45 @@ class FarmSpaceAdventure extends Command
         $this->farm(function () {
             $this->getFarmers()->mapConcurrently(function (Farmer $farmer) {
                 try {
-                    /** Initiate Helper */
-                    $helper = new SpaceAdventureFarmer(
-                        $farmer,
-                        fn() => $this->getBaseApi($farmer)
-                    );
-
-                    /** Fetch CSRF */
-                    $helper->fetchCSRFToken();
+                    /** Get API */
+                    $api = $this->getSpaceAdventureApi($farmer);
 
                     /** Get User */
-                    $user = $helper
-                        ->makeAuthRequest(
-                            fn(PendingRequest $api) => $api->get('https://space-adventure.online/api/user/get')
-                        )
-                        ->json('user');
+                    $user = $api->get('https://space-adventure.online/api/user/get')->json('user');
+
 
                     /** Get Boosts */
-                    $boosts = $helper
-                        ->makeAuthRequest(
-                            fn(PendingRequest $api) => $api->get('https://space-adventure.online/api/boost/get/')
-                        )
+                    $boosts = $api->get('https://space-adventure.online/api/boost/get/')
                         ->collect('list');
 
 
+                    /** Get Status */
                     $status = $this->getStatus($user);
 
                     if ($status['canSkipTutorial']) {
-                        $user = $helper
-                            ->makeAuthRequest(
-                                fn(PendingRequest $api) => $api->put('https://space-adventure.online/api/user/settings/tutorial/')
-                            )
+                        $user = $api->put('https://space-adventure.online/api/user/settings/tutorial/')
                             ->json('user');
                         $status = $this->getStatus($user);
                     }
 
                     if ($status['canReadNews']) {
-                        $user = $helper
-                            ->makeAuthRequest(
-                                fn(PendingRequest $api) => $api->put('https://space-adventure.online/api/user/settings/read-news')
-                            )
+                        $user = $api->put('https://space-adventure.online/api/user/settings/read-news')
                             ->json('user');
                         $status = $this->getStatus($user);
                     }
 
                     if ($status['canClaimDailyReward']) {
-                        $user = $this->makeAdsRequest(
-                            $helper,
-                            'daily_activity',
-                            fn(PendingRequest $api) => $api->post(
-                                'https://space-adventure.online/api/dayli/claim_activity/'
-                            )
-                        )->json('user');
+                        $user = $this->makeAdsRequest($api, 'daily_activity')
+                            ->post('https://space-adventure.online/api/dayli/claim_activity/')
+                            ->json('user');
                         $status = $this->getStatus($user);
                     }
 
                     if ($status['canClaim']) {
                         /** Get Captcha */
-                        $captcha = $this->makeAdsRequest(
-                            $helper,
-                            'claim_coins',
-                            fn(PendingRequest $api) => $api->get(
-                                'https://space-adventure.online/api/game/captcha/'
-                            )
-                        )->json();
+                        $captcha = $this->makeAdsRequest($api, 'claim_coins')
+                            ->get('https://space-adventure.online/api/game/captcha/')
+                            ->json();
 
                         $correct = collect($captcha['captchaList'])->first(
                             fn($item) => $item['img'] === $captcha['captchaTrue']
@@ -150,57 +115,42 @@ class FarmSpaceAdventure extends Command
 
 
                         /** Solve Captcha */
-                        $helper
-                            ->makeAuthRequest(
-                                fn(PendingRequest $api) => $api->post(
-                                    'https://space-adventure.online/api/game/captcha/',
-                                    [
-                                        'captcha' => $correct['value']
-                                    ]
-                                )
-                            )->json();
+                        $api->post('https://space-adventure.online/api/game/captcha/', ['captcha' => $correct['value']])
+                            ->json();
 
                         /** Claim */
-                        $user = $helper
-                            ->makeAuthRequest(
-                                fn(PendingRequest $api) => $api->post(
-                                    'https://space-adventure.online/api/game/claiming/'
-                                )
-                            )->json('user');
+                        $user = $api->post('https://space-adventure.online/api/game/claiming/')->json('user');
                         $status = $this->getStatus($user);
                     }
 
+                    /** Spin */
                     if ($status['canSpin']) {
-                        $user = $this->makeAdsRequest(
-                            $helper,
-                            'spin_roulete',
-                            fn(PendingRequest $api) => $api->post(
-                                'https://space-adventure.online/api/roulette/buy/',
-                                ['method' => 'free']
-                            )
-                        )->json('user');
+                        $user = $this->makeAdsRequest($api, 'spin_roulete')
+                            ->post('https://space-adventure.online/api/roulette/buy/', ['method' => 'free'])
+                            ->json('user');
                         $status = $this->getStatus($user);
                     }
 
+                    /** Buy Shield */
                     if ($status['canBuyShield']) {
-                        $user = $this->shopFreeItem($helper, $boosts, 'shield')->json('user');
+                        $user = $this->shopFreeItem($api, $boosts, 'shield')->json('user');
                         $status = $this->getStatus($user);
                     }
 
+                    /** Buy Immunity */
                     if ($status['canBuyImmunity']) {
-                        $user = $this->shopFreeItem($helper, $boosts, 'immunity')->json('user');
+                        $user = $this->shopFreeItem($api, $boosts, 'immunity')->json('user');
                         $status = $this->getStatus($user);
                     }
 
+                    /** Buy Fuel */
                     if ($status['canBuyFuel']) {
-                        $user = $this->shopFreeItem($helper, $boosts, 'fuel')->json('user');
+                        $user = $this->shopFreeItem($api, $boosts, 'fuel')->json('user');
                         $status = $this->getStatus($user);
                     }
 
-                    $tasks = $helper
-                        ->makeAuthRequest(
-                            fn(PendingRequest $api) => $api->get('https://space-adventure.online/api/tasks/get?category=sponsors')
-                        )
+                    /** Tasks */
+                    $tasks = $api->get('https://space-adventure.online/api/tasks/get?category=sponsors')
                         ->collect('listActive');
 
                     $videoTasksCount = intval($user['video_tasks']);
@@ -212,16 +162,12 @@ class FarmSpaceAdventure extends Command
 
                     if ($adsTask) {
                         for ($i = $videoTasksCount; $i < 3; $i++) {
-                            $this->makeAdsRequest(
-                                $helper,
-                                'tasks_reward',
-                                fn(PendingRequest $api) => $api->put(
-                                    'https://space-adventure.online/api/tasks/reward-video/'
-                                )
-                            );
+                            $this->makeAdsRequest($api, 'tasks_reward')
+                                ->put('https://space-adventure.online/api/tasks/reward-video/');
                         }
                     }
 
+                    /** Upgrade Level */
                     $balance = intval($user['balance']);
                     $gems = intval($user['gems']);
                     $levelBoosts = $boosts
@@ -252,19 +198,14 @@ class FarmSpaceAdventure extends Command
                         $random = $upgradableBoosts->random();
                         $method = $random['next_level']['price_gems'] <= $gems ? 'gems' : 'coin';
 
-                        $helper
-                            ->makeAuthRequest(
-                                fn(PendingRequest $api) => $api->post(
-                                    'https://space-adventure.online/api/boost/buy/',
-                                    [
-                                        'method' => $method,
-                                        'id' => $random['id']
-                                    ]
-                                )
-                            );
+                        $api->post(
+                            'https://space-adventure.online/api/boost/buy/',
+                            [
+                                'method' => $method,
+                                'id' => $random['id']
+                            ]
+                        );
                     }
-
-
                 } catch (\Throwable $e) {
                     /** Log Error */
                     $this->logError($e, $farmer);
@@ -278,53 +219,39 @@ class FarmSpaceAdventure extends Command
 
     /**
      * Shop Free Item
-     * @param \App\Farmers\SpaceAdventureFarmer $helper
+     * @param \Illuminate\Http\Client\PendingRequest $api
      * @param \Illuminate\Support\Collection $boosts
      * @param string $type
      * @return \Illuminate\Http\Client\Response
      */
-    protected function shopFreeItem(
-        SpaceAdventureFarmer $helper,
-        Collection $boosts,
-        string $type
-    ) {
+    protected function shopFreeItem(PendingRequest $api, Collection $boosts, string $type)
+    {
         $shopItem = $boosts->first(
             fn($item) => $item['single_type'] === $type
         );
 
-        return $this->makeAdsRequest(
-            $helper,
-            'shop_free_' . $type,
-            fn(PendingRequest $api) => $api->post(
-                'https://space-adventure.online/api/boost/buy/',
-                [
-                    'method' => 'free',
-                    'id' => $shopItem['id']
-                ]
-            )
+        return $this->makeAdsRequest($api, 'shop_free_' . $type)->post(
+            'https://space-adventure.online/api/boost/buy/',
+            [
+                'method' => 'free',
+                'id' => $shopItem['id']
+            ]
         );
     }
 
     /**
      * Make Ads Request
-     * @param \App\Farmers\SpaceAdventureFarmer $helper
+     * @param \Illuminate\Http\Client\PendingRequest $api
      * @param string $type
-     * @param Closure $callback
-     * @return \Illuminate\Http\Client\Response
+     * @return \Illuminate\Http\Client\PendingRequest
      */
-    protected function makeAdsRequest(
-        SpaceAdventureFarmer $helper,
-        $type,
-        $callback
-    ) {
-        $helper->makeAuthRequest(
-            fn(PendingRequest $api) => $api->post(
-                'https://space-adventure.online/api/user/get_ads/',
-                ['type' => $type]
-            )
-        );
+    protected function makeAdsRequest(PendingRequest $api, $type)
+    {
+        /** Get Ads */
+        $api->post('https://space-adventure.online/api/user/get_ads/', ['type' => $type]);
 
-        return $helper->makeAuthRequest($callback);
+        /** Return API */
+        return $api;
     }
 
 
@@ -400,5 +327,91 @@ class FarmSpaceAdventure extends Command
     protected function createDate($date)
     {
         return $date === null ? Carbon::now() : Carbon::createFromTimestampMs($date);
+    }
+
+    protected function getSpaceAdventureApi($farmer)
+    {
+        /** Cookies */
+        $cookies = new CookieJar();
+
+        /** Get API */
+        $api = $this->getApi($farmer)
+            ->withOptions(['cookies' => $cookies])
+            ->withRequestMiddleware(function (RequestInterface $request) use ($farmer, $cookies) {
+                $xsrfCookie = $cookies->getCookieByName('XSRF-TOKEN');
+                $xsrf = urldecode($xsrfCookie ? $xsrfCookie->getValue() : '');
+
+                $authHeader = $farmer->headers['Authorization'] ?? '';
+                $accessToken = explode(" ", $authHeader)[1] ?? '';
+
+                $headers = array_merge(
+                    $this->getSignatureHeaders(
+                        timestamp: strval(time()),
+                        authId: strval($farmer->user_id),
+                        accessToken: $accessToken,
+                        xsrf: $xsrf,
+                        uuid: Str::uuid(),
+                    ),
+                    ['x-xsrf-token' => $xsrf]
+                );
+
+                return collect($headers)->reduce(
+                    fn($newRequest, $v, $k) => $newRequest->withHeader($k, $v),
+                    $request
+                );
+            });
+
+        /** Fetch CSRF Token */
+        $api->get('https://space-adventure.online/sanctum/csrf-cookie');
+
+        return $api;
+    }
+
+    /**
+     * Get Signature Headers
+     * @param string $timestamp
+     * @param string $authId
+     * @param string $accessToken
+     * @param string $xsrf
+     * @param string $uuid
+     * @return array{x-auth-id: string, x-nonce: string, x-signature: string, x-timestamp: string, x-xsrf-sign: string, x-xsrf-token: string}
+     */
+    protected function getSignatureHeaders(
+        $timestamp,
+        $authId,
+        $accessToken,
+        $xsrf,
+        $uuid,
+    ) {
+        $nonce = $uuid . '-' . $timestamp;
+        $sign = $this->getXSRFSign($xsrf, $timestamp);
+
+        $data = implode(":", [$timestamp, $accessToken, $nonce, $timestamp, $sign]);
+        $signature = hash(
+            "sha256",
+            $data
+        );
+
+        return [
+            'x-auth-id' => $authId,
+            'x-timestamp' => $timestamp,
+            'x-nonce' => $nonce,
+            'x-xsrf-sign' => $sign,
+            'x-signature' => $signature,
+        ];
+    }
+
+    /**
+     * Get XSRF Sign
+     * @param string $xsrf
+     * @param string $timestamp
+     * @return string
+     */
+    protected function getXSRFSign($xsrf, $timestamp)
+    {
+        $half = floor(strlen($xsrf) / 2);
+        $first = substr($xsrf, 0, $half);
+        $second = substr($xsrf, $half);
+        return hash("sha256", $first . $timestamp . $second);
     }
 }
