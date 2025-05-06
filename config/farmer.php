@@ -39,6 +39,12 @@ return [
     ],
 
     'drops' => [
+        'unijump' => [
+            'title' => '🦄 Unijump Farmer',
+            'enabled' => env('FARMER_UNIJUMP_ENABLED', true),
+            'thread_id' => env('FARMER_UNIJUMP_THREAD_ID', ''),
+            'telegram_link' => 'https://t.me/unijump_bot/game?startapp=ref5859194569569580966',
+        ],
         'gold-eagle' => [
             'title' => '🥇 Gold Eagle Farmer',
             'enabled' => env('FARMER_GOLD_EAGLE_ENABLED', true),

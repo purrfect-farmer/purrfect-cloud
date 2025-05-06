@@ -262,13 +262,14 @@ class FarmSpaceAdventure extends Command
      */
     protected function getStatus($user)
     {
+        $localeTime = $this->createDate($user["locale_time"]);
         $timePassed = $this->createDate($user["claimed_last"])->diffInSeconds(
             $this->createDate(
                 $user["shield_ended_at"]
             )
         );
         $lowFuelInSeconds = 10 * 60; // Ten Minutes
-        $remainingFuelInSeconds = now()->diffInSeconds(
+        $remainingFuelInSeconds = $localeTime->diffInSeconds(
             $this->createDate(
                 $user["fuel_last_at"] + $user["fuel"] * 1000
             )
@@ -276,26 +277,26 @@ class FarmSpaceAdventure extends Command
 
         $unclaimed = $user["claim"] * $timePassed;
         $canBuyFuel = $remainingFuelInSeconds <= $lowFuelInSeconds &&
-            now()->isAfter(
+            $localeTime->isAfter(
                 $this->createDate($user["fuel_free_at"])
             );
 
         $canClaim = $unclaimed >= $user["claim_max"];
 
         $canBuyShield = $user["shield_damage"] > 0 &&
-            now()->isAfter(
+            $localeTime->isAfter(
                 $this->createDate($user["shield_free_at"])
             );
 
         $canBuyImmunity =
-            now()->isAfter(
+            $localeTime->isAfter(
                 $this->createDate($user["shield_immunity_at"])
             ) &&
-            now()->isAfter(
+            $localeTime->isAfter(
                 $this->createDate($user["shield_free_immunity_at"])
             );
 
-        $canSpin = now()->isAfter(
+        $canSpin = $localeTime->isAfter(
             $this->createDate($user["spin_after_at"])
         );
 
@@ -303,7 +304,7 @@ class FarmSpaceAdventure extends Command
 
         $canReadNews = $user["new_post"] !== true;
 
-        $canClaimDailyReward = now()->isAfter(
+        $canClaimDailyReward = $localeTime->isAfter(
             $this->createDate($user["daily_next_at"])
         );
 
