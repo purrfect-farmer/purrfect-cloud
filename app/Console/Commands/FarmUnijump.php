@@ -89,22 +89,28 @@ class FarmUnijump extends Command
 
                     /** Lootbox */
                     $lootboxesInfo = $player['lootboxesInfo'];
-                    $freeAvailableAt = $lootboxesInfo['freeAvailableAt'];
-                    $availableLootboxes = $lootboxesInfo['availableLootboxes'];
 
                     /** Get Free Lootbox */
-                    if ($freeAvailableAt < $utc) {
+                    if ($lootboxesInfo['freeAvailableAt'] < $utc) {
                         $api->get('https://unijump.xyz/api/v1/lootboxes/get_free');
                     }
 
                     /** Open Lootboxes */
-                    foreach ($availableLootboxes as $type => $count) {
+                    foreach ($lootboxesInfo['availableLootboxes'] as $type => $count) {
                         for ($i = 0; $i < $count; $i++) {
                             $api->post(
                                 'https://unijump.xyz/api/v1/lootboxes/open',
                                 ['lootboxType' => $type]
                             );
                         }
+                    }
+
+                    /** Free Spin */
+                    $wheelSpins = $player['wheelSpins'];
+
+                    /** Get Free Spin */
+                    if ($wheelSpins['freeAvailableAt'] < $utc) {
+                        $api->post('https://unijump.xyz/api/v1/fortune-wheel/free-spin');
                     }
                 } catch (\Throwable $e) {
                     /** Log Error */
