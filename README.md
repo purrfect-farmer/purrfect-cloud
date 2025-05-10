@@ -330,6 +330,8 @@ e.g
 php artisan app:update-account-subscription 87654321 2030-01-01
 ```
 
+You can also add a subscription through the [Cloud Manager](https://github.com/purrfect-farmer/purrfect-farmer).
+
 ### Updating
 Simply run the following commands to update the application.
 
@@ -372,4 +374,15 @@ Entry | Description
 `FARMER_SUBSCRIPTION_AMOUNT` | Subscription Amount
 `FLUTTERWAVE_PUBLIC_KEY` | Flutterwave Public Key
 `FLUTTERWAVE_SECRET_KEY` | Flutterwave Secret Key
+
+
+### Admin User
+
+The default user is `admin`, you should change the default password through the [Cloud Manager](https://github.com/purrfect-farmer/purrfect-farmer).
+
+Info | Value
+--- | ---
+`username` | admin
+`email` | admin@example.com
+`password` | password
 
