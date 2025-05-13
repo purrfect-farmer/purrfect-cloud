@@ -65,16 +65,22 @@ class AppServiceProvider extends ServiceProvider
                 /** @var Collection $this */
                 if (!config('farmer.concurrency_enabled')) {
                     return $this->map($callback);
+                } else if (config('farmer.concurrency_chunk')) {
+                    return $this->chunk(config('farmer.concurrency_size'))
+                        ->map(
+                            function ($chunk) use ($callback) {
+                                return Concurrency::run(
+                                    $chunk->mapForConcurrency($callback)
+                                );
+                            }
+                        )->flatten(1);
+                } else {
+                    return collect(
+                        Concurrency::run(
+                            $this->mapForConcurrency($callback)
+                        )
+                    );
                 }
-
-                return $this->chunk(config('farmer.concurrency_limit'))
-                    ->map(
-                        function ($chunk) use ($callback) {
-                            return Concurrency::run(
-                                $chunk->mapForConcurrency($callback)
-                            );
-                        }
-                    )->flatten(1);
             }
         );
 
