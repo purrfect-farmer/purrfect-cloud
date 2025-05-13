@@ -45,19 +45,39 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        Collection::macro('mapForConcurrency', function ($callback) {
-            /** @var Collection $this */
-            return $this->map(fn($value, $key) => fn() => $callback($value, $key))->all();
-        });
+        Collection::macro(
+            'mapForConcurrency',
+            /**
+             * @param callable $callback
+             */
+            function ($callback) {
+                /** @var Collection $this */
+                return $this->map(fn($value, $key) => fn() => $callback($value, $key))->all();
+            }
+        );
 
-        Collection::macro('mapConcurrently', function ($callback) {
-            /** @var Collection $this */
-            return collect(
-                Concurrency::run(
-                    $this->mapForConcurrency($callback)
-                )
-            );
-        });
+        Collection::macro(
+            'mapConcurrently',
+            /**
+             * @param callable $callback
+             */
+            function ($callback) {
+                /** @var Collection $this */
+                if (!config('farmer.enable_concurrency')) {
+                    return $this->map($callback);
+                }
+
+                return collect(
+                    $this->chunk(10)->map(
+                        function ($chunk) use ($callback) {
+                            return Concurrency::run(
+                                $chunk->mapForConcurrency($callback)
+                            );
+                        }
+                    )->flatten()
+                );
+            }
+        );
 
         ResetPassword::createUrlUsing(function (object $notifiable, string $token) {
             return config('app.frontend_url') . "/password-reset/$token?email={$notifiable->getEmailForPasswordReset()}";
