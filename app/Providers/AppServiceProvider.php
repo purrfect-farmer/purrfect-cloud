@@ -74,7 +74,7 @@ class AppServiceProvider extends ServiceProvider
                                 $chunk->mapForConcurrency($callback)
                             );
                         }
-                    )->flatten();
+                    )->flatten(1);
             }
         );
 
