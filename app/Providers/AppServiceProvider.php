@@ -67,15 +67,13 @@ class AppServiceProvider extends ServiceProvider
                     return $this->map($callback);
                 }
 
-                return collect(
-                    $this->chunk(10)->map(
-                        function ($chunk) use ($callback) {
-                            return Concurrency::run(
-                                $chunk->mapForConcurrency($callback)
-                            );
-                        }
-                    )->flatten()
-                );
+                return $this->chunk(10)->map(
+                    function ($chunk) use ($callback) {
+                        return Concurrency::run(
+                            $chunk->mapForConcurrency($callback)
+                        );
+                    }
+                )->flatten();
             }
         );
 
