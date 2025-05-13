@@ -25,7 +25,7 @@ Schedule::command('app:update-proxies')
 Schedule::command('farmer:update-web-app-data')
     ->when(
         config('farmer.enable_telegram_sessions') &&
-        config('farmer.update_webapp_data_periodically')
+        config('farmer.update_webapp_data')
     )
     ->everyTenMinutes();
 

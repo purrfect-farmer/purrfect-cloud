@@ -28,9 +28,10 @@ return [
     'enable_payments' => env('FARMER_ENABLE_PAYMENTS', false),
     'subscription_amount' => env('FARMER_SUBSCRIPTION_AMOUNT', 1550),
 
-    'enable_concurrency' => env('FARMER_ENABLE_CONCURRENCY', true),
+    'concurrency_enabled' => env('FARMER_CONCURRENCY_ENABLED', true),
+    'concurrency_limit' => env('FARMER_CONCURRENCY_LIMIT', 10),
     'run_in_background' => env('FARMER_RUN_IN_BACKGROUND', true),
-    'update_webapp_data_periodically' => env('FARMER_UPDATE_WEBAPP_DATA_PERIODICALLY', true),
+    'update_webapp_data' => env('FARMER_UPDATE_WEBAPP_DATA', true),
 
     'proxy' => [
         'enabled' => env('FARMER_PROXY_ENABLED', false),
