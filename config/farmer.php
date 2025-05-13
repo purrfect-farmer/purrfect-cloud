@@ -29,7 +29,7 @@ return [
     'subscription_amount' => env('FARMER_SUBSCRIPTION_AMOUNT', 1550),
 
     'concurrency_enabled' => env('FARMER_CONCURRENCY_ENABLED', true),
-    'concurrency_limit' => env('FARMER_CONCURRENCY_LIMIT', 10),
+    'concurrency_limit' => env('FARMER_CONCURRENCY_LIMIT', 20),
     'run_in_background' => env('FARMER_RUN_IN_BACKGROUND', true),
     'update_webapp_data' => env('FARMER_UPDATE_WEBAPP_DATA', true),
 
