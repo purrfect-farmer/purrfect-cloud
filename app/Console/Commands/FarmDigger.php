@@ -242,7 +242,7 @@ class FarmDigger extends Command
                         $reward = $this->getApi($farmer)
                             ->post('https://api.diggergame.app/api/content/intent', [
                                 'platform' => '2',
-                                'type' => static::CHEST_TYPES[$chest['chest_id']],
+                                'type' => static::CHEST_TYPES[$chest['chest_id']] ?? null,
                             ])
                             ->json('result.uid');
 
