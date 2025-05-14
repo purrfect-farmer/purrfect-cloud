@@ -84,7 +84,7 @@ class FarmGoldEagle extends Command
                                 ->get('https://gold-eagle-api.fly.dev/boosters')
                                 ->collect();
                             $claimBooster = $boosters->first(
-                                fn($item) => $item['booster_type'] === 'Claim' && $item['purchased']
+                                fn($item) => $item['booster_type'] === 'Claim' && $item['level'] > 0
                             );
 
                             /** Check Booster */
