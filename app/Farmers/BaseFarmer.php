@@ -18,8 +18,28 @@ abstract class BaseFarmer
     /** Requests Delay */
     protected $delay = 0;
 
+    /**
+     * Should set auth
+     * @var boolean
+     */
+    protected $shouldSetAuth = false;
+
     public function __construct(protected Farmer $farmer)
     {
+        /** Set Auth */
+        if ($this->shouldSetAuth) {
+            try {
+                $this->setAuth();
+            } catch (\Throwable $e) {
+                /** Log Error */
+                $this->logError($e);
+            }
+        }
+
+        /** Save Farmer */
+        if ($this->farmer->isDirty()) {
+            $this->farmer->save();
+        }
     }
 
     /** Get Base Headers */

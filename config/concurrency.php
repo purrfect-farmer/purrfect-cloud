@@ -15,6 +15,6 @@ return [
     |
     */
 
-    'default' => env('CONCURRENCY_DRIVER', 'fork'),
+    'default' => env('CONCURRENCY_DRIVER', 'process'),
 
 ];

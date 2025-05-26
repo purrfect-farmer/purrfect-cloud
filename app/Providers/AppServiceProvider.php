@@ -52,7 +52,13 @@ class AppServiceProvider extends ServiceProvider
              */
             function ($callback) {
                 /** @var Collection $this */
-                return $this->map(fn($value, $key) => fn() => $callback($value, $key))->all();
+                $tasks = [];
+
+                foreach ($this as $key => $value) {
+                    $tasks[] = static fn() => $callback($value, $key);
+                }
+
+                return $tasks;
             }
         );
 
