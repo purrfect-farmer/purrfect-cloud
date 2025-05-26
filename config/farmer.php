@@ -42,11 +42,11 @@ return [
     ],
 
     'drops' => [
-        'unijump' => [
-            'title' => '🦄 Unijump Farmer',
-            'enabled' => env('FARMER_UNIJUMP_ENABLED', true),
-            'thread_id' => env('FARMER_UNIJUMP_THREAD_ID', ''),
-            'telegram_link' => 'https://t.me/unijump_bot/game?startapp=ref5859194569569580966',
+        'battle-bulls' => [
+            'title' => '🐂 Battle Bulls Farmer',
+            'enabled' => env('FARMER_BATTLE_BULLS_ENABLED', true),
+            'thread_id' => env('FARMER_BATTLE_BULLS_THREAD_ID', ''),
+            'telegram_link' => 'https://t.me/battle_games_com_bot/start?startapp=frndId1147265290',
         ],
         'gold-eagle' => [
             'title' => '🥇 Gold Eagle Farmer',
