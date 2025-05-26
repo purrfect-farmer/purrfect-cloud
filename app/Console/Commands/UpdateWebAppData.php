@@ -2,14 +2,10 @@
 
 namespace App\Console\Commands;
 
-use App\Facades\Madeline;
 use App\Helpers;
+use App\Libraries\WebAppUpdater;
 use App\Models\Account;
-use App\Models\Farmer;
 use Illuminate\Console\Command;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 
 class UpdateWebAppData extends Command
 {
@@ -33,97 +29,9 @@ class UpdateWebAppData extends Command
     public function handle()
     {
         $startDate = now();
-        $this->getAccounts()->mapConcurrently(function (Account $account) {
-            try {
-                $api = Madeline::session($account->session_id);
-                try {
-                    /** Update Farmers */
-                    $account->farmers->each(function (Farmer $farmer) use ($api, $account) {
-                        /** Get Config */
-                        $config = config('farmer.drops')[$farmer->farmer];
-
-                        /** Get Web App Data */
-                        $data = Madeline::getTelegramData($api, $config['telegram_link']);
-
-                        try {
-                            /** Update TelegramWebApp */
-                            $farmer->update([
-                                'is_connected' => true,
-                                'telegram_web_app' => [
-                                    'initData' => $data['initData']
-                                ]
-                            ]);
-                        } catch (\Throwable $e) {
-                            /** Log Error */
-                            $this->logError(
-                                title: 'SAVING WEB_APP_DATA',
-                                config: $config,
-                                account: $account,
-                                error: $e
-                            );
-                        }
-                    });
-
-                    /** Get User Details */
-                    $data = Madeline::getTelegramData(
-                        $api,
-                        config('farmer.farmer_bot_link')
-                    );
-
-                    /** Save User Details */
-                    try {
-                        $account->update([
-                            'data' => array_merge(
-                                $account->data ?? [],
-                                ['user' => $data['initDataUnsafe']['user']]
-                            )
-                        ]);
-                    } catch (\Throwable $e) {
-                        /** Log Error */
-                        $this->logError(
-                            title: 'SAVING ACCOUNT USER',
-                            account: $account,
-                            error: $e
-                        );
-                    }
-
-
-                } catch (\Throwable $e) {
-                    /** Logout */
-                    try {
-                        $api->logout();
-                    } catch (\Throwable $e) {
-                        /** Log Error */
-                        $this->logError(
-                            title: 'TELEGRAM SESSION LOGOUT',
-                            account: $account,
-                            error: $e
-                        );
-                    }
-
-                    throw $e;
-                }
-            } catch (\Throwable $e) {
-                /** Log Error */
-                $this->logError(
-                    title: 'TELEGRAM WEBAPP DATA',
-                    account: $account,
-                    error: $e
-                );
-
-                /** Update Session */
-                try {
-                    $account->update(['session_id' => null]);
-                } catch (\Throwable $e) {
-                    /** Log Error */
-                    $this->logError(
-                        title: 'REMOVING SESSION',
-                        account: $account,
-                        error: $e
-                    );
-                }
-            }
-        });
+        $this->getAccounts()->mapConcurrently(
+            fn(Account $account) => WebAppUpdater::update($account)
+        );
 
         $endDate = now();
         $links = $this->getCloudUserLinks();
@@ -160,27 +68,6 @@ class UpdateWebAppData extends Command
         return Account::with('farmers')
             ->subscribed()
             ->whereNotNull('session_id');
-    }
-
-    /**
-     * Log Error
-     * @param string $title
-     * @param \App\Models\Account $account
-     * @param \Throwable $error
-     * @param array|null $config
-     * @return void
-     */
-    protected function logError($title, Account $account, $error, $config = null)
-    {
-        /** Log Error */
-        Log::error(($config ? $config['title'] . ' ' : '') . 'Error (' . $title . ')', [
-            'title' => $account->getFarmerTitle(),
-            'user_id' => $account->user_id ?? null,
-            'username' => $account->getUsername(),
-            'message' => $error->getMessage(),
-            'file' => $error->getFile(),
-            'line' => $error->getLine(),
-        ]);
     }
 
 
