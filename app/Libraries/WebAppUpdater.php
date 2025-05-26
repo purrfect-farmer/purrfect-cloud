@@ -20,7 +20,11 @@ class WebAppUpdater
                 /** Update Farmers */
                 $this->account->farmers->each(function (Farmer $farmer) use ($api) {
                     /** Get Config */
-                    $config = config('farmer.drops')[$farmer->farmer];
+                    $config = config('farmer.drops')[$farmer->farmer] ?? null;
+
+                    if (!$config) {
+                        return;
+                    }
 
                     /** Get Web App Data */
                     $data = Madeline::getTelegramData($api, $config['telegram_link']);
