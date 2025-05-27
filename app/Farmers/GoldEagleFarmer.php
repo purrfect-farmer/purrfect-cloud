@@ -68,7 +68,7 @@ class GoldEagleFarmer extends BaseFarmer
                 );
 
                 /** Check Booster */
-                if ($claimBooster === null) {
+                if (!isset($claimBooster)) {
                     return;
                 }
 
@@ -77,12 +77,12 @@ class GoldEagleFarmer extends BaseFarmer
                     $this->claimToSl8();
                 } catch (\Throwable $e) {
                     /** Log Error */
-                    $this->logError($e, );
+                    $this->logError($e);
                 }
             }
         } catch (\Throwable $e) {
             /** Log Error */
-            $this->logError($e, );
+            $this->logError($e);
 
             /** Refetch Auth or Disconnect Farmer */
             $this->refetchAuthOrDisconnect();

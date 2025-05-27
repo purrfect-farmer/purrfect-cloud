@@ -49,7 +49,7 @@ class DiggerFarmer extends BaseFarmer
                     ]);
             } catch (\Throwable $e) {
                 /** Log Error */
-                $this->logError($e, );
+                $this->logError($e);
             }
 
             /** Get Tasks */

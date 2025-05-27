@@ -121,7 +121,7 @@ class TsubasaFarmer extends BaseFarmer
             }
         } catch (\Throwable $e) {
             /** Log Error */
-            $this->logError($e, );
+            $this->logError($e);
 
             /** Refetch Auth or Disconnect Farmer */
             $this->refetchAuthOrDisconnect();
@@ -136,7 +136,7 @@ class TsubasaFarmer extends BaseFarmer
      */
     protected function validateCardAvailability($card)
     {
-        return $card["level_up_available_date"] === null || now()->isAfter(
+        return !isset($card["level_up_available_date"]) || now()->isAfter(
             Carbon::createFromTimestamp($card["level_up_available_date"])
         );
     }
@@ -153,7 +153,7 @@ class TsubasaFarmer extends BaseFarmer
         $friendCount,
         $card
     ) {
-        return $card['unlock_card_id'] === null ||
+        return !isset($card['unlock_card_id']) ||
             $card['unlock_card_level'] <=
             (
                 $card['unlock_card_id'] === 'Friend'
@@ -171,7 +171,7 @@ class TsubasaFarmer extends BaseFarmer
      */
     protected function validateCardEndTime($card)
     {
-        return $card['end_datetime'] === null || now()->isBefore(
+        return !isset($card['end_datetime']) || now()->isBefore(
             Carbon::createFromTimestamp($card['end_datetime'])
         );
     }

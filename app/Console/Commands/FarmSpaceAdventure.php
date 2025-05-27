@@ -29,7 +29,9 @@ class FarmSpaceAdventure extends Command
      */
     public function handle()
     {
-        /** Process Farmers */
-        $this->getFarmers()->mapConcurrently(fn($farmer) => SpaceAdventureFarmer::farm($farmer));
+        $this->farm(function () {
+            /** Process Farmers */
+            $this->getFarmers()->mapConcurrently(fn($farmer) => SpaceAdventureFarmer::farm($farmer));
+        });
     }
 }

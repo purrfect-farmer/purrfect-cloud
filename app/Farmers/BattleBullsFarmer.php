@@ -45,10 +45,10 @@ class BattleBullsFarmer extends BaseFarmer
             $dailyTasks = $tasks->first(
                 fn($item) => $item['id'] === "streak_days"
             );
-            $dailyTaskCompletedAt = $dailyTasks['completedAt'];
+            $dailyTaskCompletedAt = $dailyTasks['completedAt'] ?? null;
 
             if (
-                $dailyTaskCompletedAt === null ||
+                !isset($dailyTaskCompletedAt) ||
                 !Carbon::createFromTimestampMs($dailyTaskCompletedAt)->isToday()
             ) {
                 $this->getApi()
@@ -58,7 +58,7 @@ class BattleBullsFarmer extends BaseFarmer
 
 
             /** Set BlockChain */
-            if ($user['blockchainId'] === null) {
+            if (!isset($user['blockchainId'])) {
                 $this->getApi()->post('https://api.battle-games.com:8443/api/api/v1/user/blockchain', [
                     'blockchainId' => 'bitcoin'
                 ]);
@@ -68,12 +68,10 @@ class BattleBullsFarmer extends BaseFarmer
             $availableTasks = $tasks->filter(
                 fn($item) =>
                 "streak_days" !== $item['id'] &&
-                    /** Validate Friends */
-                ($item['friendsMinimalCount'] === null ||
-                    $item['friendsCount'] >= $item['friendsMinimalCount']) &&
-                    /** Validate Blockchain */
-                ($item['id'] !== "select_blockchain" || $user['blockchainId'] !== null)
+                $this->validateFriends($item) &&
+                $this->validateBlockchain($item, $user)
             );
+
 
 
             /** Uncompleted Tasks */
@@ -145,14 +143,24 @@ class BattleBullsFarmer extends BaseFarmer
         }
     }
 
+    protected function validateBlockchain($item, $user)
+    {
+        return $item['id'] !== "select_blockchain" || isset($user['blockchainId']);
+    }
+
+    protected function validateFriends($item)
+    {
+        return !isset($item['friendsMinimalCount']) || $item['friendsCount'] >= $item['friendsMinimalCount'];
+    }
+
     protected function validateCardCondition($card)
     {
-        return $card['condition'] === null || $card['condition']['passed'];
+        return !isset($card['condition']) || $card['condition']['passed'];
     }
 
     protected function validateCardAvailability($card)
     {
-        return $card['boughtAt'] === null ||
+        return !isset($card['boughtAt']) ||
             $card['rechargingDuration'] === 0 ||
             now()->isAfter(
                 Carbon::createFromTimestampMs($card['boughtAt'] + $card['rechargingDuration'])

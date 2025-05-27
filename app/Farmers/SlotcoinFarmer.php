@@ -66,7 +66,7 @@ class SlotcoinFarmer extends BaseFarmer
             }
         } catch (\Throwable $e) {
             /** Log Error */
-            $this->logError($e, );
+            $this->logError($e);
 
             /** Refetch Auth or Disconnect Farmer */
             $this->refetchAuthOrDisconnect();

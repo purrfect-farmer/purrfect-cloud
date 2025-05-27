@@ -113,7 +113,7 @@ class MatchQuestFarmer extends BaseFarmer
                             /** Update Balance */
                             $balance -= $task["point"];
                         } catch (\Throwable $e) {
-                            $this->logError($e, );
+                            $this->logError($e);
                         }
                     }
                 }
@@ -158,7 +158,7 @@ class MatchQuestFarmer extends BaseFarmer
             }
         } catch (\Throwable $e) {
             /** Log Error */
-            $this->logError($e, );
+            $this->logError($e);
 
             /** Refetch Auth or Disconnect Farmer */
             $this->refetchAuthOrDisconnect();

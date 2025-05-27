@@ -31,10 +31,8 @@ class FarmFunatic extends Command
     public function handle()
     {
         $this->farm(function () {
-            $this->farm(function () {
-                /** Process Farmers */
-                $this->getFarmers()->mapConcurrently(fn($farmer) => FunaticFarmer::farm($farmer));
-            });
+            /** Process Farmers */
+            $this->getFarmers()->mapConcurrently(fn($farmer) => FunaticFarmer::farm($farmer));
         });
     }
 }

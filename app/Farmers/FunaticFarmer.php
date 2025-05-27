@@ -77,9 +77,7 @@ class FunaticFarmer extends BaseFarmer
                     $item['buyOrUpgradeCost'] <= $balance &&
                     $item['isMaxLevelReached'] === false &&
                     $item['isComingSoon'] === false &&
-                    collect(
-                        $item['buyOrUpgradeRequirements']
-                    )
+                    collect($item['buyOrUpgradeRequirements'])
                         ->every(
                             fn($dep) => $dep['isMissing'] === false
                         )
@@ -88,7 +86,7 @@ class FunaticFarmer extends BaseFarmer
 
             /** Level Zero Cards */
             $levelZeroCards = $upgradableCards->filter(
-                fn($card) => $card['level'] === null
+                fn($card) => !isset($card['level'])
             );
 
             /** Collection */
@@ -100,7 +98,7 @@ class FunaticFarmer extends BaseFarmer
             $card = $collection->isNotEmpty() ? $collection->random() : null;
 
             if ($card) {
-                $isUpgrade = $card['level'] !== null;
+                $isUpgrade = isset($card['level']);
 
                 /** Buy or Upgrade Card */
                 $this->getApi()->post(

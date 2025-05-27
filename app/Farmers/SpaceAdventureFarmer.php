@@ -37,6 +37,7 @@ class SpaceAdventureFarmer extends BaseFarmer
             /** Get API */
             $api = $this->getSpaceAdventureApi();
 
+
             /** Get User */
             $user = $api->get('https://space-adventure.online/api/user/get')->json('user');
 
@@ -147,9 +148,10 @@ class SpaceAdventureFarmer extends BaseFarmer
 
             $availableBoosts = $levelBoosts->filter(
                 fn($item) =>
-                $item['next_level'] !== null &&
-                $item['next_level']['price_coin'] <= $balance ||
-                $item['next_level']['price_gems'] <= $gems
+                isset($item['next_level']) && (
+                    $item['next_level']['price_coin'] <= $balance ||
+                    $item['next_level']['price_gems'] <= $gems
+                )
             );
 
             $currentLevel = $user['level_global'];
@@ -173,7 +175,7 @@ class SpaceAdventureFarmer extends BaseFarmer
             }
         } catch (\Throwable $e) {
             /** Log Error */
-            $this->logError($e, );
+            $this->logError($e);
 
             /** Refetch Auth or Disconnect Farmer */
             $this->refetchAuthOrDisconnect();
@@ -292,13 +294,14 @@ class SpaceAdventureFarmer extends BaseFarmer
      */
     protected function createDate($date)
     {
-        return $date === null ? Carbon::now() : Carbon::createFromTimestampMs($date);
+        return !isset($date) ? Carbon::now() : Carbon::createFromTimestampMs($date);
     }
 
     protected function getSpaceAdventureApi()
     {
         /** Cookies */
         $cookies = new CookieJar();
+
 
         /** Get API */
         $api = $this->getApi()
