@@ -70,7 +70,10 @@ return [
             'title' => '⚽️ Tsubasa Farmer',
             'enabled' => env('FARMER_TSUBASA_ENABLED', true),
             'thread_id' => env('FARMER_TSUBASA_THREAD_ID', ''),
-            'telegram_link' => 'https://t.me/TsubasaRivalsBot/start?startapp=inviter_id-1147265290'
+            'telegram_link' => 'https://t.me/TsubasaRivalsBot/start?startapp=inviter_id-1147265290',
+            'options' => [
+                'upgrade_cards' => env('FARMER_TSUBASA_UPGRADE_CARDS', true)
+            ]
         ],
         'matchquest' => [
             'title' => '🌾 MatchQuest Farmer',

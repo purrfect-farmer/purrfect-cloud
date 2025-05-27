@@ -55,6 +55,10 @@ class TsubasaFarmer extends BaseFarmer
                 }
             }
 
+            if (!$this->getOption('upgrade_cards')) {
+                return;
+            }
+
             /**
              * @var \Illuminate\Support\Collection
              */
