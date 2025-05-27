@@ -31,7 +31,7 @@ return [
     'concurrency_enabled' => env('FARMER_CONCURRENCY_ENABLED', true),
     'concurrency_chunk' => env('FARMER_CONCURRENCY_CHUNK', false),
     'concurrency_size' => env('FARMER_CONCURRENCY_SIZE', 100),
-    'run_in_background' => env('FARMER_RUN_IN_BACKGROUND', false),
+    'run_in_background' => env('FARMER_RUN_IN_BACKGROUND', true),
     'update_webapp_data' => env('FARMER_UPDATE_WEBAPP_DATA', true),
 
     'proxy' => [
@@ -42,6 +42,12 @@ return [
     ],
 
     'drops' => [
+        'digger' => [
+            'title' => '🏴‍☠️ Digger Farmer',
+            'enabled' => env('FARMER_DIGGER_ENABLED', true),
+            'thread_id' => env('FARMER_DIGGER_THREAD_ID', ''),
+            'telegram_link' => 'https://t.me/diggerton_bot/dig?startapp=bro1147265290'
+        ],
         'battle-bulls' => [
             'title' => '🐂 Battle Bulls Farmer',
             'enabled' => env('FARMER_BATTLE_BULLS_ENABLED', true),
@@ -89,12 +95,6 @@ return [
             'enabled' => env('FARMER_FUNATIC_ENABLED', true),
             'thread_id' => env('FARMER_FUNATIC_THREAD_ID', ''),
             'telegram_link' => 'https://t.me/LuckyFunaticBot/lucky_funatic?startapp=1147265290'
-        ],
-        'digger' => [
-            'title' => '🏴‍☠️ Digger Farmer',
-            'enabled' => env('FARMER_DIGGER_ENABLED', true),
-            'thread_id' => env('FARMER_DIGGER_THREAD_ID', ''),
-            'telegram_link' => 'https://t.me/diggerton_bot/dig?startapp=bro1147265290'
         ],
         'slotcoin' => [
             'title' => '🎰 Slotcoin Farmer',
