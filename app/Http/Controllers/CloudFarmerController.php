@@ -27,6 +27,7 @@ class CloudFarmerController extends Controller
             ->first();
 
         return [
+            'account' => $account,
             'subscription' => $account->activeSubscription ?? null
         ];
     }
