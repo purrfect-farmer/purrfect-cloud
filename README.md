@@ -354,7 +354,12 @@ cd ~/purrfect-cloud
 
 ##### Pull Changes and Update
 ```bash
-git pull && composer i && pnpm i && pnpm run build && php artisan migrate --seed --force && pm2 reload ecosystem.config.cjs
+git pull && \
+composer install && \
+pnpm install && \
+pnpm run build && \
+php artisan migrate --seed --force && \
+pm2 reload ecosystem.config.cjs
 ```
 
 ### Cloud Telegram Session (Optional)
