@@ -16,7 +16,8 @@ fastify
         }
     })
     .post("/sessions", async () => {
-        return await GramClient.getSessions();
+        const result = await GramClient.getSessions();
+        return { result };
     })
     .post(
         "/exists",
