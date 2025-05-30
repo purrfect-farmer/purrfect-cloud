@@ -243,9 +243,9 @@ export default class GramClient extends TelegramClient {
 
     static async getSessions() {
         const entries = await globby([
-            GramClient.getStoragePath(),
-            "!.gitignore",
+            path.join(GramClient.getStoragePath(), "*.json"),
         ]);
+
         const sessions = entries.map(
             (item) => path.basename(item, ".json").split("_")[1]
         );
