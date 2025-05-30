@@ -45,6 +45,9 @@ export default class GramClient extends TelegramClient {
         /** Store Session File State */
         this._sessionFileExists = sessionFileExists;
 
+        /** Destroy Timeout */
+        this._destroyTimeout = null;
+
         /** Initial Start Stage */
         this._resetStartStage();
     }
@@ -94,6 +97,12 @@ export default class GramClient extends TelegramClient {
             code: null,
             password: null,
         };
+    }
+
+    /** Reset Destroy Timeout */
+    _resetDestroyTimeout() {
+        clearTimeout(this._destroyTimeout);
+        this._destroyTimeout = setTimeout(() => this.destroy(), 1 * 60 * 1000);
     }
 
     /** Start Response */
@@ -163,6 +172,46 @@ export default class GramClient extends TelegramClient {
         }
     }
 
+    /** Get Webview */
+    async webview(options) {
+        /** Reset Destroy Timeout */
+        this._resetDestroyTimeout();
+
+        /** Theme Params */
+        const themeParams = new Api.DataJSON({
+            data: JSON.stringify({
+                bg_color: "#ffffff",
+                text_color: "#000000",
+                hint_color: "#aaaaaa",
+                link_color: "#006aff",
+                button_color: "#2cab37",
+                button_text_color: "#ffffff",
+            }),
+        });
+
+        /** Get WebView */
+        return await this.invoke(
+            options.shortName
+                ? new Api.messages.RequestAppWebView({
+                      themeParams,
+                      platform: "android",
+                      peer: options.bot,
+                      startParam: options.startParam,
+                      app: new Api.InputBotAppShortName({
+                          botId: await this.getInputEntity(options.bot),
+                          shortName: options.shortName,
+                      }),
+                  })
+                : new Api.messages.RequestMainWebView({
+                      themeParams,
+                      platform: "android",
+                      bot: options.bot,
+                      peer: options.bot,
+                      startParam: options.startParam,
+                  })
+        );
+    }
+
     /** Logout */
     async logout() {
         try {
@@ -180,6 +229,9 @@ export default class GramClient extends TelegramClient {
             /** Logout */
             console.error(e);
         } finally {
+            /** Reject */
+            this._startStagePromise?.reject?.(new Error("Logged Out!"));
+
             /** Delete Session */
             await this.deleteSession();
 

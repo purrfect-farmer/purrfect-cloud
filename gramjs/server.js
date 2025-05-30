@@ -1,7 +1,6 @@
 import "dotenv/config";
 
 import Fastify from "fastify";
-import { Api } from "telegram";
 
 import GramClient from "./lib/GramClient.js";
 
@@ -162,44 +161,8 @@ fastify
                     },
                 },
                 async function (request) {
-                    /** Theme Params */
-                    const themeParams = new Api.DataJSON({
-                        data: JSON.stringify({
-                            bg_color: "#ffffff",
-                            text_color: "#000000",
-                            hint_color: "#aaaaaa",
-                            link_color: "#006aff",
-                            button_color: "#2cab37",
-                            button_text_color: "#ffffff",
-                        }),
-                    });
-
                     /** Get WebView */
-                    const result = await request.client.invoke(
-                        request.body.shortName
-                            ? new Api.messages.RequestAppWebView({
-                                  themeParams,
-                                  platform: "android",
-                                  peer: request.body.bot,
-                                  startParam: request.body.startParam,
-                                  app: new Api.InputBotAppShortName({
-                                      botId: await request.client.getInputEntity(
-                                          request.body.bot
-                                      ),
-                                      shortName: request.body.shortName,
-                                  }),
-                              })
-                            : new Api.messages.RequestMainWebView({
-                                  themeParams,
-                                  platform: "android",
-                                  bot: request.body.bot,
-                                  peer: request.body.bot,
-                                  startParam: request.body.startParam,
-                              })
-                    );
-
-                    /** Destroy */
-                    await request.client.destroy();
+                    const result = await request.client.webview(request.body);
 
                     return { result };
                 }
