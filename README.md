@@ -45,6 +45,7 @@ nvm install --lts
 
 npm i -g npm
 npm i -g pnpm
+npm i -g pm2
 ```
 
 There are two methods of setup to follow, it's recommended to use the Nginx method:
@@ -347,7 +348,7 @@ cd ~/purrfect-cloud
 
 ##### Pull Changes and Update
 ```bash
-git pull && composer i && pnpm i && pnpm run build && php artisan migrate --seed --force
+git pull && composer i && pnpm i && pnpm run build && php artisan migrate --seed --force && pm2 reload ecosystem.config.cjs
 ```
 
 ### Cloud Telegram Session (Optional)
@@ -356,6 +357,31 @@ A telegram session will be used to refetch webAppData and prevent disconnections
 Entry | Description
 --- | ---
 `ENABLE_TELEGRAM_SESSIONS` | Telegram Sessions are Enabled
+`TELEGRAM_CLIENT` | Telegram Client to Use
+
+There are two modes for the Telegram Client
+- GramJS (Recommended)
+- MadelineProto
+
+##### GramJS (Recommended)
+When using GramJS, you need to set `TELEGRAM_CLIENT` in .env to `gramjs` and also update `GRAMJS_API_KEY`.
+
+
+You should set `GRAMJS_API_KEY` to any value you want, treat it like a secret used between the applications. 
+
+Entry | Value
+--- | ---
+`ENABLE_TELEGRAM_SESSIONS` | `true`
+`TELEGRAM_CLIENT` | `gramjs`
+`GRAMJS_API_KEY` | `your-custom-key`
+
+Restart the GramJS Server by running:
+```bash
+pm2 reload ecosystem.config.cjs
+```
+
+##### MadelineProto
+When using MadelineProto, you only need to set `TELEGRAM_CLIENT` in .env to `madelineproto`
 
 ### Proxy (Optional)
 To use proxy, you need to enable it in .env, obtain your API Key from WebShare and save it inside .env
