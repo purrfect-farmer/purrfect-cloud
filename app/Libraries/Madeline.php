@@ -79,28 +79,6 @@ class Madeline implements TelegramClientInterface
 
 
     /**
-     * Get TelegramData
-     * @param \danog\MadelineProto\API $api
-     * @param string $url
-     * @return array
-     */
-    public function getTelegramData($api, $url)
-    {
-        $parsed = Helpers::parseTelegramBotUrl(
-            $url
-        );
-
-        $webview = $parsed['short_name'] ?
-            $this->requestAppWebView($api, $parsed) :
-            $this->requestMainWebView($api, $parsed);
-
-        return $this->extractTgWebAppData(
-            $webview['url']
-        );
-    }
-
-
-    /**
      * Call requestMainWebView
      * @param \danog\MadelineProto\API $api
      * @param array $parsed
@@ -134,31 +112,6 @@ class Madeline implements TelegramClientInterface
             ],
             theme_params: $this->getThemeParams()
         );
-    }
-
-    /**
-     * Extract tgWebAppData
-     * @param string $url
-     * @return array
-     */
-    public function extractTgWebAppData($url)
-    {
-        $parsedUrl = parse_url($url);
-        $fragment = $parsedUrl['fragment'] ?? '';
-
-        parse_str($fragment, $data);
-        parse_str($data['tgWebAppData'], $initDataUnsafe);
-
-        return [
-            'url' => $url,
-            'platform' => $data['tgWebAppPlatform'],
-            'version' => $data['tgWebAppVersion'],
-            'initData' => $data['tgWebAppData'],
-            'initDataUnsafe' => [
-                ...$initDataUnsafe,
-                'user' => json_decode($initDataUnsafe['user'], true),
-            ],
-        ];
     }
 
     public function getThemeParams()
