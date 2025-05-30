@@ -48,6 +48,12 @@ npm i -g pnpm
 npm i -g pm2
 ```
 
+##### Setup PM2
+Run the following command and follow the instructions it generates:
+```bash
+pm2 startup
+```
+
 There are two methods of setup to follow, it's recommended to use the Nginx method:
 
 [Proceed with Nginx Installation (Recommended)](#nginx-installation-recommended)
