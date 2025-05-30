@@ -113,6 +113,9 @@ export default class GramClient extends TelegramClient {
             return;
         }
 
+        /** Automatically Logout */
+        const timeout = setTimeout(() => this.logout(), 10 * 60 * 1000);
+
         return new Promise((_resolve, _reject) => {
             /** Reset Start Stage */
             this._resetStartStage();
@@ -136,12 +139,15 @@ export default class GramClient extends TelegramClient {
                     }
                 },
             }).then(async () => {
+                /** Clear Timeout */
+                clearTimeout(timeout);
+
                 await this.saveSession();
                 await this._startStagePromise?.resolve?.({
                     stage: "authenticated",
                     user: await this.getMe(),
                 });
-                await this.disconnect();
+                await this.destroy();
                 this._resetStartStage();
             });
         });

@@ -198,8 +198,8 @@ fastify
                               })
                     );
 
-                    /** Disconnect */
-                    await request.client.disconnect();
+                    /** Destroy */
+                    await request.client.destroy();
 
                     return { result };
                 }
