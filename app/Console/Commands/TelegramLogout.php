@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Facades\Madeline;
+use App\Libraries\TelegramClient;
 use Illuminate\Console\Command;
 
 class TelegramLogout extends Command
@@ -26,7 +26,7 @@ class TelegramLogout extends Command
      */
     public function handle()
     {
-        $client = Madeline::session();
+        $client = TelegramClient::session();
         $client->logout();
     }
 }

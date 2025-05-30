@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Facades\Madeline;
 use App\Helpers;
+use App\Libraries\TelegramClient;
 use App\Models\Account;
-use App\Rules\ExistingMadelineSession;
+use App\Rules\ExistingTelegramSession;
 use App\Rules\ValidWebAppData;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -18,14 +18,14 @@ class TelegramController extends Controller
     {
         $validated = $request->validate(
             [
-                'session' => ['nullable', 'string', 'alpha_num:ascii', 'size:16', new ExistingMadelineSession],
+                'session' => ['nullable', 'string', 'alpha_num:ascii', 'size:16', new ExistingTelegramSession],
                 'phone' => ['required', 'string', new Phone()],
             ],
             ['phone' => 'Phone is Invalid']
         );
 
-        $session = $validated['session'] ?? Madeline::generateSession();
-        $api = Madeline::session(
+        $session = $validated['session'] ?? TelegramClient::generateSession();
+        $api = TelegramClient::session(
             $session
         );
 
@@ -41,11 +41,11 @@ class TelegramController extends Controller
     public function code(Request $request)
     {
         $validated = $request->validate([
-            'session' => ['required', 'string', 'alpha_num:ascii', 'size:16', new ExistingMadelineSession],
+            'session' => ['required', 'string', 'alpha_num:ascii', 'size:16', new ExistingTelegramSession],
             'code' => ['required', 'string'],
         ]);
 
-        $api = Madeline::session(
+        $api = TelegramClient::session(
             $validated['session']
         );
 
@@ -56,7 +56,7 @@ class TelegramController extends Controller
         if ($result['_'] === 'account.password') {
             return [
                 'status' => $result['_'],
-                'hint' => $result['hint'],
+                'hint' => $result['hint'] ?? '',
             ];
         } else {
             return $this->saveSession(
@@ -71,11 +71,11 @@ class TelegramController extends Controller
     public function password(Request $request)
     {
         $validated = $request->validate([
-            'session' => ['required', 'string', 'alpha_num:ascii', 'size:16', new ExistingMadelineSession],
+            'session' => ['required', 'string', 'alpha_num:ascii', 'size:16', new ExistingTelegramSession],
             'password' => ['required', 'string'],
         ]);
 
-        $api = Madeline::session(
+        $api = TelegramClient::session(
             $validated['session']
         );
         $result = $api->complete2faLogin(
@@ -96,7 +96,7 @@ class TelegramController extends Controller
 
         if ($account) {
             try {
-                Madeline::session($account->session_id)->logout();
+                TelegramClient::session($account->session_id)->logout();
             } catch (\Throwable $e) {
                 Log::error(
                     'TELEGRAM SESSION LOGOUT: ' . $e->getMessage(),
@@ -145,7 +145,7 @@ class TelegramController extends Controller
 
     /**
      * Save session
-     * @param \danog\MadelineProto\API $api
+     * @param TelegramClient $api
      * @param string $session
      * @param array $result
      * @return array
@@ -177,7 +177,7 @@ class TelegramController extends Controller
         /** Logout of Previous Session */
         if ($previousSessionId) {
             try {
-                Madeline::session($previousSessionId)->logout();
+                TelegramClient::session($previousSessionId)->logout();
             } catch (\Throwable $e) {
                 Log::error(
                     'TELEGRAM SESSION LOGOUT: ' . $e->getMessage(),

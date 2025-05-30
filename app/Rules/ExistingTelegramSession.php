@@ -2,11 +2,11 @@
 
 namespace App\Rules;
 
-use App\Facades\Madeline;
+use App\Libraries\TelegramClient;
 use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
 
-class ExistingMadelineSession implements ValidationRule
+class ExistingTelegramSession implements ValidationRule
 {
     /**
      * Run the validation rule.
@@ -15,7 +15,7 @@ class ExistingMadelineSession implements ValidationRule
      */
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        if (!Madeline::sessionExists($value)) {
+        if (!TelegramClient::sessionExists($value)) {
             $fail('Invalid Session');
         }
     }

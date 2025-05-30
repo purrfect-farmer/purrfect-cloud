@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Facades\Madeline;
+use App\Libraries\TelegramClient;
 use Illuminate\Console\Command;
 
 class TelegramListSessions extends Command
@@ -28,7 +28,7 @@ class TelegramListSessions extends Command
     {
         $this->table(
             ['Name'],
-            collect(Madeline::getSessions())
+            collect(TelegramClient::getSessions())
                 ->map(
                     fn($item) => [$item]
                 )

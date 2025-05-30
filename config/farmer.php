@@ -11,6 +11,8 @@ return [
         'FARMER_BOT_LINK',
         'https://t.me/purrfect_little_bot/app?startapp=purrfect'
     ),
+
+    'telegram_client' => env('TELEGRAM_CLIENT', 'madelineproto'),
     'telegram_public_key' => env(
         'TELEGRAM_PUBLIC_KEY',
         'e7bf03a2fa4602af4580703d88dda5bb59f32ed8b02a56c187fe7d34caed242d'

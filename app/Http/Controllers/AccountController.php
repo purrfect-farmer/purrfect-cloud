@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Facades\Madeline;
 use App\Helpers;
+use App\Libraries\TelegramClient;
 use App\Models\Account;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -44,7 +44,7 @@ class AccountController extends Controller
         /** Remove Session */
         if ($account->session_id) {
             try {
-                Madeline::session($account->session_id)->logout();
+                TelegramClient::session($account->session_id)->logout();
             } catch (\Throwable $e) {
             }
         }

@@ -2,7 +2,6 @@
 namespace App\Libraries;
 
 use App\Models\Account;
-use App\Facades\Madeline;
 use App\Models\Farmer;
 use Illuminate\Support\Facades\Log;
 
@@ -15,7 +14,7 @@ class WebAppUpdater
     public function process()
     {
         try {
-            $api = Madeline::session($this->account->session_id);
+            $api = TelegramClient::session($this->account->session_id);
             try {
                 /** Update Farmers */
                 $this->account->farmers->each(function (Farmer $farmer) use ($api) {
@@ -27,7 +26,7 @@ class WebAppUpdater
                     }
 
                     /** Get Web App Data */
-                    $data = Madeline::getTelegramData($api, $config['telegram_link']);
+                    $data = $api->getTelegramData($config['telegram_link']);
 
                     try {
                         /** Update TelegramWebApp */
@@ -48,8 +47,7 @@ class WebAppUpdater
                 });
 
                 /** Get User Details */
-                $data = Madeline::getTelegramData(
-                    $api,
+                $data = $api->getTelegramData(
                     config('farmer.farmer_bot_link')
                 );
 

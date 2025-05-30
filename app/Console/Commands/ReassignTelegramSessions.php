@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Facades\Madeline;
+use App\Libraries\TelegramClient;
 use App\Models\Account;
 use Illuminate\Console\Command;
 
@@ -27,8 +27,8 @@ class ReassignTelegramSessions extends Command
      */
     public function handle()
     {
-        foreach (Madeline::getSessions() as $session) {
-            $self = Madeline::session($session)->getSelf();
+        foreach (TelegramClient::getSessions() as $session) {
+            $self = TelegramClient::session($session)->getSelf();
 
             if ($self) {
                 Account::where('user_id', $self['id'])

@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Facades\Madeline;
+use App\Libraries\TelegramClient;
 use Illuminate\Console\Command;
 
 class TelegramGetMe extends Command
@@ -26,7 +26,7 @@ class TelegramGetMe extends Command
      */
     public function handle()
     {
-        $client = Madeline::session(
+        $client = TelegramClient::session(
             $this->argument('session') ?? 'default'
         );
 

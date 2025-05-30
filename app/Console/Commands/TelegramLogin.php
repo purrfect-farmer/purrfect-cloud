@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Facades\Madeline;
+use App\Libraries\TelegramClient;
 use Illuminate\Console\Command;
 
 class TelegramLogin extends Command
@@ -26,7 +26,14 @@ class TelegramLogin extends Command
      */
     public function handle()
     {
-        $client = Madeline::session();
-        $client->start();
+        $client = TelegramClient::session()->getClient();
+
+        if ($client instanceof \App\Libraries\Madeline) {
+            $api = $client->getApi();
+            $api->start();
+        } else {
+            $this->warn('GramJS can not be started from CLI');
+        }
+
     }
 }

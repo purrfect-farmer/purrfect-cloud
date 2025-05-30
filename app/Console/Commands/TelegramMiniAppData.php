@@ -2,8 +2,8 @@
 
 namespace App\Console\Commands;
 
-use App\Facades\Madeline;
 use App\Helpers;
+use App\Libraries\TelegramClient;
 use Illuminate\Console\Command;
 
 class TelegramMiniAppData extends Command
@@ -25,7 +25,7 @@ class TelegramMiniAppData extends Command
 
     /**
      * Telegram API Client
-     * @var \danog\MadelineProto\API
+     * @var TelegramClient
      */
     protected $api;
 
@@ -34,18 +34,16 @@ class TelegramMiniAppData extends Command
      */
     public function handle()
     {
-        $this->api = Madeline::session();
+        $this->api = TelegramClient::session();
 
         $parsed = Helpers::parseTelegramBotUrl(
-            'https://t.me/purrfect_little_bot/app?startapp=purrfect'
+            config('farmer.farmer_bot_link')
         );
 
-        $result = $parsed['short_name']  ?
-            Madeline::requestAppWebView($this->api, $parsed) :
-            Madeline::requestMainWebView($this->api, $parsed);
+        $result = $this->api->getWebview(config('farmer.farmer_bot_link'));
 
         dump($parsed);
         dump($result);
-        dump(Madeline::extractTgWebAppData($result['url']));
+        dump($this->api->extractTgWebAppData($result['url']));
     }
 }

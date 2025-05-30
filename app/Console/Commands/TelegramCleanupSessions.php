@@ -2,11 +2,10 @@
 
 namespace App\Console\Commands;
 
-use App\Facades\Madeline;
+use App\Libraries\TelegramClient;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 
-use function Laravel\Prompts\error;
 
 class TelegramCleanupSessions extends Command
 {
@@ -29,11 +28,11 @@ class TelegramCleanupSessions extends Command
      */
     public function handle()
     {
-        collect(Madeline::getSessions())
+        collect(TelegramClient::getSessions())
             ->each(
                 function ($session) {
                     try {
-                        $client = Madeline::session($session);
+                        $client = TelegramClient::session($session);
                         if (!$client->getSelf()) {
                             $client->logout();
                         }

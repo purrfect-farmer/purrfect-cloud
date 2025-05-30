@@ -16,11 +16,18 @@
     "dependencies": {
         "@fontsource/turret-road": "^5.2.5",
         "@tailwindcss/vite": "^4.1.5",
-        "tailwindcss": "^4.1.5"
+        "dotenv": "^16.5.0",
+        "fastify": "^5.3.3",
+        "globby": "^14.1.0",
+        "tailwindcss": "^4.1.5",
+        "telegram": "^2.26.22"
     },
     "pnpm": {
         "onlyBuiltDependencies": [
-            "esbuild"
+            "bufferutil",
+            "es5-ext",
+            "esbuild",
+            "utf-8-validate"
         ]
     }
 }

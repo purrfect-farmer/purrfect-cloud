@@ -2,8 +2,8 @@
 
 namespace App\Console\Commands;
 
-use App\Facades\Madeline;
 use App\Helpers;
+use App\Libraries\TelegramClient;
 use App\Models\Subscription;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
@@ -42,7 +42,7 @@ class ExpireSubscriptions extends Command
                 /** Logout the Telegram Session */
                 if ($account->session_id) {
                     try {
-                        Madeline::session($account->session_id)->logout();
+                        TelegramClient::session($account->session_id)->logout();
                     } catch (\Throwable $e) {
                         /** Log Error */
                         Log::error('Logout Telegram Session', [
