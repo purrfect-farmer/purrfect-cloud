@@ -15,7 +15,7 @@ fastify
             reply.code(401).send({ error: "Unauthorized" });
         }
     })
-    .get("/sessions", async () => {
+    .post("/sessions", async () => {
         return await GramClient.getSessions();
     })
     .post(
