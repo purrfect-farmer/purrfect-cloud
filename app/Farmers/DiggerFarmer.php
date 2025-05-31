@@ -136,7 +136,7 @@ class DiggerFarmer extends BaseFarmer
             /** Viewable Chests */
             $viewableChests = $chestStatus->filter(
                 fn($item) => (
-                    isset(static::CHEST_TYPES[$chest['chest_id']]) &&
+                    isset(static::CHEST_TYPES[$item['chest_id']]) &&
                     $item['remaining_cooldown_sec'] === 0 &&
                     $item['ads_watched'] < $item['ads_required']
                 )
