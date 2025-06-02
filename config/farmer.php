@@ -3,6 +3,10 @@
 return [
     'enable_telegram_sessions' => env('ENABLE_TELEGRAM_SESSIONS', true),
 
+    'farmer_channel_link' => env(
+        'FARMER_CHANNEL_LINK',
+        'https://t.me/purrfect_community'
+    ),
     'farmer_bot_id' => env(
         'FARMER_BOT_ID',
         '7592929753'

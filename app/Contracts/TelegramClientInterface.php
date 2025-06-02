@@ -10,5 +10,6 @@ interface TelegramClientInterface
 
     public function getSelf();
     public function getWebview(string $url);
+    public function joinTelegramLink(string $url);
     public static function getSessions();
 }

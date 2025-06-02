@@ -169,6 +169,30 @@ fastify
                 }
             )
 
+            .post(
+                "/join",
+                {
+                    schema: {
+                        body: {
+                            type: "object",
+                            required: ["entity"],
+                            properties: {
+                                entity: { type: "string" },
+                            },
+                        },
+                    },
+                },
+
+                async function (request) {
+                    /** Join Telegram Link */
+                    const result = await request.client.joinTelegramLink(
+                        request.body
+                    );
+
+                    return { result };
+                }
+            )
+
             .post("/logout", async function (request) {
                 /** Logout */
                 await request.client.logout();

@@ -42,6 +42,11 @@ class TelegramClient
         return $this->client->getWebview($url);
     }
 
+    public function joinTelegramLink(string $url)
+    {
+        return $this->client->joinTelegramLink($url);
+    }
+
     public static function session($sessionName = 'default')
     {
         return new static(

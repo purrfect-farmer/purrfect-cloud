@@ -88,6 +88,17 @@ class GramJS implements TelegramClientInterface
         ])->json('result');
     }
 
+    public function joinTelegramLink(string $url)
+    {
+        $path = parse_url($url, PHP_URL_PATH);
+        $entries = explode("/", trim($path, "/"));
+
+        return static::getHttpApi()->post('join', [
+            'session' => $this->session,
+            'entity' => $entries[0] ?? '',
+        ])->json('result');
+    }
+
     public static function session(string $session)
     {
         return new static($session);

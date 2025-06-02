@@ -212,6 +212,30 @@ export default class GramClient extends TelegramClient {
         );
     }
 
+    /** Join Telegram Link */
+    async joinTelegramLink(options) {
+        try {
+            await this.invoke(
+                options.entity.startsWith("+")
+                    ? new Api.messages.ImportChatInvite({
+                          hash: options.entity.replace("+", ""),
+                      })
+                    : new Api.channels.JoinChannel({
+                          channel: options.entity,
+                      })
+            );
+
+            return true;
+        } catch (error) {
+            if (
+                error.message.includes("USER_ALREADY_PARTICIPANT") === false &&
+                error.message.includes("INVITE_REQUEST_SENT") === false
+            ) {
+                return false;
+            }
+        }
+    }
+
     /** Logout */
     async logout() {
         try {
