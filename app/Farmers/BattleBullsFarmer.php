@@ -1,6 +1,7 @@
 <?php
 namespace App\Farmers;
 
+use App\Helpers;
 use Illuminate\Support\Carbon;
 
 class BattleBullsFarmer extends BaseFarmer
@@ -68,6 +69,7 @@ class BattleBullsFarmer extends BaseFarmer
             $availableTasks = $tasks->filter(
                 fn($item) =>
                 "streak_days" !== $item['id'] &&
+                $this->validateTelegramTask($item) &&
                 $this->validateFriends($item) &&
                 $this->validateBlockchain($item, $user)
             );
@@ -165,5 +167,10 @@ class BattleBullsFarmer extends BaseFarmer
             now()->isAfter(
                 Carbon::createFromTimestampMs($card['boughtAt'] + $card['rechargingDuration'])
             );
+    }
+
+    protected function validateTelegramTask($item)
+    {
+        return !isset($item['link']) || !Helpers::isTelegramLink($item['link']);
     }
 }
