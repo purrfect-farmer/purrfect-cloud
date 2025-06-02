@@ -1,6 +1,7 @@
 <?php
 namespace App\Farmers;
 
+use App\Libraries\TelegramClient;
 use App\Models\Farmer;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -40,6 +41,31 @@ abstract class BaseFarmer
         if ($this->farmer->isDirty()) {
             $this->farmer->save();
         }
+    }
+
+
+    /** Check if a value is a Telegram Link */
+    protected function isTelegramLink($url)
+    {
+        return $url && preg_match(
+            '/^(http|https):\/\/t\.me\/.+/',
+            $url
+        );
+    }
+
+    /** Check if can Join Telegram Link */
+    protected function canJoinTelegramLink($url)
+    {
+        return $url &&
+            preg_match('/^(http|https):\/\/t\.me\/[^\/\?]+$/i', $url) &&
+            isset($this->farmer->account->session_id);
+    }
+
+    /** Join Telegram Link */
+    protected function joinTelegramLink($url)
+    {
+        return TelegramClient::session($this->farmer->account->session_id)
+            ->joinTelegramLink($url);
     }
 
     /** Get Base Headers */
@@ -203,6 +229,7 @@ abstract class BaseFarmer
         }
 
     }
+
 
     /**
      * Process Farmer
