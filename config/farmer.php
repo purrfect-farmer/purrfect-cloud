@@ -56,6 +56,13 @@ return [
             'thread_id' => env('FARMER_DIGGER_THREAD_ID', ''),
             'telegram_link' => 'https://t.me/diggerton_bot/dig?startapp=bro1147265290'
         ],
+        'frogster' => [
+            'title' => '🐸 Frogster',
+            'enabled' => env('FARMER_FROGSTER_ENABLED', true),
+            'thread_id' => env('FARMER_FROGSTER_THREAD_ID', ''),
+            'telegram_link' => 'https://t.me/FrogstersBot?startapp=775f1cc48a46ce',
+            'interval' => 'hourly'
+        ],
         'meta-lott' => [
             'title' => '🕹️ Meta Lott Farmer',
             'enabled' => env('FARMER_META_LOTT_ENABLED', true),
