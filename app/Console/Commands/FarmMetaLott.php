@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Console\Commands\Traits\FarmerTrait;
-use App\Farmers\SpaceAdventureFarmer;
+use App\Farmers\MetaLottFarmer;
 use Illuminate\Console\Command;
 
 class FarmMetaLott extends Command
@@ -31,7 +31,7 @@ class FarmMetaLott extends Command
     {
         $this->farm(function () {
             /** Process Farmers */
-            $this->getFarmers()->mapConcurrently(fn($farmer) => SpaceAdventureFarmer::farm($farmer));
+            $this->getFarmers()->mapConcurrently(fn($farmer) => MetaLottFarmer::farm($farmer));
         });
     }
 }
