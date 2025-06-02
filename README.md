@@ -53,12 +53,15 @@ npm i -g pnpm
 npm i -g pm2
 ```
 
-##### Setup PM2
+##### Setup PM2 (Required)
 Run the following command and follow the instructions it generates:
 ```bash
 pm2 startup
 ```
 
+<p style="color:orange; font-weight:bold">PM2 will generate a command for you to copy and run, ensure to run the command!!!</p>
+
+### Setup Mode
 There are two methods of setup to follow, it's recommended to use the Nginx method:
 
 [Proceed with Nginx Installation (Recommended)](#nginx-installation-recommended)
@@ -66,7 +69,7 @@ There are two methods of setup to follow, it's recommended to use the Nginx meth
 [Proceed with Regular Setup](#regular-setup)
 
 
-### Nginx Installation (Recommended)
+#### Nginx Installation (Recommended)
 
 To setup Purrfect Cloud with Nginx, you will need to run the following commands.
 
@@ -104,7 +107,7 @@ cd /var/www
 [Nginx - Proceed with Installation](#installation)
 
 
-### Regular Setup
+#### Regular Setup
 
 Use this method for setting up Purrfect Cloud in a different directory.
 
@@ -172,14 +175,14 @@ chmod 664 database/database.sqlite
 
 
 ##### Extracting Group ID and Topic ID
-Before proceeding, obtain your Telegram Group ID and Topic ID by sending a message to a topic in your group and copy the message link.
+Before proceeding, obtain your Telegram `Group ID` and `Topic ID` by sending a message to a topic in your group and copy the message link.
 
-Then you can extract the Group ID and Topic ID from the link:
+Then you can extract the `Group ID` and `Topic ID` from the link:
 `https://t.me/c/{group_id}/{topic_id}/{message_id}`
 
 An example: `https://t.me/c/2322054671/10837/34926`
 
-The Group ID is always the same but the Topic ID changes.
+The `Group ID` is always the same but the `Topic ID` changes.
 
 ##### Update .env
 
@@ -367,7 +370,7 @@ php artisan migrate --seed --force && \
 pm2 reload ecosystem.config.cjs
 ```
 
-### Cloud Telegram Session (Optional)
+### Cloud Telegram Session
 A telegram session will be used to refetch webAppData and prevent disconnections. Enable Telegram Sessions inside `.env`
 
 Entry | Description
@@ -390,8 +393,15 @@ Restart the GramJS Server by running:
 pm2 reload ecosystem.config.cjs
 ```
 
+### Concurrency
+By default farmers run sequentially, if you want them to run at the same time (e.g you have enough memory), simply set `FARMER_RUN_IN_BACKGROUND` to `true` inside `.env` file.
+
+Entry | Value
+--- | ---
+`FARMER_RUN_IN_BACKGROUND` | `true`
+
 ### Proxy (Optional)
-To use proxy, you need to enable it in .env, obtain your API Key from WebShare and save it inside .env
+To use proxy, you need to enable it in .env, obtain your API Key from WebShare and save it inside `.env`
 
 Entry | Description
 --- | ---
@@ -399,7 +409,7 @@ Entry | Description
 `FARMER_PROXY_API_KEY` | WebShare Proxy API Key
 
 ### Payments (Optional)
-Payments work with Flutterwave, enable payments in .env, get your Flutterwave public and secret key then save it inside .env
+Payments work with Flutterwave, enable payments in .env, get your Flutterwave public and secret key then save it inside `.env`
 
 Entry | Description
 --- | ---
