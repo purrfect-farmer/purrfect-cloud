@@ -229,7 +229,7 @@ class DiggerFarmer extends BaseFarmer
             ->json('result.uid');
 
         /** Sleep */
-        Sleep::for(10)->seconds();
+        Sleep::for(30)->seconds();
 
         /** Claim Reward */
         $this->getApi()
