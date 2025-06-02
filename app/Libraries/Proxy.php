@@ -120,8 +120,8 @@ class Proxy
 
             try {
                 Http::throw()
-                    ->timeout(3)
-                    ->connectTimeout(3)
+                    ->timeout(5)
+                    ->connectTimeout(5)
                     ->withOptions(['proxy' => 'http://' . $proxy])
                     ->head('https://www.google.com');
             } catch (\Throwable $e) {
