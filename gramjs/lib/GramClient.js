@@ -224,16 +224,16 @@ export default class GramClient extends TelegramClient {
                           channel: options.entity,
                       })
             );
-
-            return true;
         } catch (error) {
             if (
-                error.message.includes("USER_ALREADY_PARTICIPANT") === false &&
-                error.message.includes("INVITE_REQUEST_SENT") === false
+                !error.message.includes("USER_ALREADY_PARTICIPANT") &&
+                !error.message.includes("INVITE_REQUEST_SENT")
             ) {
                 return false;
             }
         }
+
+        return true;
     }
 
     /** Logout */
