@@ -57,7 +57,7 @@ return [
             'telegram_link' => 'https://t.me/diggerton_bot/dig?startapp=bro1147265290'
         ],
         'meta-lott' => [
-            'title' => '✴️ Meta Lott Farmer',
+            'title' => '🕹️ Meta Lott Farmer',
             'enabled' => env('FARMER_META_LOTT_ENABLED', true),
             'thread_id' => env('FARMER_META_LOTT_THREAD_ID', ''),
             'telegram_link' => 'https://t.me/meta_lott_bot?start=51835690',
