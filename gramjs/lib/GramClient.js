@@ -105,6 +105,14 @@ export default class GramClient extends TelegramClient {
         this._destroyTimeout = setTimeout(() => this.destroy(), 1 * 60 * 1000);
     }
 
+    /** Execute on Client */
+    _execute(callback) {
+        /** Reset Destroy Timeout */
+        this._resetDestroyTimeout();
+
+        return callback();
+    }
+
     /** Start Response */
     async startResponse(stage, response) {
         if (this._startStage !== stage) {
@@ -151,7 +159,7 @@ export default class GramClient extends TelegramClient {
                 /** Clear Timeout */
                 clearTimeout(timeout);
 
-                await this.saveSession();
+                await this._saveSession();
                 await this._startStagePromise?.resolve?.({
                     stage: "authenticated",
                     user: await this.getMe(),
@@ -163,77 +171,80 @@ export default class GramClient extends TelegramClient {
     }
 
     /** Get Self */
-    async getSelf() {
-        try {
-            return await this.getMe();
-        } catch (e) {
-            console.error(e);
-            return null;
-        }
+    getSelf() {
+        return this._execute(async () => {
+            try {
+                return await this.getMe();
+            } catch (e) {
+                console.error(e);
+                return null;
+            }
+        });
     }
 
     /** Get Webview */
-    async webview(options) {
-        /** Reset Destroy Timeout */
-        this._resetDestroyTimeout();
+    webview(options) {
+        return this._execute(async () => {
+            /** Theme Params */
+            const themeParams = new Api.DataJSON({
+                data: JSON.stringify({
+                    bg_color: "#ffffff",
+                    text_color: "#000000",
+                    hint_color: "#aaaaaa",
+                    link_color: "#006aff",
+                    button_color: "#2cab37",
+                    button_text_color: "#ffffff",
+                }),
+            });
 
-        /** Theme Params */
-        const themeParams = new Api.DataJSON({
-            data: JSON.stringify({
-                bg_color: "#ffffff",
-                text_color: "#000000",
-                hint_color: "#aaaaaa",
-                link_color: "#006aff",
-                button_color: "#2cab37",
-                button_text_color: "#ffffff",
-            }),
+            /** Get WebView */
+            return await this.invoke(
+                options.shortName
+                    ? new Api.messages.RequestAppWebView({
+                          themeParams,
+                          platform: "android",
+                          peer: options.bot,
+                          startParam: options.startParam,
+                          app: new Api.InputBotAppShortName({
+                              botId: await this.getInputEntity(options.bot),
+                              shortName: options.shortName,
+                          }),
+                      })
+                    : new Api.messages.RequestMainWebView({
+                          themeParams,
+                          platform: "android",
+                          bot: options.bot,
+                          peer: options.bot,
+                          startParam: options.startParam,
+                      })
+            );
         });
-
-        /** Get WebView */
-        return await this.invoke(
-            options.shortName
-                ? new Api.messages.RequestAppWebView({
-                      themeParams,
-                      platform: "android",
-                      peer: options.bot,
-                      startParam: options.startParam,
-                      app: new Api.InputBotAppShortName({
-                          botId: await this.getInputEntity(options.bot),
-                          shortName: options.shortName,
-                      }),
-                  })
-                : new Api.messages.RequestMainWebView({
-                      themeParams,
-                      platform: "android",
-                      bot: options.bot,
-                      peer: options.bot,
-                      startParam: options.startParam,
-                  })
-        );
     }
 
     /** Join Telegram Link */
-    async joinTelegramLink(options) {
-        try {
-            await this.invoke(
-                options.entity.startsWith("+")
-                    ? new Api.messages.ImportChatInvite({
-                          hash: options.entity.replace("+", ""),
-                      })
-                    : new Api.channels.JoinChannel({
-                          channel: options.entity,
-                      })
-            );
-        } catch (error) {
-            if (
-                !error.message.includes("USER_ALREADY_PARTICIPANT") &&
-                !error.message.includes("INVITE_REQUEST_SENT")
-            ) {
-                return false;
+    joinTelegramLink(options) {
+        return this._execute(async () => {
+            try {
+                await this.invoke(
+                    options.entity.startsWith("+")
+                        ? new Api.messages.ImportChatInvite({
+                              hash: options.entity.replace("+", ""),
+                          })
+                        : new Api.channels.JoinChannel({
+                              channel: options.entity,
+                          })
+                );
+            } catch (error) {
+                if (
+                    !error.message.includes("USER_ALREADY_PARTICIPANT") &&
+                    !error.message.includes("INVITE_REQUEST_SENT")
+                ) {
+                    return false;
+                }
             }
-        }
 
-        return true;
+            return true;
+        });
     }
 
     /** Logout */
@@ -257,7 +268,7 @@ export default class GramClient extends TelegramClient {
             this._startStagePromise?.reject?.(new Error("Logged Out!"));
 
             /** Delete Session */
-            await this.deleteSession();
+            await this._deleteSession();
 
             /** Remove Instance */
             await GramClient.delete(this._name);
@@ -265,7 +276,7 @@ export default class GramClient extends TelegramClient {
     }
 
     /** Save Session */
-    async saveSession() {
+    async _saveSession() {
         /** Write to File */
         await fs.writeFile(
             this._sessionFilePath,
@@ -277,7 +288,7 @@ export default class GramClient extends TelegramClient {
     }
 
     /** Delete Session */
-    async deleteSession() {
+    async _deleteSession() {
         /** Delete File */
         if (this._sessionFileExists) {
             await fs.unlink(this._sessionFilePath);
@@ -317,6 +328,7 @@ export default class GramClient extends TelegramClient {
             .get(name);
     }
 
+    /** Get Sessions */
     static async getSessions() {
         const entries = await globby([
             path.join(GramClient.getStoragePath(), "*.json"),
@@ -329,12 +341,14 @@ export default class GramClient extends TelegramClient {
         return sessions;
     }
 
+    /** Check if session exists */
     static async sessionExists(name) {
         return (
             GramClient.instances.has(name) || GramClient.sessionFileExists(name)
         );
     }
 
+    /** Check if session file exists */
     static async sessionFileExists(name) {
         return await fs
             .access(GramClient.getSessionPath(name))
@@ -342,10 +356,12 @@ export default class GramClient extends TelegramClient {
             .catch(() => false);
     }
 
+    /** Get session file path */
     static getSessionPath(name) {
         return path.join(GramClient.getStoragePath(), `session_${name}.json`);
     }
 
+    /** Get storage directory for all sessions */
     static getStoragePath() {
         return path.resolve(__dirname, "../sessions");
     }
