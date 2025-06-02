@@ -100,7 +100,8 @@ return [
             'title' => '🚀 Space Adventure Farmer',
             'enabled' => env('FARMER_SPACE_ADVENTURE_ENABLED', true),
             'thread_id' => env('FARMER_SPACE_ADVENTURE_THREAD_ID', ''),
-            'telegram_link' => 'https://t.me/spaceadv_game_bot/play?startapp=1147265290'
+            'telegram_link' => 'https://t.me/spaceadv_game_bot/play?startapp=1147265290',
+            'interval' => 'everyFourMinutes'
         ],
         'wonton' => [
             'title' => '👨‍🍳 Wonton Farmer',
