@@ -61,6 +61,7 @@ return [
             'enabled' => env('FARMER_META_LOTT_ENABLED', true),
             'thread_id' => env('FARMER_META_LOTT_THREAD_ID', ''),
             'telegram_link' => 'https://t.me/meta_lott_bot?start=51835690',
+            'interval' => 'hourly'
         ],
         'battle-bulls' => [
             'title' => '🐂 Battle Bulls Farmer',
