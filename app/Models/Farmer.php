@@ -163,6 +163,16 @@ class Farmer extends Model
         return $this;
     }
 
+    /**
+     * Set Headers
+     */
+    public function setHeaders(array $headers = [])
+    {
+        $this->headers = array_merge($this->headers ?? [], $headers);
+
+        return $this;
+    }
+
     /** Account */
     public function account()
     {
