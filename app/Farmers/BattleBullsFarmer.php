@@ -69,7 +69,7 @@ class BattleBullsFarmer extends BaseFarmer
             $availableTasks = $tasks->filter(
                 fn($item) =>
                 "streak_days" !== $item['id'] &&
-                $this->validateTelegramTask($item) &&
+                $this->validateTelegramTask($item['link'] ?? null) &&
                 $this->validateFriends($item) &&
                 $this->validateBlockchain($item, $user)
             );
@@ -80,8 +80,12 @@ class BattleBullsFarmer extends BaseFarmer
             $uncompletedTasks = $availableTasks->filter(fn($item) => !$item["completedAt"]);
 
             if ($uncompletedTasks->isNotEmpty()) {
+                $task = $uncompletedTasks->random();
+
+                $this->tryToJoinTelegramLink($task['link'] ?? null);
+
                 $this->getApi()->post(
-                    'https://api.battle-games.com:8443/api/api/v1/tasks/' . $uncompletedTasks->random()['id'] . '/complete'
+                    'https://api.battle-games.com:8443/api/api/v1/tasks/' . $task['id'] . '/complete'
                 );
             }
 
@@ -167,10 +171,5 @@ class BattleBullsFarmer extends BaseFarmer
             now()->isAfter(
                 Carbon::createFromTimestampMs($card['boughtAt'] + $card['rechargingDuration'])
             );
-    }
-
-    protected function validateTelegramTask($item)
-    {
-        return !isset($item['link']) || !Helpers::isTelegramLink($item['link']);
     }
 }

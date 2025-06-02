@@ -68,6 +68,22 @@ abstract class BaseFarmer
             ->joinTelegramLink($url);
     }
 
+    /** Try to Join Telegram Link */
+    protected function tryToJoinTelegramLink($link)
+    {
+        if ($this->canJoinTelegramLink($link)) {
+            $this->joinTelegramLink($link);
+        }
+    }
+
+    /** Validate Telegram Task
+     * Return true if it's not a valid link or it can join it
+     */
+    protected function validateTelegramTask($link)
+    {
+        return !$this->isTelegramLink($link) || $this->canJoinTelegramLink($link);
+    }
+
     /** Get Base Headers */
     protected function getBaseHeaders()
     {
