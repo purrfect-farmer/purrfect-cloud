@@ -59,7 +59,7 @@ Run the following command and follow the instructions it generates:
 pm2 startup
 ```
 
-<p style="color:orange; font-weight:bold">PM2 will generate a command for you to copy and run, ensure to run the command!!!</p>
+**PM2 will generate a command for you to copy and run, ensure to run the command!!!**
 
 ### Setup Mode
 There are two methods of setup to follow, it's recommended to use the Nginx method:
