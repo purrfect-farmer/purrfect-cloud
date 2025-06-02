@@ -13,12 +13,6 @@ return [
     ),
 
     /**
-     * Telegram Client to Use
-     * Set to either 'gramjs' or 'madelineproto'
-     */
-    'telegram_client' => env('TELEGRAM_CLIENT', 'gramjs'),
-
-    /**
      * Telegram Public Key
      */
     'telegram_public_key' => env(

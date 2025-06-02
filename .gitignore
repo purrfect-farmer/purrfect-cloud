@@ -16,9 +16,11 @@ Homestead.yaml
 auth.json
 npm-debug.log
 yarn-error.log
-MadelineProto.log
 /.fleet
 /.idea
 /.nova
 /.vscode
 /.zed
+
+# Previous MadelineProto file
+MadelineProto.log

@@ -1,3 +1,5 @@
 *
-!madeline/
 !.gitignore
+
+# Previous MadelineProto path
+!madeline/

@@ -16,23 +16,28 @@ sudo apt-get update
 sudo apt-get install software-properties-common -y
 sudo LC_ALL=C.UTF-8 add-apt-repository -y ppa:ondrej/php
 sudo apt-get update
-sudo apt-get install php8.3 php8.3-dev php8.3-xml php8.3-zip php8.3-gmp php8.3-cli php8.3-mbstring php8.3-ffi php8.3-iconv php8.3-sqlite3 php8.3-curl php8.3-intl php8.3-mysql php-pear libuv1-dev nghttp2 composer micro -y
-sudo pecl install uv-beta
-echo extension=uv.so | sudo tee $(php --ini | sed '/additional .ini/!d;s/.*: //g')/uv.ini
-echo ffi.enable=1 | sudo tee $(php --ini | sed '/additional .ini/!d;s/.*: //g')/ffi.ini
+sudo apt-get install \
+php8.3 \
+php8.3-cli \
+php8.3-xml \
+php8.3-zip \
+php8.3-gmp \
+php8.3-mbstring \
+php8.3-sqlite3 \
+php8.3-curl \
+php8.3-intl \
+php8.3-mysql \
+php8.3-bcmath \
+unzip \
+micro \
+-y
+```
 
-echo 262144 | sudo tee /proc/sys/vm/max_map_count
-echo vm.max_map_count=262144 | sudo tee /etc/sysctl.d/40-madelineproto.conf
-
-sudo mkdir -p /etc/security/limits.d/
-
-echo '* soft nofile 1048576' | sudo tee -a /etc/security/limits.d/40-madelineproto.conf
-echo '* hard nofile 1048576' | sudo tee -a /etc/security/limits.d/40-madelineproto.conf
-
-cd /tmp
-sudo apt-get install build-essential
-git clone https://github.com/danog/PrimeModule-ext
-cd PrimeModule-ext && make -j$(nproc) && sudo make install
+##### Setup Composer
+```bash
+curl -sS https://getcomposer.org/installer | php
+sudo mv composer.phar /usr/local/bin/composer
+composer --version
 ```
 
 ##### Setup Node.js
@@ -73,7 +78,7 @@ sudo apt autoremove -y
 
 ##### Install Nginx
 ```bash
-sudo apt update && sudo apt install nginx php8.3-fpm php8.3-cli php8.3-mysql php8.3-curl php8.3-mbstring php8.3-xml php8.3-zip php8.3-bcmath -y
+sudo apt update && sudo apt install nginx php8.3-fpm -y
 ```
 
 ##### Add User to www-data group
@@ -363,36 +368,27 @@ pm2 reload ecosystem.config.cjs
 ```
 
 ### Cloud Telegram Session (Optional)
-A telegram session will be used to refetch webAppData and prevent disconnections. Enable Telegram Sessions inside .env
+A telegram session will be used to refetch webAppData and prevent disconnections. Enable Telegram Sessions inside `.env`
 
 Entry | Description
 --- | ---
 `ENABLE_TELEGRAM_SESSIONS` | Telegram Sessions are Enabled
-`TELEGRAM_CLIENT` | Telegram Client to Use
 
-There are two modes for the Telegram Client
-- GramJS (Recommended)
-- MadelineProto
 
-##### GramJS (Recommended)
-When using GramJS, you need to set `TELEGRAM_CLIENT` in .env to `gramjs` and also update `GRAMJS_API_KEY`.
-
+##### GramJS 
+The application uses GramJS for managing Cloud Telegram Sessions, you need to  update `GRAMJS_API_KEY` inside the `.env` file.
 
 You should set `GRAMJS_API_KEY` to any value you want, treat it like a secret used between the applications. 
 
 Entry | Value
 --- | ---
 `ENABLE_TELEGRAM_SESSIONS` | `true`
-`TELEGRAM_CLIENT` | `gramjs`
 `GRAMJS_API_KEY` | `your-custom-key`
 
 Restart the GramJS Server by running:
 ```bash
 pm2 reload ecosystem.config.cjs
 ```
-
-##### MadelineProto
-When using MadelineProto, you only need to set `TELEGRAM_CLIENT` in .env to `madelineproto`
 
 ### Proxy (Optional)
 To use proxy, you need to enable it in .env, obtain your API Key from WebShare and save it inside .env

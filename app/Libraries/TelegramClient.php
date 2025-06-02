@@ -45,18 +45,18 @@ class TelegramClient
     public static function session($sessionName = 'default')
     {
         return new static(
-            config('farmer.telegram_client') === 'gramjs' ? new GramJS($sessionName) : new Madeline($sessionName)
+            new GramJS($sessionName)
         );
     }
 
     public static function getSessions()
     {
-        return config('farmer.telegram_client') === 'gramjs' ? GramJS::getSessions() : Madeline::getSessions();
+        return GramJS::getSessions();
     }
 
     public static function sessionExists(string $session)
     {
-        return config('farmer.telegram_client') === 'gramjs' ? GramJS::sessionExists($session) : Madeline::sessionExists($session);
+        return GramJS::sessionExists($session);
     }
 
     public function getClient()
