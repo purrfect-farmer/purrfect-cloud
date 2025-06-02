@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'enable_telegram_sessions' => env('ENABLE_TELEGRAM_SESSIONS', false),
+    'enable_telegram_sessions' => env('ENABLE_TELEGRAM_SESSIONS', true),
 
     'farmer_bot_id' => env(
         'FARMER_BOT_ID',
@@ -39,10 +39,10 @@ return [
     'subscription_amount' => env('FARMER_SUBSCRIPTION_AMOUNT', 1550),
 
     'concurrency_enabled' => env('FARMER_CONCURRENCY_ENABLED', true),
-    'concurrency_chunk' => env('FARMER_CONCURRENCY_CHUNK', false),
+    'concurrency_chunk' => env('FARMER_CONCURRENCY_CHUNK', true),
     'concurrency_size' => env('FARMER_CONCURRENCY_SIZE', 100),
-    'run_in_background' => env('FARMER_RUN_IN_BACKGROUND', true),
     'update_webapp_data' => env('FARMER_UPDATE_WEBAPP_DATA', true),
+    'run_in_background' => env('FARMER_RUN_IN_BACKGROUND', false),
 
     'proxy' => [
         'enabled' => env('FARMER_PROXY_ENABLED', false),
