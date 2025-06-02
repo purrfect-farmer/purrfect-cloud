@@ -148,27 +148,29 @@ class DiggerFarmer extends BaseFarmer
 
                 /** Loop */
                 for ($i = $chest['ads_watched']; $i < $chest['ads_required']; $i++) {
+                    $this->watchAd(static::CHEST_TYPES[$chest['chest_id']] ?? null);
+                }
+            }
 
-                    /** Get Reward */
-                    $reward = $this->getApi()
-                        ->post('https://api.diggergame.app/api/content/intent', [
-                            'platform' => '2',
-                            'type' => static::CHEST_TYPES[$chest['chest_id']] ?? null,
-                        ])
-                        ->json('result.uid');
+            /** Spin */
+            $cooldown = $this->getApi()
+                ->get('https://api.diggergame.app/api/wheel/remainingColdDown')
+                ->json('result');
 
-                    /** Sleep */
-                    Sleep::for(10)->seconds();
+            /** Spin Wheel */
+            for ($i = 0; $i < $cooldown['ticket_count']; $i++) {
+                $result = $this->getApi()->get('https://api.diggergame.app/api/wheel/getWinItem')->json('result');
+            }
 
-                    /** Claim Reward */
-                    $this->getApi()
-                        ->post(
-                            'https://api.diggergame.app/api/content/update',
-                            [
-                                'status' => 'reward',
-                                'uid' => $reward,
-                            ]
-                        );
+            /** Watch ticket ADs */
+            $currentTicketCount = $this->getApi()
+                ->get('https://api.diggergame.app/api/wheel/currentTicketCount')
+                ->json('result');
+
+
+            if ($currentTicketCount['possible']) {
+                for ($i = $currentTicketCount['count_AD']; $i < 5; $i++) {
+                    $this->watchAd('ticket');
                 }
             }
 
@@ -214,5 +216,29 @@ class DiggerFarmer extends BaseFarmer
             /** Refetch Auth or Disconnect Farmer */
             $this->refetchAuthOrDisconnect();
         }
+    }
+
+    protected function watchAd($type)
+    {
+        /** Get Reward */
+        $reward = $this->getApi()
+            ->post('https://api.diggergame.app/api/content/intent', [
+                'platform' => '2',
+                'type' => $type,
+            ])
+            ->json('result.uid');
+
+        /** Sleep */
+        Sleep::for(10)->seconds();
+
+        /** Claim Reward */
+        $this->getApi()
+            ->post(
+                'https://api.diggergame.app/api/content/update',
+                [
+                    'status' => 'reward',
+                    'uid' => $reward,
+                ]
+            );
     }
 }
