@@ -9,7 +9,7 @@ class WontonFarmer extends BaseFarmer
 
     protected $key = 'wonton';
     protected $origin = 'https://www.wonton.restaurant';
-    protected $delay = 3;
+    protected $delay = 5;
     protected $shouldSetAuth = true;
 
     protected function setAuth()
