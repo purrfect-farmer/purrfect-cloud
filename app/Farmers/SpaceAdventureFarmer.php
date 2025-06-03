@@ -11,7 +11,7 @@ use Psr\Http\Message\RequestInterface;
 class SpaceAdventureFarmer extends BaseFarmer
 {
 
-    protected $key = 'digger';
+    protected $key = 'space-adventure';
     protected $origin = 'https://space-adventure.online';
 
     protected function setAuth()
@@ -230,6 +230,7 @@ class SpaceAdventureFarmer extends BaseFarmer
     protected function getStatus($user)
     {
         $localeTime = $this->createDate($user["locale_time"]);
+
         $timePassed = $this->createDate($user["claimed_last"])->diffInSeconds(
             $this->createDate(
                 $user["shield_ended_at"]
