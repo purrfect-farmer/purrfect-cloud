@@ -7,6 +7,7 @@ class FrogsterFarmer extends BaseFarmer
 
     protected $key = 'frogster';
     protected $origin = 'https://frogster.app';
+    protected $shouldSetAuth = true;
 
     protected function setAuth()
     {
