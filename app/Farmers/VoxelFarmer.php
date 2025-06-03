@@ -80,7 +80,7 @@ class VoxelFarmer extends BaseFarmer
 
     public function validateGroup($item)
     {
-        return in_array($item['Group'], ["socials", "partners"]);
+        return in_array($item['Group'], ["friends", "socials", "partners"]);
     }
 
     public function validateReferrals($user, $item)
