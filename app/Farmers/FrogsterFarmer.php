@@ -1,6 +1,8 @@
 <?php
 namespace App\Farmers;
 
+use Illuminate\Support\Carbon;
+
 
 class FrogsterFarmer extends BaseFarmer
 {
@@ -63,7 +65,15 @@ class FrogsterFarmer extends BaseFarmer
 
 
             /** Claim */
-            $this->getApi()->post('https://frogster.app/api/wallets/claim-ton-new?claim_plan_type=1');
+            $balance = $this->getApi()->get('https://frogster.app/api/wallets/balance');
+            $anHourAgo = now()->subHour();
+            $lastClaimDate = new Carbon($balance["last_claimed_at"] . "Z");
+
+            if ($lastClaimDate->lessThan($anHourAgo)) {
+                $this->getApi()->post(
+                    'https://frogster.app/api/wallets/claim-ton-new?claim_plan_type=1'
+                );
+            }
 
 
         } catch (\Throwable $e) {
