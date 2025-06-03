@@ -41,8 +41,31 @@ class FrogsterFarmer extends BaseFarmer
                 $this->tryToJoinTelegramLink('https://t.me/FrogsterChat');
             }
 
+
+            /** Complete one task */
+            $tasks = $this->getApi()->get('https://frogster.app/api/tasks')->collect();
+            $ownTasks = $this->getApi()->get('https://frogster.app/api/tasks/own')->collect();
+
+            $completedTasks = $ownTasks->pluck('id');
+            $availableTasks = $tasks->filter(
+                fn($item) => !$completedTasks->contains($item['id']) && !isset($item['tag'])
+            );
+
+            $uncompletedTasks = $availableTasks->filter(
+                fn($item) => $this->validateTelegramTask($item['url'] ?? null)
+            );
+
+            if ($uncompletedTasks->isNotEmpty()) {
+                $task = $uncompletedTasks->random();
+                $this->tryToJoinTelegramLink($task['url'] ?? null);
+                $this->getApi()->get('https://frogster.app/api/tasks/assign/' . $task['id']);
+            }
+
+
             /** Claim */
             $this->getApi()->post('https://frogster.app/api/wallets/claim-ton-new?claim_plan_type=1');
+
+
         } catch (\Throwable $e) {
             /** Log Error */
             $this->logError($e);
