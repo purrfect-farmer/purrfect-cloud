@@ -61,7 +61,7 @@ class VoxelFarmer extends BaseFarmer
                 $mission = $missions->random();
 
                 /** Join Telegram Link */
-                $this->tryToJoinTelegramLink($mission['StartLink']);
+                $this->tryToJoinTelegramLink($mission['StartLink'] ?? null);
 
                 /** Complete Task */
                 $api->timeout(60)->post('https://api.voxelplay.app/voxel/mission-verify', [
