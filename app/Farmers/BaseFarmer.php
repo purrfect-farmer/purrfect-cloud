@@ -3,6 +3,8 @@ namespace App\Farmers;
 
 use App\Libraries\TelegramClient;
 use App\Models\Farmer;
+use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Sleep;
@@ -30,16 +32,11 @@ abstract class BaseFarmer
         /** Set Auth */
         if ($this->shouldSetAuth) {
             try {
-                $this->setAuth();
+                $this->setAuth()->save();
             } catch (\Throwable $e) {
                 /** Log Error */
                 $this->logError($e);
             }
-        }
-
-        /** Save Farmer */
-        if ($this->farmer->isDirty()) {
-            $this->farmer->save();
         }
     }
 
@@ -114,7 +111,25 @@ abstract class BaseFarmer
      */
     protected function getApi()
     {
-        return $this->getBaseApi()->replaceHeaders($this->farmer->headers);
+        return $this->getBaseApi()
+            ->replaceHeaders($this->farmer->headers)
+            ->retry(2, 0, function (\Exception $exception, PendingRequest $request) {
+                if (
+                    !$exception instanceof RequestException ||
+                    !$exception->response->status() ||
+                    !method_exists($this, 'setAuth')
+                ) {
+                    return false;
+                }
+
+                /** Set Auth */
+                $this->setAuth()->save();
+
+                /** Replace Headers */
+                $request->replaceHeaders($this->farmer->headers);
+
+                return true;
+            });
     }
 
     /**
@@ -221,21 +236,11 @@ abstract class BaseFarmer
         }
     }
 
-    /** Refetch Auth or Disconnect */
-    protected function refetchAuthOrDisconnect()
+    /** Disconnect Farmer */
+    protected function disconnect()
     {
         try {
-            if ($this->farmer->account->session_id) {
-                try {
-                    if (method_exists($this, 'setAuth')) {
-                        /** Update Auth */
-                        $this->setAuth()->save();
-                    }
-                } catch (\Throwable $e) {
-                    /** Log Error */
-                    $this->logError($e);
-                }
-            } else {
+            if (!$this->farmer->account->session_id) {
                 /** Disconnect */
                 $this->farmer->disconnect();
             }

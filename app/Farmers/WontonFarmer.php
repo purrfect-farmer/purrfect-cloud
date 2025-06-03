@@ -205,8 +205,8 @@ class WontonFarmer extends BaseFarmer
             /** Log Error */
             $this->logError($e);
 
-            /** Refetch Auth or Disconnect Farmer */
-            $this->refetchAuthOrDisconnect();
+            /** Disconnect Farmer */
+            $this->disconnect();
         }
     }
 }
