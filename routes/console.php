@@ -34,7 +34,9 @@ collect(config('farmer.drops'))
     ->filter(fn($drop) => $drop['enabled'])
     ->each(
         function ($drop, $key) {
-            $event = Schedule::command('farm:' . $key);
+            $event = Schedule::command('farm:' . $key)
+                ->withoutOverlapping(20)
+                ->onOneServer();
 
             if (config('farmer.run_in_background')) {
                 $event->runInBackground();
