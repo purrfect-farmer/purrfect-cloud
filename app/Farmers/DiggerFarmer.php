@@ -11,6 +11,8 @@ class DiggerFarmer extends BaseFarmer
 
     protected $delay = 1;
 
+    protected $shouldSetAuth = true;
+
     const CHEST_TYPES = [
         7 => 'usdt_chest',
         3 => 'adamant_chest',
