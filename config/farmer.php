@@ -114,7 +114,8 @@ return [
             'title' => '👨‍🍳 Wonton Farmer',
             'enabled' => env('FARMER_WONTON_ENABLED', true),
             'thread_id' => env('FARMER_WONTON_THREAD_ID', ''),
-            'telegram_link' => 'https://t.me/WontonOrgBot/gameapp?startapp=referralCode=K45JQRG7'
+            'telegram_link' => 'https://t.me/WontonOrgBot/gameapp?startapp=referralCode=K45JQRG7',
+            'interval' => 'everyThirtyMinutes'
         ],
         'funatic' => [
             'title' => '🤡 Funatic Farmer',
