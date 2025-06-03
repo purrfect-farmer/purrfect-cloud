@@ -50,6 +50,13 @@ return [
     ],
 
     'drops' => [
+        'voxel' => [
+            'title' => '🔲 Voxel Farmer',
+            'enabled' => env('FARMER_VOXEL_ENABLED', true),
+            'thread_id' => env('FARMER_VOXEL_THREAD_ID', ''),
+            'telegram_link' => 'https://t.me/voxel_verse_bot/app?startapp=1147265290',
+            'interval' => 'everyThirtyMinutes'
+        ],
         'digger' => [
             'title' => '🏴‍☠️ Digger Farmer',
             'enabled' => env('FARMER_DIGGER_ENABLED', true),
