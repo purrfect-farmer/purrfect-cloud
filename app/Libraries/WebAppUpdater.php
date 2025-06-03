@@ -7,47 +7,51 @@ use Illuminate\Support\Facades\Log;
 
 class WebAppUpdater
 {
+    protected TelegramClient $client;
     public function __construct(protected Account $account)
     {
+        $this->client = TelegramClient::session($this->account->session_id);
+    }
+
+    protected function updateFarmersWebAppData()
+    {
+        /** Update Farmers */
+        $this->account->farmers->each(function (Farmer $farmer) {
+            /** Get Config */
+            $config = config('farmer.drops')[$farmer->farmer] ?? null;
+
+            if (!$config) {
+                return;
+            }
+
+            /** Get Web App Data */
+            $data = $this->client->getTelegramData($config['telegram_link']);
+
+            try {
+                /** Update TelegramWebApp */
+                $farmer->update([
+                    'is_connected' => true,
+                    'telegram_web_app' => [
+                        'initData' => $data['initData']
+                    ]
+                ]);
+            } catch (\Throwable $e) {
+                /** Log Error */
+                $this->logError(
+                    title: 'SAVING WEB_APP_DATA',
+                    config: $config,
+                    error: $e
+                );
+            }
+        });
     }
 
     public function process()
     {
         try {
-            $api = TelegramClient::session($this->account->session_id);
             try {
-                /** Update Farmers */
-                $this->account->farmers->each(function (Farmer $farmer) use ($api) {
-                    /** Get Config */
-                    $config = config('farmer.drops')[$farmer->farmer] ?? null;
-
-                    if (!$config) {
-                        return;
-                    }
-
-                    /** Get Web App Data */
-                    $data = $api->getTelegramData($config['telegram_link']);
-
-                    try {
-                        /** Update TelegramWebApp */
-                        $farmer->update([
-                            'is_connected' => true,
-                            'telegram_web_app' => [
-                                'initData' => $data['initData']
-                            ]
-                        ]);
-                    } catch (\Throwable $e) {
-                        /** Log Error */
-                        $this->logError(
-                            title: 'SAVING WEB_APP_DATA',
-                            config: $config,
-                            error: $e
-                        );
-                    }
-                });
-
                 /** Get User Details */
-                $data = $api->getTelegramData(
+                $data = $this->client->getTelegramData(
                     config('farmer.farmer_bot_link')
                 );
 
@@ -68,10 +72,24 @@ class WebAppUpdater
                 }
 
 
+                /** Update Farmers Status */
+                try {
+                    $this->account->farmers()
+                        ->where('is_connected', false)
+                        ->each(function (Farmer $farmer) {
+                            $farmer->update(['is_connected' => true]);
+                        });
+                } catch (\Throwable $e) {
+                    /** Log Error */
+                    $this->logError(
+                        title: 'UPDATING FARMERS STATUS',
+                        error: $e
+                    );
+                }
             } catch (\Throwable $e) {
                 /** Logout */
                 try {
-                    $api->logout();
+                    $this->client->logout();
                 } catch (\Throwable $e) {
                     /** Log Error */
                     $this->logError(

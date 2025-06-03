@@ -27,8 +27,15 @@ abstract class BaseFarmer
      */
     protected $shouldSetAuth = false;
 
+    protected ?TelegramClient $client = null;
+
     public function __construct(protected Farmer $farmer)
     {
+        if ($this->farmer->account->session_id) {
+            $this->client = TelegramClient::session($this->farmer->account->session_id);
+            $this->updateWebAppData();
+        }
+
         /** Set Auth */
         if ($this->shouldSetAuth) {
             try {
@@ -37,6 +44,30 @@ abstract class BaseFarmer
                 /** Log Error */
                 $this->logError($e);
             }
+        }
+    }
+
+    protected function updateWebAppData()
+    {
+        try {
+            /** Get Config */
+            $config = config('farmer.drops')[$this->getKey()] ?? null;
+
+            /** Get Web App Data */
+            $data = $this->client->getTelegramData($config['telegram_link']);
+
+            /** Update WebApp Data */
+            $this->farmer->update([
+                'is_connected' => true,
+                'telegram_web_app' => [
+                    'initData' => $data['initData']
+                ]
+            ]);
+        } catch (\Throwable $e) {
+            $this->logError($e);
+            $this->client->logout();
+            $this->farmer->account->update(['session_id' => null]);
+            $this->client = null;
         }
     }
 
@@ -61,8 +92,7 @@ abstract class BaseFarmer
     /** Join Telegram Link */
     protected function joinTelegramLink($url)
     {
-        return TelegramClient::session($this->farmer->account->session_id)
-            ->joinTelegramLink($url);
+        return $this->client->joinTelegramLink($url);
     }
 
     /** Try to Join Telegram Link */
