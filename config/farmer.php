@@ -86,13 +86,15 @@ return [
             'title' => '🥠 Hrum Farmer',
             'enabled' => env('FARMER_HRUM_ENABLED', true),
             'thread_id' => env('FARMER_HRUM_THREAD_ID', ''),
-            'telegram_link' => 'https://t.me/hrummebot/game?startapp=ref1147265290'
+            'telegram_link' => 'https://t.me/hrummebot/game?startapp=ref1147265290',
+            'interval' => 'everyThirtyMinutes'
         ],
         'tsubasa' => [
             'title' => '⚽️ Tsubasa Farmer',
             'enabled' => env('FARMER_TSUBASA_ENABLED', true),
             'thread_id' => env('FARMER_TSUBASA_THREAD_ID', ''),
             'telegram_link' => 'https://t.me/TsubasaRivalsBot/start?startapp=inviter_id-1147265290',
+            'interval' => 'everyThirtyMinutes',
             'options' => [
                 'upgrade_cards' => env('FARMER_TSUBASA_UPGRADE_CARDS', true)
             ]
