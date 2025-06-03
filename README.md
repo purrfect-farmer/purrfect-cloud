@@ -394,10 +394,11 @@ pm2 reload ecosystem.config.cjs
 ```
 
 ### Concurrency
-By default farmers run sequentially, if you want them to run at the same time (e.g you have enough memory), simply set `FARMER_RUN_IN_BACKGROUND` to `true` inside `.env` file.
+By default farmers run sequentially, if you want them to run at the same time (e.g you have enough memory), simply set `FARMER_USE_SINGLE_COMMAND` to `false` and set `FARMER_RUN_IN_BACKGROUND` to `true` inside `.env` file.
 
 Entry | Value
 --- | ---
+`FARMER_USE_SINGLE_COMMAND` | `false`
 `FARMER_RUN_IN_BACKGROUND` | `true`
 
 ### Proxy (Optional)

@@ -30,22 +30,28 @@ Schedule::command('farmer:update-web-app-data')
     ->everyTenMinutes();
 
 /** Farm enabled drops every 10 minutes */
-collect(config('farmer.drops'))
-    ->filter(fn($drop) => $drop['enabled'])
-    ->each(
-        function ($drop, $key) {
-            $event = Schedule::command('farm:' . $key)
-                ->withoutOverlapping(20)
-                ->onOneServer();
+if (config('farmer.use_single_command')) {
+    Schedule::command('farm:all')->withoutOverlapping()
+        ->onOneServer()
+        ->everyTenMinutes();
+} else {
+    collect(config('farmer.drops'))
+        ->filter(fn($drop) => $drop['enabled'])
+        ->each(
+            function ($drop, $key) {
+                $event = Schedule::command('farm:' . $key)
+                    ->withoutOverlapping()
+                    ->onOneServer();
 
-            if (config('farmer.run_in_background')) {
-                $event->runInBackground();
-            }
+                if (config('farmer.run_in_background')) {
+                    $event->runInBackground();
+                }
 
-            if (isset($drop['interval']) && method_exists($event, $drop['interval'])) {
-                $event->{$drop['interval']}();
-            } else {
-                $event->everyTenMinutes();
+                if (isset($drop['interval']) && method_exists($event, $drop['interval'])) {
+                    $event->{$drop['interval']}();
+                } else {
+                    $event->everyTenMinutes();
+                }
             }
-        }
-    );
+        );
+}

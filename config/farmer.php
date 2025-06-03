@@ -36,6 +36,8 @@ return [
     'enable_payments' => env('FARMER_ENABLE_PAYMENTS', false),
     'subscription_amount' => env('FARMER_SUBSCRIPTION_AMOUNT', 1550),
 
+    'use_single_command' => env('FARMER_USE_SINGLE_COMMAND', true),
+
     'concurrency_enabled' => env('FARMER_CONCURRENCY_ENABLED', true),
     'concurrency_chunk' => env('FARMER_CONCURRENCY_CHUNK', true),
     'concurrency_size' => env('FARMER_CONCURRENCY_SIZE', 100),
