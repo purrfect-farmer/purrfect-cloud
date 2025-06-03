@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Sleep;
 use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 
 abstract class BaseFarmer
 {
@@ -176,10 +177,7 @@ abstract class BaseFarmer
                 /** Log API Call */
                 if (config('farmer.log_api_calls')) {
                     /** Log Info */
-                    Log::info($this->getTitle() . ' API Call', [
-                        'title' => $this->farmer->getFarmerTitle(),
-                        'user_id' => $this->farmer->user_id ?? null,
-                        'username' => $this->farmer->getInitDataUnsafe()['user']['username'] ?? null,
+                    $this->logInfo('API Call', [
                         'method' => (string) $request->getMethod(),
                         'uri' => (string) $request->getUri(),
                         'body' => (string) $request->getBody(),
@@ -190,6 +188,19 @@ abstract class BaseFarmer
                 /** Return Request */
                 return $request;
             })
+            ->withResponseMiddleware(function (ResponseInterface $response) {
+                /** Log API Response */
+                if (config('farmer.log_api_calls')) {
+                    /** Log Info */
+                    $this->logInfo('API Response', [
+                        'status' => $response->getStatusCode(),
+                        'headers' => $response->getHeaders(),
+                        'body' => (string) $response->getBody()
+                    ]);
+                }
+
+                return $response;
+            })
             ->replaceHeaders(
                 $this->getBaseHeaders()
             )
@@ -199,6 +210,24 @@ abstract class BaseFarmer
             ->withUserAgent(
                 $this->farmer->getUserAgent()
             );
+    }
+
+    /**
+     * Log Info
+     * @param string $title
+     * @param array $data
+     * @return void
+     */
+    protected function logInfo($title, $data = [])
+    {
+        Log::info($this->getTitle() . ' ' . $title, array_merge(
+            [
+                'title' => $this->farmer->getFarmerTitle(),
+                'user_id' => $this->farmer->user_id ?? null,
+                'username' => $this->farmer->getInitDataUnsafe()['user']['username'] ?? null,
+            ],
+            $data
+        ));
     }
 
 
