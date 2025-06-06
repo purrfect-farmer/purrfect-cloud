@@ -356,7 +356,7 @@ class SpaceAdventureFarmer extends BaseFarmer
         $nonce = $uuid . '-' . $timestamp;
         $sign = $this->getXSRFSign($xsrf, $timestamp);
 
-        $data = implode(":", [$timestamp, $accessToken, $nonce, $timestamp, $sign]);
+        $data = implode(":", [$timestamp, $timestamp, $accessToken, $nonce, $sign]);
         $signature = hash(
             "sha256",
             $data
