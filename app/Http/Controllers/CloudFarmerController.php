@@ -27,8 +27,17 @@ class CloudFarmerController extends Controller
             ->first();
 
         return [
-            'account' => $account,
-            'subscription' => $account->activeSubscription ?? null
+            'account' => $account ? [
+                'id' => $account->user_id,
+                'title' => $account->getFarmerTitle(),
+                'session' => $account->session_id,
+                'proxy' => $account->proxy,
+                'user' => $account->data['user'] ?? null,
+            ] : null,
+            'subscription' => $account->activeSubscription ? [
+                'startsAt' => $account->activeSubscription->starts_at,
+                'endsAt' => $account->activeSubscription->ends_at,
+            ] : null
         ];
     }
 
@@ -45,7 +54,7 @@ class CloudFarmerController extends Controller
             /** Get Farmer */
             $farmer = Farmer::with('subscription')
                 ->farmer($validated['farmer'])
-                ->userId($validated['user_id'])
+                ->userId($validated['userId'])
                 ->first();
 
             /** Update Farmer */
@@ -54,7 +63,7 @@ class CloudFarmerController extends Controller
                     /** Update Account */
                     $this->updateAccount(
                         $farmer->account,
-                        $validated['telegram_web_app']
+                        $validated
                     );
 
                     return tap($farmer)->update(
@@ -66,14 +75,14 @@ class CloudFarmerController extends Controller
             } else {
                 /** Get Account */
                 $account = Account::subscribed()
-                    ->where('user_id', $validated['user_id'])
+                    ->where('user_id', $validated['userId'])
                     ->first();
 
                 if ($account) {
                     /** Update Account */
                     $this->updateAccount(
                         $account,
-                        $validated['telegram_web_app']
+                        $validated
                     );
 
                     /** Create Farmer */
@@ -95,42 +104,34 @@ class CloudFarmerController extends Controller
     public function farmers()
     {
         $displayTitle = config('farmer.display_farmer_title');
-        $list = Farmer::with('account')
+        $list = Account::with('farmers')
             ->subscribed()
             ->get()
-            ->groupBy('farmer')
-            ->map(fn($list) => [
-                'total' => $list->count(),
-                'users' => $list->map(
-                    fn($farmer) => array_merge(
-                        [
-                            'id' => $farmer->id,
-                            'is_connected' => $farmer->is_connected,
-                            'session_id' => $farmer->account->session_id,
-                            'user_id' => $farmer->user_id,
-                            'username' => strval($farmer->getUsername() ?? $farmer->user_id),
-                            'photo_url' => $farmer->getPhotoUrl(),
-                            'updated_at' => $farmer->updated_at
-                        ],
-                        $displayTitle ? [
-                            'title' => $farmer->getFarmerTitle(),
-                        ] : []
-                    )
-                )
-                    ->sortBy($displayTitle ? 'title' : 'username')
-                    ->values()
-            ]);
+            ->map(fn($account) => array_merge(
+                [
+                    'id' => $account->user_id,
+                    'user' => $account->data['user'] ?? null,
+                    'session' => $account->session_id,
+                    'proxy' => $account->proxy,
+                    'farmers' => $account->farmers->map(fn($farmer) => [
+                        'id' => $farmer->id,
+                        'farmer' => $farmer->farmer,
+                        'active' => $farmer->is_connected,
+                    ])
+                ],
+                $displayTitle ? ['title' => $account->getFarmerTitle()] : []
+            ));
 
         return $list;
     }
 
     /**
      *  Disconnect Farmer
-     * @param \App\Models\Farmer $farmer
      * @return mixed|\Illuminate\Http\Response
      */
-    public function disconnect(Farmer $farmer)
+    public function disconnect(Request $request)
     {
+        $farmer = Farmer::findOrFail($request->id);
         /** Delete the Farmer */
         $farmer->delete();
 
@@ -140,14 +141,14 @@ class CloudFarmerController extends Controller
     /**
      * Update Account
      * @param \App\Models\Account $account
-     * @param array $data
+     * @param string $data
      * @return void
      */
     protected function updateAccount(Account $account, $data)
     {
         $account->update([
             'data' => array_merge($account->data ?? [], [
-                'farmerTitle' => $data['farmerTitle'] ?? 'TGUser',
+                'farmerTitle' => $data['title'] ?? 'TGUser',
                 'user' => Helpers::getWebAppData($data['initData'])['user']
             ])
         ]);
@@ -160,7 +161,7 @@ class CloudFarmerController extends Controller
             'farmer' => $validated['farmer'],
             'headers' => $validated['headers'],
             'telegram_web_app' => [
-                'initData' => $validated['telegram_web_app']['initData']
+                'initData' => $validated['initData']
             ],
             'is_connected' => true,
         ];
@@ -178,8 +179,9 @@ class CloudFarmerController extends Controller
                         ->keys()
                 )
             ],
-            'user_id' => ['required', 'integer'],
-            'telegram_web_app' => ['required', 'array'],
+            'userId' => ['required', 'integer'],
+            'initData' => ['required', 'string'],
+            'title' => ['required', 'string'],
             'headers' => ['required', 'array']
         ]);
     }

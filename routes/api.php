@@ -15,8 +15,8 @@ Route::get('server', function () {
         'farmers' => collect(config('farmer.drops'))
             ->filter(fn($drop) => $drop['enabled'])
             ->keys(),
-        'is_payments_enabled' => config('farmer.enable_payments'),
-        'is_telegram_sessions_enabled' => config('farmer.enable_telegram_sessions')
+        'isPaymentsEnabled' => config('farmer.enable_payments'),
+        'isTelegramSessionsEnabled' => config('farmer.enable_telegram_sessions')
     ];
 });
 
@@ -46,19 +46,22 @@ Route::middleware('feature:farmer.enable_telegram_sessions')
     });
 
 /** Authenticated Routes */
-Route::middleware(['auth:sanctum'])
+Route::prefix('manager')
     ->group(function () {
-        Route::get('/farmers', [CloudFarmerController::class, 'farmers']);
-        Route::post('/farmers/{farmer}/disconnect', [CloudFarmerController::class, 'disconnect']);
+        require __DIR__ . '/auth.php';
 
-        Route::get('/members', [AccountController::class, 'index']);
-        Route::post('/members/{id}/kick', [AccountController::class, 'kick']);
-        Route::post('/members/subscription', [AccountController::class, 'subscription']);
+        Route::middleware(['auth:sanctum'])->group(function () {
+            Route::get('/farmers', [CloudFarmerController::class, 'farmers']);
+            Route::post('/farmers/disconnect', [CloudFarmerController::class, 'disconnect']);
 
-        Route::get('/user', function (Request $request) {
-            return $request->user();
+            Route::get('/members', [AccountController::class, 'index']);
+            Route::post('/members/kick', [AccountController::class, 'kick']);
+            Route::post('/members/subscription', [AccountController::class, 'subscription']);
+
+            Route::get('/user', function (Request $request) {
+                return $request->user();
+            });
         });
     });
 
 
-require __DIR__ . '/auth.php';
