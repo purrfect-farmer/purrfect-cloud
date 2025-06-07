@@ -8,6 +8,8 @@ use App\Models\Payment;
 use App\Models\Subscription;
 use App\Models\User;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\File;
+use SplFileInfo;
 
 class ExportToFly extends Command
 {
@@ -67,7 +69,26 @@ class ExportToFly extends Command
             'updatedAt' => $farmer->updated_at,
         ]);
 
-        $result = json_encode(compact('accounts', 'subscriptions', 'payments', 'farmers'), JSON_PRETTY_PRINT);
-        file_put_contents(storage_path('app/fly-backup.json'), $result);
+        $sessions = collect(File::allFiles(base_path('gramjs/sessions')))
+            ->map(fn(SplFileInfo $file) => [
+                'name' => $file->getFilename(),
+                'content' => File::get($file->getRealPath())
+            ]);
+
+        $result = json_encode(
+            compact(
+                'accounts',
+                'subscriptions',
+                'payments',
+                'farmers',
+                'sessions'
+            ),
+            JSON_PRETTY_PRINT
+        );
+
+        $path = storage_path('app/fly-backup.json');
+        File::put($path, $result);
+
+        $this->info('Backup successfully created: ' . $path);
     }
 }
