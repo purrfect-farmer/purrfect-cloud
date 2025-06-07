@@ -71,7 +71,7 @@ class FrogsterFarmer extends BaseFarmer
 
             if ($lastClaimDate->lessThan($anHourAgo)) {
                 $this->getApi()->post(
-                    'https://frogster.app/api/wallets/claim-ton-new?claim_plan_type=1'
+                    'https://frogster.app/api/wallets/claim?claim_plan_type=1&currency=TON'
                 );
             }
 

@@ -46,15 +46,15 @@ class SlotcoinFarmer extends BaseFarmer
             $energy = intval($info['user']['spins']);
             $bid = intval($info['user']['bid']);
 
-            while ($energy >= $bid || $ticketsCount > 0) {
-                if ($ticketsCount > 0) {
-                    /** Subtract Ticket */
-                    $ticketsCount -= 1;
+            while ($ticketsCount > 0) {
+                /** Subtract Ticket */
+                $ticketsCount -= 1;
 
-                    /** Spin Ticket */
-                    $this->getApi()->post('https://api.slotcoin.app/v1/clicker/daily/spin');
-                }
+                /** Spin Ticket */
+                $this->getApi()->post('https://api.slotcoin.app/v1/clicker/daily/spin');
+            }
 
+            while ($energy >= $bid) {
                 /** Deduct Energy */
                 $energy -= $bid;
 
