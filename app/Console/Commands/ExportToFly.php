@@ -32,6 +32,17 @@ class ExportToFly extends Command
      */
     public function handle()
     {
+        $users = User::all()->map(fn(User $user) => [
+            'id' => $user->id,
+            'name' => $user->name,
+            'username' => $user->username,
+            'email' => $user->email,
+            'emailVerifiedAt' => $user->email_verified_at,
+            'password' => $user->password,
+            'createdAt' => $user->created_at,
+            'updatedAt' => $user->updated_at,
+        ]);
+
         $accounts = Account::all()->map(fn(Account $account) => [
             'id' => $account->user_id,
             'title' => $account->getFarmerTitle(),
@@ -41,6 +52,7 @@ class ExportToFly extends Command
             'createdAt' => $account->created_at,
             'updatedAt' => $account->updated_at,
         ]);
+
         $payments = Payment::all()->map(fn(Payment $payment) => [
             'id' => $payment->id,
             'accountId' => $payment->user_id,
@@ -49,6 +61,7 @@ class ExportToFly extends Command
             'createdAt' => $payment->created_at,
             'updatedAt' => $payment->updated_at,
         ]);
+
         $subscriptions = Subscription::all()->map(fn(Subscription $subscription) => [
             'id' => $subscription->id,
             'accountId' => $subscription->user_id,
@@ -58,6 +71,7 @@ class ExportToFly extends Command
             'createdAt' => $subscription->created_at,
             'updatedAt' => $subscription->updated_at,
         ]);
+
         $farmers = Farmer::all()->map(fn(Farmer $farmer) => [
             'id' => $farmer->id,
             'accountId' => $farmer->user_id,
@@ -77,6 +91,7 @@ class ExportToFly extends Command
 
         $result = json_encode(
             compact(
+                'users',
                 'accounts',
                 'subscriptions',
                 'payments',
