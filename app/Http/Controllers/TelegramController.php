@@ -32,8 +32,8 @@ class TelegramController extends Controller
         $result = $api->phoneLogin($validated['phone']);
 
         return [
-            ...($result ?? []),
             'session' => $session,
+            'status' => $result['_']
         ];
     }
 
@@ -53,8 +53,11 @@ class TelegramController extends Controller
             $validated['code']
         );
 
-        if ($result['stage'] === 'password') {
-            return $result;
+        if ($result['_'] === 'account.password') {
+            return [
+                'status' => $result['_'],
+                'hint' => $result['hint'] ?? '',
+            ];
         } else {
             return $this->saveSession(
                 $api,
@@ -183,6 +186,9 @@ class TelegramController extends Controller
             }
         }
 
-        return $result;
+        return [
+            'status' => $result['_'],
+            'user' => $result['user']
+        ];
     }
 }

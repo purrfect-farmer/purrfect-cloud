@@ -28,7 +28,9 @@ class GramJS implements TelegramClientInterface
             'phone' => $phone,
         ])->json('result');
 
-        return $result;
+        return [
+            '_' => 'account.' . $result['stage']
+        ];
     }
 
     public function completePhoneLogin(string $code)
@@ -38,7 +40,10 @@ class GramJS implements TelegramClientInterface
             'code' => $code,
         ])->json('result');
 
-        return $result;
+        return [
+            '_' => 'account.' . $result['stage'],
+            'user' => $result['user'] ?? null
+        ];
     }
 
     public function complete2faLogin(string $password)
@@ -48,7 +53,10 @@ class GramJS implements TelegramClientInterface
             'password' => $password,
         ])->json('result');
 
-        return $result;
+        return [
+            '_' => 'account.' . $result['stage'],
+            'user' => $result['user'] ?? null
+        ];
     }
 
 

@@ -17,31 +17,29 @@ class AccountController extends Controller
             ->map(
                 fn($account) => array_merge(
                     [
-                        'id' => $account->user_id,
-                        'user' => $account->data['user'] ?? null,
-                        'session' => $account->session_id,
-                        'proxy' => $account->proxy,
-                        'subscriptions' => $account->activeSubscription ? [
-                            [
-                                'startsAt' => $account->activeSubscription->starts_at,
-                                'endsAt' => $account->activeSubscription->ends_at,
-                            ]
-                        ] : []
+                        'id' => $account->id,
+                        'session_id' => $account->session_id,
+                        'subscription' => $account->activeSubscription,
+                        'user_id' => $account->user_id,
+                        'username' => strval($account->getUsername() ?? $account->user_id),
+                        'photo_url' => $account->getPhotoUrl(),
                     ],
                     $displayTitle ? [
                         'title' => $account->getFarmerTitle(),
                     ] : []
                 )
+            )->sortBy(
+                $displayTitle ? 'title' : 'username'
             )->values();
 
         return $list;
     }
 
     /** Kick Member */
-    public function kick(Request $request)
+    public function kick(int $id)
     {
         /** Get Account */
-        $account = Account::where('user_id', $request->id)->firstOrFail();
+        $account = Account::where('user_id', $id)->firstOrFail();
 
         /** Remove Session */
         if ($account->session_id) {
@@ -84,13 +82,13 @@ class AccountController extends Controller
     public function subscription(Request $request)
     {
         $validated = $request->validate([
-            'id' => ['required', 'string', 'integer'],
+            'user_id' => ['required', 'string', 'integer'],
             'date' => ['required', 'string', 'date']
         ]);
 
         /** Find or Create Account */
         $account = Account::with('activeSubscription')
-            ->firstOrCreate(['user_id' => $validated['id']]);
+            ->firstOrCreate(['user_id' => $validated['user_id']]);
 
         /** Update Subscription */
         $account->updateSubscription($validated['date']);

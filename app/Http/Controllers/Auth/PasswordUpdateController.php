@@ -13,13 +13,13 @@ class PasswordUpdateController extends Controller
     {
         /** Input */
         $input = $request->validate([
-            'currentPassword' => ['required', 'string', 'currentPassword'],
-            'newPassword' => ['required', 'string', Rules\Password::defaults()],
+            'current_password' => ['required', 'string', 'current_password'],
+            'new_password' => ['required', 'string', Rules\Password::defaults()],
         ]);
 
         /** Update Password */
         $request->user()->forceFill([
-            'password' => Hash::make($input['newPassword']),
+            'password' => Hash::make($input['new_password']),
         ])->save();
 
         return response()->noContent();
