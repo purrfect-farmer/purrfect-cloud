@@ -1,3 +1,10 @@
+## Archived
+
+This repo has been replaced by our monorepo:  
+**https://github.com/purrfect-farmer/purrfect-farmer**
+
+All future updates will happen there.
+
 <p align="center"><a href="https://t.me/purrfect_community" target="_blank"><img src="resources/images/icon.png" width="192" alt="Purrfect Logo"></a></p>
 
 <h1 align="center">Purrfect Cloud</h1>
